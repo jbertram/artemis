@@ -100,16 +100,28 @@ public abstract class URISchema<T, P> {
       BeanSupport.setData(uri, bean, query);
    }
 
-   public static Map<String, String> parseQuery(String uri,
-                                                Map<String, String> propertyOverrides) {
+   /**
+    * Parses a query string into a map of key-value pairs, with the option to override or add additional properties
+    * through a provided map of property overrides.
+    *
+    * @param query             The query string to parse. This is typically formatted as key-value pairs separated by
+    *                          "&", where each key-value pair is in the format "key=value". If a key has no associated
+    *                          value, it will be added to the map with a value of null. This should be the
+    *                          <b>decoded</b> query (e.g. from <code>java.net.URI#getQuery()</code>).
+    * @param propertyOverrides A map containing properties that should override or be added to the resulting map from
+    *                          the parsed query string. If the same key exists in both the query string and the
+    *                          propertyOverrides map, the value from propertyOverrides will take precedence.
+    * @return A map containing the parsed key-value pairs from the query string, with any overrides applied.
+    */
+   public static Map<String, String> parseQuery(String query, Map<String, String> propertyOverrides) {
       Map<String, String> rc = new HashMap<>();
-      if (uri != null && !uri.isEmpty()) {
-         String[] parameters = uri.split("&");
+      if (query != null && !query.isEmpty()) {
+         String[] parameters = query.split("&");
          for (String parameter : parameters) {
             int p = parameter.indexOf("=");
             if (p >= 0) {
-               String name = BeanSupport.decodeURI(parameter.substring(0, p));
-               String value = BeanSupport.decodeURI(parameter.substring(p + 1));
+               String name = parameter.substring(0, p);
+               String value = parameter.substring(p + 1);
                rc.put(name, value);
             } else {
                if (!parameter.trim().isEmpty()) {

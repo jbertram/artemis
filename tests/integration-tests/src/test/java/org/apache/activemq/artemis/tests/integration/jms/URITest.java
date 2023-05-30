@@ -16,14 +16,18 @@
  */
 package org.apache.activemq.artemis.tests.integration.jms;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Map;
 
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
 import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.apache.activemq.artemis.api.jms.ActiveMQJMSClient;
 import org.apache.activemq.artemis.core.client.impl.ServerLocatorImpl;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.apache.activemq.artemis.utils.RandomUtil;
+import org.apache.activemq.artemis.utils.uri.URISchema;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class URITest {
 
@@ -43,4 +47,11 @@ public class URITest {
 
    }
 
+   @Test
+   public void testDoubleDecode() {
+      final String key = RandomUtil.randomUUIDString();
+      final String value = "ENC(C2dKkB+LFCubibbFRHjHXA==)";
+      Map<String, String> queryParameters = URISchema.parseQuery(key + "=" + value, null);
+      assertEquals(value, queryParameters.get(key));
+   }
 }
