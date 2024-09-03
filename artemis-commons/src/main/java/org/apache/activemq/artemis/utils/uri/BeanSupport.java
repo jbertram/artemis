@@ -110,6 +110,7 @@ public class BeanSupport {
          for (PropertyDescriptor descriptor : descriptors) {
             if (descriptor.getReadMethod() != null && isWriteable(descriptor, null)) {
                String value = properties.getProperty(descriptor.getName());
+               System.out.println("Setting: " + descriptor + ": " + value);
                if (value != null) {
                   beanUtils.setProperty(bean, descriptor.getName(), value);
                }

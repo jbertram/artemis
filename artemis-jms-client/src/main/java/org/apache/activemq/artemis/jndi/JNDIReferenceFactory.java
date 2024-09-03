@@ -82,6 +82,7 @@ public class JNDIReferenceFactory implements ObjectFactory {
          Properties props = po.getProperties();
          for (Enumeration iter = props.propertyNames(); iter.hasMoreElements();) {
             String key = (String)iter.nextElement();
+            System.out.println("adding: " + key + "; value: " + props.getProperty(key));
             result.add(new StringRefAddr(key, props.getProperty(key)));
          }
       } catch (Exception e) {

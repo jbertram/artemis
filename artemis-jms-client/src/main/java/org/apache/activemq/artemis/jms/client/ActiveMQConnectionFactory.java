@@ -284,6 +284,7 @@ public class ActiveMQConnectionFactory extends JNDIStorable implements Connectio
     * all the settings on the ConnectionFactory.
     */
    public String getBrokerURL() {
+      new Exception(brokerURL).printStackTrace();
       return brokerURL;
    }
 
