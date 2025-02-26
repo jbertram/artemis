@@ -38,6 +38,8 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.activemq.artemis.api.config.ServerLocatorConfig;
 import org.apache.activemq.artemis.api.core.ActiveMQException;
@@ -112,6 +114,8 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
 
    private final Set<ClientSessionFactoryInternal> connectingFactories = new HashSet<>();
 
+   private final Lock connectingFactoriesGuard = new ReentrantLock();
+
    private volatile TransportConfiguration[] initialConnectors;
 
    private final DiscoveryGroupConfiguration discoveryGroupConfiguration;
@@ -120,7 +124,7 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
 
    private Topology topology;
 
-   private final Object topologyArrayGuard = new Object();
+   private final Lock topologyArrayGuard = new ReentrantLock();
 
    private volatile Pair<TransportConfiguration, TransportConfiguration>[] topologyArray;
 
@@ -148,7 +152,7 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
    // Settable attributes:
 
 
-   private final Object stateGuard = new Object();
+   private final Lock stateGuard = new ReentrantLock();
    private transient STATE state;
    private transient CountDownLatch latch;
 
@@ -167,6 +171,8 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
    private String nodeID;
 
    private TransportConfiguration clusterTransportConfiguration;
+
+   private Lock lock = new ReentrantLock();
 
    /**
     * For tests only
@@ -195,36 +201,41 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
    }
 
 
-   private synchronized void setThreadPools() {
-      if (threadPool != null) {
-         return;
-      } else if (config.useGlobalPools) {
-         threadPool = ActiveMQClient.getGlobalThreadPool();
+   private void setThreadPools() {
+      lock.lock();
+      try {
+         if (threadPool != null) {
+            return;
+         } else if (config.useGlobalPools) {
+            threadPool = ActiveMQClient.getGlobalThreadPool();
 
-         flowControlThreadPool = ActiveMQClient.getGlobalFlowControlThreadPool();
+            flowControlThreadPool = ActiveMQClient.getGlobalFlowControlThreadPool();
 
-         scheduledThreadPool = ActiveMQClient.getGlobalScheduledThreadPool();
-      } else {
-         this.shutdownPool = true;
-
-         ThreadFactory factory = getThreadFactory("client-factory-");
-         if (config.threadPoolMaxSize == -1) {
-            threadPool = Executors.newCachedThreadPool(factory);
+            scheduledThreadPool = ActiveMQClient.getGlobalScheduledThreadPool();
          } else {
-            threadPool = new ActiveMQThreadPoolExecutor(0, config.threadPoolMaxSize, 60L, TimeUnit.SECONDS, factory);
-         }
+            this.shutdownPool = true;
 
-         factory = getThreadFactory("client-factory-flow-control-");
-         if (config.flowControlThreadPoolMaxSize == -1) {
-            flowControlThreadPool = Executors.newCachedThreadPool(factory);
-         } else {
-            flowControlThreadPool = new ActiveMQThreadPoolExecutor(0, config.flowControlThreadPoolMaxSize, 60L, TimeUnit.SECONDS, factory);
-         }
+            ThreadFactory factory = getThreadFactory("client-factory-");
+            if (config.threadPoolMaxSize == -1) {
+               threadPool = Executors.newCachedThreadPool(factory);
+            } else {
+               threadPool = new ActiveMQThreadPoolExecutor(0, config.threadPoolMaxSize, 60L, TimeUnit.SECONDS, factory);
+            }
 
-         factory = getThreadFactory("client-factory-pinger-");
-         scheduledThreadPool = Executors.newScheduledThreadPool(config.scheduledThreadPoolMaxSize, factory);
+            factory = getThreadFactory("client-factory-flow-control-");
+            if (config.flowControlThreadPoolMaxSize == -1) {
+               flowControlThreadPool = Executors.newCachedThreadPool(factory);
+            } else {
+               flowControlThreadPool = new ActiveMQThreadPoolExecutor(0, config.flowControlThreadPoolMaxSize, 60L, TimeUnit.SECONDS, factory);
+            }
+
+            factory = getThreadFactory("client-factory-pinger-");
+            scheduledThreadPool = Executors.newScheduledThreadPool(config.scheduledThreadPoolMaxSize, factory);
+         }
+         this.updateArrayActor = new Actor<>(threadPool, this::internalUpdateArray);
+      } finally {
+         lock.unlock();
       }
-      this.updateArrayActor = new Actor<>(threadPool, this::internalUpdateArray);
    }
 
    private ThreadFactory getThreadFactory(String groupName) {
@@ -237,20 +248,24 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
    }
 
    @Override
-   public synchronized boolean setThreadPools(Executor threadPool, ScheduledExecutorService scheduledThreadPool, Executor flowControlThreadPool) {
+   public boolean setThreadPools(Executor threadPool, ScheduledExecutorService scheduledThreadPool, Executor flowControlThreadPool) {
+      lock.lock();
+      try {
+         if (threadPool == null || scheduledThreadPool == null)
+            return false;
 
-      if (threadPool == null || scheduledThreadPool == null)
-         return false;
-
-      if (this.threadPool == null && this.scheduledThreadPool == null && this.flowControlThreadPool == null) {
-         config.useGlobalPools = false;
-         shutdownPool = false;
-         this.threadPool = threadPool;
-         this.scheduledThreadPool = scheduledThreadPool;
-         this.flowControlThreadPool = flowControlThreadPool;
-         return true;
-      } else {
-         return false;
+         if (this.threadPool == null && this.scheduledThreadPool == null && this.flowControlThreadPool == null) {
+            config.useGlobalPools = false;
+            shutdownPool = false;
+            this.threadPool = threadPool;
+            this.scheduledThreadPool = scheduledThreadPool;
+            this.flowControlThreadPool = flowControlThreadPool;
+            return true;
+         } else {
+            return false;
+         }
+      } finally {
+         lock.unlock();
       }
    }
 
@@ -265,28 +280,36 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
    }
 
    @Override
-   public synchronized void initialize() throws ActiveMQException {
-      if (state == STATE.INITIALIZED)
-         return;
-      synchronized (stateGuard) {
-         if (state == STATE.CLOSING)
-            throw new ActiveMQIllegalStateException();
+   public void initialize() throws ActiveMQException {
+      lock.lock();
+      try {
+         if (state == STATE.INITIALIZED)
+            return;
+         stateGuard.lock();
          try {
-            state = STATE.INITIALIZED;
-            latch = new CountDownLatch(1);
+            if (state == STATE.CLOSING)
+               throw new ActiveMQIllegalStateException();
+            try {
+               state = STATE.INITIALIZED;
+               latch = new CountDownLatch(1);
 
-            setThreadPools();
+               setThreadPools();
 
-            topology.setExecutor(new OrderedExecutor(threadPool));
+               topology.setExecutor(new OrderedExecutor(threadPool));
 
-            instantiateLoadBalancingPolicy();
+               instantiateLoadBalancingPolicy();
 
-            startDiscovery();
+               startDiscovery();
 
-         } catch (Exception e) {
-            state = null;
-            throw ActiveMQClientMessageBundle.BUNDLE.failedToInitialiseSessionFactory(e);
+            } catch (Exception e) {
+               state = null;
+               throw ActiveMQClientMessageBundle.BUNDLE.failedToInitialiseSessionFactory(e);
+            }
+         } finally {
+            stateGuard.unlock();
          }
+      } finally {
+         lock.unlock();
       }
    }
 
@@ -455,16 +478,20 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
       return selectConnector(useInitConnector());
    }
 
-   private synchronized Pair<TransportConfiguration, TransportConfiguration> selectConnector(boolean useInitConnector) {
-      Pair<TransportConfiguration, TransportConfiguration>[] usedTopology;
+   private Pair<TransportConfiguration, TransportConfiguration> selectConnector(boolean useInitConnector) {
+      lock.lock();
+      try {
+         Pair<TransportConfiguration, TransportConfiguration>[] usedTopology;
 
-      flushTopology();
+         flushTopology();
 
-      synchronized (topologyArrayGuard) {
-         usedTopology = topologyArray;
-      }
+         topologyArrayGuard.lock();
+         try {
+            usedTopology = topologyArray;
+         } finally {
+            topologyArrayGuard.unlock();
+         }
 
-      synchronized (this) {
          if (usedTopology != null && config.useTopologyForLoadBalancing && !useInitConnector) {
             logger.trace("Selecting connector from topology.");
             int pos = loadBalancingPolicy.select(usedTopology.length);
@@ -482,6 +509,8 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
 
             return new Pair(initialConnectors[pos], null);
          }
+      } finally {
+         lock.unlock();
       }
    }
 
@@ -491,16 +520,22 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
 
       flushTopology();
 
-      synchronized (topologyArrayGuard) {
+      topologyArrayGuard.lock();
+      try {
          usedTopology = topologyArray;
+      } finally {
+         topologyArrayGuard.unlock();
       }
 
-      synchronized (this) {
+      lock.lock();
+      try {
          if (usedTopology != null && config.useTopologyForLoadBalancing) {
             return usedTopology.length;
          } else {
             return initialConnectors.length;
          }
+      } finally {
+         lock.unlock();
       }
    }
 
@@ -555,11 +590,14 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
       disableDiscoveryRetries = true;
       ClientSessionFactoryInternal returnFactory = null;
 
-      synchronized (this) {
+      lock.lock();
+      try {
          // static list of initial connectors
          if (getNumInitialConnectors() > 0 && discoveryGroup == null) {
             returnFactory = (ClientSessionFactoryInternal) staticConnector.connect(skipWarnings);
          }
+      } finally {
+         lock.unlock();
       }
 
       if (returnFactory != null) {
@@ -658,15 +696,21 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
    }
 
    private void removeFromConnecting(ClientSessionFactoryInternal factory) {
-      synchronized (connectingFactories) {
+      connectingFactoriesGuard.lock();
+      try {
          connectingFactories.remove(factory);
+      } finally {
+         connectingFactoriesGuard.unlock();
       }
    }
 
    private void addToConnecting(ClientSessionFactoryInternal factory) {
-      synchronized (connectingFactories) {
+      connectingFactoriesGuard.lock();
+      try {
          assertOpen();
          connectingFactories.add(factory);
+      } finally {
+         connectingFactoriesGuard.unlock();
       }
    }
 
@@ -684,7 +728,8 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
 
       ClientSessionFactoryInternal factory = null;
 
-      synchronized (this) {
+      lock.lock();
+      try {
          boolean retry = true;
          int attempts = 0;
          boolean topologyArrayTried = !config.useTopologyForLoadBalancing || topologyArray == null || topologyArray.length == 0;
@@ -764,6 +809,8 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
                }
             }
          }
+      } finally {
+         lock.unlock();
       }
 
       // ATM topology is never != null. Checking here just to be consistent with
@@ -1340,10 +1387,13 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
    }
 
    private void checkWrite() {
-      synchronized (stateGuard) {
+      stateGuard.lock();
+      try {
          if (state != null && state != STATE.CLOSED) {
             throw new IllegalStateException("Cannot set attribute on SessionFactory after it has been used");
          }
+      } finally {
+         stateGuard.unlock();
       }
    }
 
@@ -1403,34 +1453,46 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
    }
 
    private void doClose(final boolean sendClose) {
-      synchronized (stateGuard) {
+      stateGuard.lock();
+      try {
          if (state == STATE.CLOSED) {
             logger.debug("{} is already closed when calling closed", this);
             return;
          }
 
          state = STATE.CLOSING;
+      } finally {
+         stateGuard.unlock();
       }
       if (latch != null)
          latch.countDown();
 
-      synchronized (connectingFactories) {
+      connectingFactoriesGuard.lock();
+      try {
          for (ClientSessionFactoryInternal csf : connectingFactories) {
             csf.causeExit();
          }
+      } finally {
+         connectingFactoriesGuard.unlock();
       }
 
       if (discoveryGroup != null) {
+         lock.lock();
          try {
-            discoveryGroup.stop();
-         } catch (Exception e) {
-            ActiveMQClientLogger.LOGGER.failedToStopDiscovery(e);
+            try {
+               discoveryGroup.stop();
+            } catch (Exception e) {
+               ActiveMQClientLogger.LOGGER.failedToStopDiscovery(e);
+            }
+         } finally {
+            lock.unlock();
          }
       } else {
          staticConnector.disconnect();
       }
 
-      synchronized (connectingFactories) {
+      connectingFactoriesGuard.lock();
+      try {
          for (ClientSessionFactoryInternal csf : connectingFactories) {
             csf.causeExit();
          }
@@ -1438,6 +1500,8 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
             csf.close();
          }
          connectingFactories.clear();
+      } finally {
+         connectingFactoriesGuard.unlock();
       }
 
       Set<ClientSessionFactoryInternal> clonedFactory;
@@ -1502,8 +1566,11 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
             }
          }
       }
-      synchronized (stateGuard) {
+      stateGuard.lock();
+      try {
          state = STATE.CLOSED;
+      } finally {
+         stateGuard.unlock();
       }
    }
 
@@ -1605,7 +1672,8 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
    }
 
    private void internalUpdateArray(long time) {
-      synchronized (topologyArrayGuard) {
+      topologyArrayGuard.lock();
+      try {
          Collection<TopologyMemberImpl> membersCopy = topology.getMembers();
 
          if (membersCopy.isEmpty()) {
@@ -1624,51 +1692,56 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
          }
 
          this.topologyArray = topologyArrayLocal;
+      } finally {
+         topologyArrayGuard.unlock();
       }
    }
 
    @Override
-   public synchronized void connectorsChanged(List<DiscoveryEntry> newConnectors) {
-      DiscoveryListener discoveryListener = this.discoveryListener;
+   public void connectorsChanged(List<DiscoveryEntry> newConnectors) {
+      lock.lock();
+      try {
+         if (receivedTopology) {
+            if (discoveryListener != null) {
+               discoveryListener.connectorsChanged(newConnectors);
+            }
+            return;
+         }
 
-      if (receivedTopology) {
+         final List<TransportConfiguration> newInitialconnectors = new ArrayList<>(newConnectors.size());
+
+         for (DiscoveryEntry entry : newConnectors) {
+            // ignore its own transport connector
+            if (!entry.getConnector().equals(clusterTransportConfiguration)) {
+               newInitialconnectors.add(entry.getConnector());
+            }
+         }
+
+         this.initialConnectors = newInitialconnectors.toArray(new TransportConfiguration[newInitialconnectors.size()]);
+
+         if (clusterConnection && !receivedTopology && this.getNumInitialConnectors() > 0) {
+            // The node is alone in the cluster. We create a connection to the new node
+            // to trigger the node notification to form the cluster.
+
+            Runnable connectRunnable = () -> {
+               try {
+                  connect();
+               } catch (ActiveMQException e) {
+                  ActiveMQClientLogger.LOGGER.errorConnectingToNodes(e);
+               }
+            };
+            if (startExecutor != null) {
+               startExecutor.execute(connectRunnable);
+            } else {
+               connectRunnable.run();
+            }
+         }
+
          if (discoveryListener != null) {
             discoveryListener.connectorsChanged(newConnectors);
          }
-         return;
-      }
-
-      final List<TransportConfiguration> newInitialconnectors = new ArrayList<>(newConnectors.size());
-
-      for (DiscoveryEntry entry : newConnectors) {
-         // ignore its own transport connector
-         if (!entry.getConnector().equals(clusterTransportConfiguration)) {
-            newInitialconnectors.add(entry.getConnector());
-         }
-      }
-
-      this.initialConnectors = newInitialconnectors.toArray(new TransportConfiguration[newInitialconnectors.size()]);
-
-      if (clusterConnection && !receivedTopology && this.getNumInitialConnectors() > 0) {
-         // The node is alone in the cluster. We create a connection to the new node
-         // to trigger the node notification to form the cluster.
-
-         Runnable connectRunnable = () -> {
-            try {
-               connect();
-            } catch (ActiveMQException e) {
-               ActiveMQClientLogger.LOGGER.errorConnectingToNodes(e);
-            }
-         };
-         if (startExecutor != null) {
-            startExecutor.execute(connectRunnable);
-         } else {
-            connectRunnable.run();
-         }
-      }
-
-      if (discoveryListener != null) {
-         discoveryListener.connectorsChanged(newConnectors);
+      } finally {
+         lock.unlock();
       }
    }
 
@@ -1838,29 +1911,39 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
          throw ActiveMQClientMessageBundle.BUNDLE.cannotConnectToStaticConnectors2();
       }
 
-      private synchronized void createConnectors() {
-         if (connectors != null) {
-            for (Connector conn : connectors) {
-               if (conn != null) {
-                  conn.disconnect();
+      private void createConnectors() {
+         lock.lock();
+         try {
+            if (connectors != null) {
+               for (Connector conn : connectors) {
+                  if (conn != null) {
+                     conn.disconnect();
+                  }
                }
             }
-         }
-         connectors = new ArrayList<>();
-         if (initialConnectors != null) {
-            for (TransportConfiguration initialConnector : initialConnectors) {
-               ClientSessionFactoryInternal factory = new ClientSessionFactoryImpl(ServerLocatorImpl.this, initialConnector, config, config.reconnectAttempts, threadPool, scheduledThreadPool, flowControlThreadPool, incomingInterceptors, outgoingInterceptors);
+            connectors = new ArrayList<>();
+            if (initialConnectors != null) {
+               for (TransportConfiguration initialConnector : initialConnectors) {
+                  ClientSessionFactoryInternal factory = new ClientSessionFactoryImpl(ServerLocatorImpl.this, initialConnector, config, config.reconnectAttempts, threadPool, scheduledThreadPool, flowControlThreadPool, incomingInterceptors, outgoingInterceptors);
 
-               connectors.add(new Connector(initialConnector, factory));
+                  connectors.add(new Connector(initialConnector, factory));
+               }
             }
+         } finally {
+            lock.unlock();
          }
       }
 
-      public synchronized void disconnect() {
-         if (connectors != null) {
-            for (Connector connector : connectors) {
-               connector.disconnect();
+      public void disconnect() {
+         lock.lock();
+         try {
+            if (connectors != null) {
+               for (Connector connector : connectors) {
+                  connector.disconnect();
+               }
             }
+         } finally {
+            lock.unlock();
          }
       }
 
@@ -1912,17 +1995,23 @@ public final class ServerLocatorImpl implements ServerLocatorInternal, Discovery
    }
 
    private void assertOpen() {
-      synchronized (stateGuard) {
+      stateGuard.lock();
+      try {
          if (state != null && state != STATE.INITIALIZED) {
             throw new IllegalStateException("Server locator is closed (maybe it was garbage collected)");
          }
+      } finally {
+         stateGuard.unlock();
       }
    }
 
    @Override
    public boolean isClosed() {
-      synchronized (stateGuard) {
+      stateGuard.lock();
+      try {
          return state != STATE.INITIALIZED;
+      } finally {
+         stateGuard.unlock();
       }
    }
 

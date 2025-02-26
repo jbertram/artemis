@@ -49,6 +49,9 @@ import org.apache.activemq.artemis.utils.SimpleIDGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.activemq.artemis.api.core.ActiveMQDisconnectedException;
 
 public class RemotingConnectionImpl extends AbstractRemotingConnection implements CoreRemotingConnection {
@@ -75,7 +78,7 @@ public class RemotingConnectionImpl extends AbstractRemotingConnection implement
 
    private boolean idGeneratorSynced = false;
 
-   private final Object transferLock = new Object();
+   private final Lock transferLock = new ReentrantLock();
 
    private final Object failLock = new Object();
 
@@ -311,7 +314,7 @@ public class RemotingConnectionImpl extends AbstractRemotingConnection implement
    }
 
    @Override
-   public Object getTransferLock() {
+   public Lock getTransferLock() {
       return transferLock;
    }
 
@@ -334,10 +337,13 @@ public class RemotingConnectionImpl extends AbstractRemotingConnection implement
    //sitting there with many unacked messages
    @Override
    public void flush() {
-      synchronized (transferLock) {
+      transferLock.lock();
+      try {
          for (Channel channel : channels.values()) {
             channel.flushConfirmations();
          }
+      } finally {
+         transferLock.unlock();
       }
    }
 
@@ -391,8 +397,11 @@ public class RemotingConnectionImpl extends AbstractRemotingConnection implement
    public void endOfBatch(Object connectionID) {
       super.endOfBatch(connectionID);
       // TODO we really need a lock here?
-      synchronized (transferLock) {
+      transferLock.lock();
+      try {
          channels.forEach((channelID, channel) -> channel.endOfBatch());
+      } finally {
+         transferLock.unlock();
       }
    }
 
@@ -401,20 +410,26 @@ public class RemotingConnectionImpl extends AbstractRemotingConnection implement
          return;
       }
 
-      synchronized (transferLock) {
+      transferLock.lock();
+      try {
          final Channel channel = channels.get(packet.getChannelID());
 
          if (channel != null) {
             channel.handlePacket(packet);
          }
+      } finally {
+         transferLock.unlock();
       }
    }
 
    protected void removeAllChannels() {
       // We get the transfer lock first - this ensures no packets are being processed AND
       // it's guaranteed no more packets will be processed once this method is complete
-      synchronized (transferLock) {
+      transferLock.lock();
+      try {
          channels.clear();
+      } finally {
+         transferLock.unlock();
       }
    }
 

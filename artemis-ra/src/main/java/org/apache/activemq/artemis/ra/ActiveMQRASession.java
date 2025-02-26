@@ -58,6 +58,8 @@ import org.apache.activemq.artemis.jms.client.ActiveMQSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A joint interface for {@link QueueSession}, {@link TopicSession}, {@link XAQueueSession}, and {@link XATopicSession}.
@@ -74,7 +76,11 @@ public class ActiveMQRASession implements QueueSession, TopicSession, XAQueueSes
 
    private final Set<MessageConsumer> consumers;
 
+   private final Lock consumersLock = new ReentrantLock();
+
    private final Set<MessageProducer> producers;
+
+   private final Lock producersLock = new ReentrantLock();
 
    public ActiveMQRASession(final ActiveMQRAManagedConnection mc, final ActiveMQRAConnectionRequestInfo cri) {
       logger.trace("constructor({}, {})", mc, cri);
@@ -1129,7 +1135,9 @@ public class ActiveMQRASession implements QueueSession, TopicSession, XAQueueSes
             logger.trace("Error stopping managed connection", t);
          }
 
-         synchronized (consumers) {
+         consumersLock.lock();
+         try {
+
             for (Iterator<MessageConsumer> i = consumers.iterator(); i.hasNext(); ) {
                ActiveMQRAMessageConsumer consumer = (ActiveMQRAMessageConsumer) i.next();
                try {
@@ -1139,9 +1147,13 @@ public class ActiveMQRASession implements QueueSession, TopicSession, XAQueueSes
                }
                i.remove();
             }
+         } finally {
+            consumersLock.unlock();
          }
 
-         synchronized (producers) {
+         producersLock.lock();
+         try {
+
             for (Iterator<MessageProducer> i = producers.iterator(); i.hasNext(); ) {
                ActiveMQRAMessageProducer producer = (ActiveMQRAMessageProducer) i.next();
                try {
@@ -1151,6 +1163,9 @@ public class ActiveMQRASession implements QueueSession, TopicSession, XAQueueSes
                }
                i.remove();
             }
+
+         } finally {
+            producersLock.unlock();
          }
 
          mc.removeHandle(this);
@@ -1164,32 +1179,44 @@ public class ActiveMQRASession implements QueueSession, TopicSession, XAQueueSes
    void addConsumer(final MessageConsumer consumer) {
       logger.trace("addConsumer({})", consumer);
 
-      synchronized (consumers) {
+      consumersLock.lock();
+      try {
          consumers.add(consumer);
+      } finally {
+         consumersLock.unlock();
       }
    }
 
    void removeConsumer(final MessageConsumer consumer) {
       logger.trace("removeConsumer({})", consumer);
 
-      synchronized (consumers) {
+      consumersLock.lock();
+      try {
          consumers.remove(consumer);
+      } finally {
+         consumersLock.unlock();
       }
    }
 
    void addProducer(final MessageProducer producer) {
       logger.trace("addProducer({})", producer);
 
-      synchronized (producers) {
+      producersLock.lock();
+      try {
          producers.add(producer);
+      } finally {
+         producersLock.unlock();
       }
    }
 
    void removeProducer(final MessageProducer producer) {
       logger.trace("removeProducer({})", producer);
 
-      synchronized (producers) {
+      producersLock.lock();
+      try {
          producers.remove(producer);
+      } finally {
+         producersLock.unlock();
       }
    }
 

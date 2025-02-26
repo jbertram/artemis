@@ -24,6 +24,9 @@ import javax.jms.XASession;
 import javax.jms.XATopicConnection;
 import javax.jms.XATopicSession;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
 
 /**
@@ -33,6 +36,8 @@ import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
  * practices of JMS 1.1.
  */
 public final class ActiveMQXAConnection extends ActiveMQConnection implements XATopicConnection, XAQueueConnection {
+
+   private final Lock lock = new ReentrantLock();
 
    public ActiveMQXAConnection(final ConnectionFactoryOptions options,
                                final String username,
@@ -48,27 +53,40 @@ public final class ActiveMQXAConnection extends ActiveMQConnection implements XA
    }
 
    @Override
-   public synchronized XASession createXASession() throws JMSException {
-      checkClosed();
-      return (XASession) createSessionInternal(isXA(), true, Session.SESSION_TRANSACTED, ActiveMQSession.TYPE_GENERIC_SESSION);
+   public XASession createXASession() throws JMSException {
+      lock.lock();
+      try {
+         checkClosed();
+         return (XASession) createSessionInternal(isXA(), true, Session.SESSION_TRANSACTED, ActiveMQSession.TYPE_GENERIC_SESSION);
+      } finally {
+         lock.unlock();
+      }
    }
 
    @Override
-   public synchronized XAQueueSession createXAQueueSession() throws JMSException {
-      checkClosed();
-      return (XAQueueSession) createSessionInternal(isXA(), true, Session.SESSION_TRANSACTED, ActiveMQSession.TYPE_QUEUE_SESSION);
-
+   public XAQueueSession createXAQueueSession() throws JMSException {
+      lock.lock();
+      try {
+         checkClosed();
+         return (XAQueueSession) createSessionInternal(isXA(), true, Session.SESSION_TRANSACTED, ActiveMQSession.TYPE_QUEUE_SESSION);
+      } finally {
+         lock.unlock();
+      }
    }
 
    @Override
-   public synchronized XATopicSession createXATopicSession() throws JMSException {
-      checkClosed();
-      return (XATopicSession) createSessionInternal(isXA(), true, Session.SESSION_TRANSACTED, ActiveMQSession.TYPE_TOPIC_SESSION);
+   public XATopicSession createXATopicSession() throws JMSException {
+      lock.lock();
+      try {
+         checkClosed();
+         return (XATopicSession) createSessionInternal(isXA(), true, Session.SESSION_TRANSACTED, ActiveMQSession.TYPE_TOPIC_SESSION);
+      } finally {
+         lock.unlock();
+      }
    }
 
    @Override
    protected boolean isXA() {
       return true;
    }
-
 }

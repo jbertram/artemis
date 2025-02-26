@@ -137,9 +137,11 @@ public final class ChannelImpl implements Channel {
 
    private final Condition failoverCondition = lock.newCondition();
 
-   private final Object sendLock = new Object();
+   private final Lock sendLock = new ReentrantLock();
 
-   private final Object sendBlockingLock = new Object();
+   private final Lock sendBlockingLock = new ReentrantLock();
+
+   private final Lock flushLock = new ReentrantLock();
 
    private boolean failingOver;
 
@@ -261,7 +263,8 @@ public final class ChannelImpl implements Channel {
 
       final ResponseCache responseAsyncCache = this.responseAsyncCache;
 
-      synchronized (sendLock) {
+      sendLock.lock();
+      try {
          packet.setChannelID(id);
 
          if (responseAsyncCache != null && packet.isRequiresResponse() && packet.isResponseAsync()) {
@@ -323,6 +326,8 @@ public final class ChannelImpl implements Channel {
             throw t;
          }
          return true;
+      } finally {
+         sendLock.unlock();
       }
    }
 
@@ -378,7 +383,8 @@ public final class ChannelImpl implements Channel {
          return false;
       }
 
-      synchronized (sendLock) {
+      sendLock.lock();
+      try {
          packet.setChannelID(id);
 
          if (responseAsyncCache != null && packet.isRequiresResponse() && packet.isResponseAsync()) {
@@ -442,6 +448,8 @@ public final class ChannelImpl implements Channel {
             throw t;
          }
          return true;
+      } finally {
+         sendLock.unlock();
       }
    }
 
@@ -501,9 +509,10 @@ public final class ChannelImpl implements Channel {
          throw new IllegalStateException("Cannot do a blocking call timeout on a server side connection");
       }
 
-      // Synchronized since can't be called concurrently by more than one thread and this can occur
+      // Locked since can't be called concurrently by more than one thread and this can occur
       // E.g. blocking acknowledge() from inside a message handler at some time as other operation on main thread
-      synchronized (sendBlockingLock) {
+      sendBlockingLock.lock();
+      try {
          packet.setChannelID(id);
 
          packet.setCorrelationID(blockingCorrelationID.decrementAndGet());
@@ -586,6 +595,8 @@ public final class ChannelImpl implements Channel {
          }
 
          return response;
+      } finally {
+         sendBlockingLock.unlock();
       }
    }
 
@@ -694,9 +705,10 @@ public final class ChannelImpl implements Channel {
    public void transferConnection(final CoreRemotingConnection newConnection) {
       Objects.requireNonNull(newConnection);
 
-      // Needs to synchronize on the connection to make sure no packets from
-      // the old connection get processed after transfer has occurred
-      synchronized (connection.getTransferLock()) {
+      // Needs to lock here to make sure no packets from the old connection get processed after transfer has occurred
+      Lock transferLock = connection.getTransferLock();
+      transferLock.lock();
+      try {
          connection.removeChannel(id);
 
          if (logger.isTraceEnabled()) {
@@ -710,6 +722,8 @@ public final class ChannelImpl implements Channel {
          connection = newConnection;
 
          transferring = true;
+      } finally {
+         transferLock.unlock();
       }
    }
 
@@ -765,21 +779,26 @@ public final class ChannelImpl implements Channel {
       return connection;
    }
 
-   // Needs to be synchronized since can be called by remoting service timer thread too for timeout flush
+   // Needs to be thread safe since can be called by remoting service timer thread too for timeout flush
    @Override
-   public synchronized void flushConfirmations() {
-      if (resendCache != null && receivedBytes != 0) {
-         receivedBytes = 0;
+   public void flushConfirmations() {
+      flushLock.lock();
+      try {
+         if (resendCache != null && receivedBytes != 0) {
+            receivedBytes = 0;
 
-         final Packet confirmed = new PacketsConfirmedMessage(lastConfirmedCommandID.get());
+            final Packet confirmed = new PacketsConfirmedMessage(lastConfirmedCommandID.get());
 
-         confirmed.setChannelID(id);
+            confirmed.setChannelID(id);
 
-         if (logger.isTraceEnabled()) {
-            logger.trace("RemotingConnectionID={} ChannelImpl::flushConfirmation flushing confirmation {}", connection.getID(), confirmed);
+            if (logger.isTraceEnabled()) {
+               logger.trace("RemotingConnectionID={} ChannelImpl::flushConfirmation flushing confirmation {}", connection.getID(), confirmed);
+            }
+
+            doWrite(confirmed);
          }
-
-         doWrite(confirmed);
+      } finally {
+         flushLock.unlock();
       }
    }
 

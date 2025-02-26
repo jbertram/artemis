@@ -106,11 +106,11 @@ public class ClientSessionFactoryImpl implements ClientSessionFactoryInternal, C
 
    private final Set<ClientSessionInternal> sessions = new ConcurrentHashSet<>();
 
-   private final Object createSessionLock = new Object();
+   private final Lock createSessionLock = new ReentrantLock();
 
    private final Lock newFailoverLock = new ReentrantLock();
 
-   private final Object connectionLock = new Object();
+   private final Lock connectionLock = new ReentrantLock();
 
    private final ExecutorFactory orderedExecutorFactory;
 
@@ -482,9 +482,13 @@ public class ClientSessionFactoryImpl implements ClientSessionFactoryInternal, C
 
       clientProtocolManager.stop();
 
-      synchronized (createSessionLock) {
+      createSessionLock.lock();
+
+      try {
          closeCleanSessions(close);
          closed = true;
+      } finally {
+         createSessionLock.unlock();
       }
    }
 
@@ -1050,7 +1054,9 @@ public class ClientSessionFactoryImpl implements ClientSessionFactoryInternal, C
          throw new IllegalStateException("ClientSessionFactory is closed!");
       if (!clientProtocolManager.isAlive())
          return null;
-      synchronized (connectionLock) {
+
+      connectionLock.lock();
+      try {
          if (connection != null) {
             // a connection already exists, so returning the same one
             return connection;
@@ -1093,6 +1099,8 @@ public class ClientSessionFactoryImpl implements ClientSessionFactoryInternal, C
 
             return connection;
          }
+      } finally {
+         connectionLock.unlock();
       }
    }
 
@@ -1469,8 +1477,11 @@ public class ClientSessionFactoryImpl implements ClientSessionFactoryInternal, C
                                                  final boolean autoCommitAcks,
                                                  final boolean preAcknowledge,
                                                  final String clientID) throws ActiveMQException {
-      synchronized (createSessionLock) {
+      createSessionLock.lock();
+      try {
          return clientProtocolManager.createSessionContext(name, username, password, xa, autoCommitSends, autoCommitAcks, preAcknowledge, serverLocator.getMinLargeMessageSize(), serverLocator.getConfirmationWindowSize(), clientID);
+      } finally {
+         createSessionLock.unlock();
       }
    }
 

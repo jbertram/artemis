@@ -41,6 +41,8 @@ import java.net.URI;
 import java.security.PrivilegedAction;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.activemq.artemis.api.core.DiscoveryGroupConfiguration;
 import org.apache.activemq.artemis.api.core.Interceptor;
@@ -103,6 +105,8 @@ public class ActiveMQConnectionFactory extends JNDIStorable implements Connectio
    // keeping this field for serialization compatibility only. do not use it
    @SuppressWarnings("unused")
    private boolean finalizeCheck;
+
+   private Lock lock = new ReentrantLock();
 
    @Override
    public void writeExternal(ObjectOutput out) throws IOException {
@@ -483,317 +487,652 @@ public class ActiveMQConnectionFactory extends JNDIStorable implements Connectio
       return serverLocator.isHA();
    }
 
-   public synchronized String getConnectionLoadBalancingPolicyClassName() {
-      return serverLocator.getConnectionLoadBalancingPolicyClassName();
+   public String getConnectionLoadBalancingPolicyClassName() {
+      lock.lock();
+      try {
+         return serverLocator.getConnectionLoadBalancingPolicyClassName();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setConnectionLoadBalancingPolicyClassName(final String connectionLoadBalancingPolicyClassName) {
-      checkWrite();
-      serverLocator.setConnectionLoadBalancingPolicyClassName(connectionLoadBalancingPolicyClassName);
+   public void setConnectionLoadBalancingPolicyClassName(final String connectionLoadBalancingPolicyClassName) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setConnectionLoadBalancingPolicyClassName(connectionLoadBalancingPolicyClassName);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized TransportConfiguration[] getStaticConnectors() {
-      return serverLocator.getStaticTransportConfigurations();
+   public TransportConfiguration[] getStaticConnectors() {
+      lock.lock();
+      try {
+         return serverLocator.getStaticTransportConfigurations();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized DiscoveryGroupConfiguration getDiscoveryGroupConfiguration() {
-      return serverLocator.getDiscoveryGroupConfiguration();
+   public DiscoveryGroupConfiguration getDiscoveryGroupConfiguration() {
+      lock.lock();
+      try {
+         return serverLocator.getDiscoveryGroupConfiguration();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized String getClientID() {
-      return clientID;
+   public String getClientID() {
+      lock.lock();
+      try {
+         return clientID;
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setClientID(final String clientID) {
-      checkWrite();
-      this.clientID = clientID;
+   public void setClientID(final String clientID) {
+      lock.lock();
+      try {
+         checkWrite();
+         this.clientID = clientID;
+      } finally {
+         lock.unlock();
+      }
    }
 
    public boolean isEnableSharedClientID() {
-      return enableSharedClientID;
+      lock.lock();
+      try {
+         return enableSharedClientID;
+      } finally {
+         lock.unlock();
+      }
    }
 
    public void setEnableSharedClientID(boolean enableSharedClientID) {
-      this.enableSharedClientID = enableSharedClientID;
+      lock.lock();
+      try {
+         this.enableSharedClientID = enableSharedClientID;
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getDupsOKBatchSize() {
-      return dupsOKBatchSize;
+   public int getDupsOKBatchSize() {
+      lock.lock();
+      try {
+         return dupsOKBatchSize;
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setDupsOKBatchSize(final int dupsOKBatchSize) {
-      checkWrite();
-      this.dupsOKBatchSize = dupsOKBatchSize;
+   public void setDupsOKBatchSize(final int dupsOKBatchSize) {
+      lock.lock();
+      try {
+         checkWrite();
+         this.dupsOKBatchSize = dupsOKBatchSize;
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getTransactionBatchSize() {
-      return transactionBatchSize;
+   public int getTransactionBatchSize() {
+      lock.lock();
+      try {
+         return transactionBatchSize;
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setTransactionBatchSize(final int transactionBatchSize) {
-      checkWrite();
-      this.transactionBatchSize = transactionBatchSize;
+   public void setTransactionBatchSize(final int transactionBatchSize) {
+      lock.lock();
+      try {
+         checkWrite();
+         this.transactionBatchSize = transactionBatchSize;
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized boolean isCacheDestinations() {
-      return this.cacheDestinations;
+   public boolean isCacheDestinations() {
+      lock.lock();
+      try {
+         return this.cacheDestinations;
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setCacheDestinations(final boolean cacheDestinations) {
-      checkWrite();
-      this.cacheDestinations = cacheDestinations;
+   public void setCacheDestinations(final boolean cacheDestinations) {
+      lock.lock();
+      try {
+         checkWrite();
+         this.cacheDestinations = cacheDestinations;
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized boolean isEnable1xPrefixes() {
-      return this.enable1xPrefixes;
+   public boolean isEnable1xPrefixes() {
+      lock.lock();
+      try {
+         return this.enable1xPrefixes;
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setEnable1xPrefixes(final boolean enable1xPrefixes) {
-      checkWrite();
-      this.enable1xPrefixes = enable1xPrefixes;
+   public void setEnable1xPrefixes(final boolean enable1xPrefixes) {
+      lock.lock();
+      try {
+         checkWrite();
+         this.enable1xPrefixes = enable1xPrefixes;
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized long getClientFailureCheckPeriod() {
-      return serverLocator.getClientFailureCheckPeriod();
+   public long getClientFailureCheckPeriod() {
+      lock.lock();
+      try {
+         return serverLocator.getClientFailureCheckPeriod();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setClientFailureCheckPeriod(final long clientFailureCheckPeriod) {
-      checkWrite();
-      serverLocator.setClientFailureCheckPeriod(clientFailureCheckPeriod);
+   public void setClientFailureCheckPeriod(final long clientFailureCheckPeriod) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setClientFailureCheckPeriod(clientFailureCheckPeriod);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized long getConnectionTTL() {
-      return serverLocator.getConnectionTTL();
+   public long getConnectionTTL() {
+      lock.lock();
+      try {
+         return serverLocator.getConnectionTTL();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setConnectionTTL(final long connectionTTL) {
-      checkWrite();
-      serverLocator.setConnectionTTL(connectionTTL);
+   public void setConnectionTTL(final long connectionTTL) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setConnectionTTL(connectionTTL);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized long getCallTimeout() {
-      return serverLocator.getCallTimeout();
+   public long getCallTimeout() {
+      lock.lock();
+      try {
+         return serverLocator.getCallTimeout();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setCallTimeout(final long callTimeout) {
-      checkWrite();
-      serverLocator.setCallTimeout(callTimeout);
+   public void setCallTimeout(final long callTimeout) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setCallTimeout(callTimeout);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized long getCallFailoverTimeout() {
-      return serverLocator.getCallFailoverTimeout();
+   public long getCallFailoverTimeout() {
+      lock.lock();
+      try {
+         return serverLocator.getCallFailoverTimeout();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setCallFailoverTimeout(final long callTimeout) {
-      checkWrite();
-      serverLocator.setCallFailoverTimeout(callTimeout);
+   public void setCallFailoverTimeout(final long callTimeout) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setCallFailoverTimeout(callTimeout);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setUseTopologyForLoadBalancing(boolean useTopologyForLoadBalancing) {
-      checkWrite();
-      serverLocator.setUseTopologyForLoadBalancing(useTopologyForLoadBalancing);
+   public void setUseTopologyForLoadBalancing(boolean useTopologyForLoadBalancing) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setUseTopologyForLoadBalancing(useTopologyForLoadBalancing);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized boolean isUseTopologyForLoadBalancing() {
-      return serverLocator.getUseTopologyForLoadBalancing();
+   public boolean isUseTopologyForLoadBalancing() {
+      lock.lock();
+      try {
+         return serverLocator.getUseTopologyForLoadBalancing();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getConsumerWindowSize() {
-      return serverLocator.getConsumerWindowSize();
+   public int getConsumerWindowSize() {
+      lock.lock();
+      try {
+         return serverLocator.getConsumerWindowSize();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setConsumerWindowSize(final int consumerWindowSize) {
-      checkWrite();
-      serverLocator.setConsumerWindowSize(consumerWindowSize);
+   public void setConsumerWindowSize(final int consumerWindowSize) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setConsumerWindowSize(consumerWindowSize);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getConsumerMaxRate() {
-      return serverLocator.getConsumerMaxRate();
+   public int getConsumerMaxRate() {
+      lock.lock();
+      try {
+         return serverLocator.getConsumerMaxRate();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setConsumerMaxRate(final int consumerMaxRate) {
-      checkWrite();
-      serverLocator.setConsumerMaxRate(consumerMaxRate);
+   public void setConsumerMaxRate(final int consumerMaxRate) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setConsumerMaxRate(consumerMaxRate);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getConfirmationWindowSize() {
-      return serverLocator.getConfirmationWindowSize();
+   public int getConfirmationWindowSize() {
+      lock.lock();
+      try {
+         return serverLocator.getConfirmationWindowSize();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setConfirmationWindowSize(final int confirmationWindowSize) {
-      checkWrite();
-      serverLocator.setConfirmationWindowSize(confirmationWindowSize);
+   public void setConfirmationWindowSize(final int confirmationWindowSize) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setConfirmationWindowSize(confirmationWindowSize);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getProducerMaxRate() {
-      return serverLocator.getProducerMaxRate();
+   public int getProducerMaxRate() {
+      lock.lock();
+      try {
+         return serverLocator.getProducerMaxRate();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setProducerMaxRate(final int producerMaxRate) {
-      checkWrite();
-      serverLocator.setProducerMaxRate(producerMaxRate);
+   public void setProducerMaxRate(final int producerMaxRate) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setProducerMaxRate(producerMaxRate);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getProducerWindowSize() {
-      return serverLocator.getProducerWindowSize();
+   public int getProducerWindowSize() {
+      lock.lock();
+      try {
+         return serverLocator.getProducerWindowSize();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setProducerWindowSize(final int producerWindowSize) {
-      checkWrite();
-      serverLocator.setProducerWindowSize(producerWindowSize);
+   public void setProducerWindowSize(final int producerWindowSize) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setProducerWindowSize(producerWindowSize);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setCacheLargeMessagesClient(final boolean cacheLargeMessagesClient) {
-      checkWrite();
-      serverLocator.setCacheLargeMessagesClient(cacheLargeMessagesClient);
+   public void setCacheLargeMessagesClient(final boolean cacheLargeMessagesClient) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setCacheLargeMessagesClient(cacheLargeMessagesClient);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized boolean isCacheLargeMessagesClient() {
-      return serverLocator.isCacheLargeMessagesClient();
+   public boolean isCacheLargeMessagesClient() {
+      lock.lock();
+      try {
+         return serverLocator.isCacheLargeMessagesClient();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getMinLargeMessageSize() {
-      return serverLocator.getMinLargeMessageSize();
+   public int getMinLargeMessageSize() {
+      lock.lock();
+      try {
+         return serverLocator.getMinLargeMessageSize();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setMinLargeMessageSize(final int minLargeMessageSize) {
-      checkWrite();
-      serverLocator.setMinLargeMessageSize(minLargeMessageSize);
+   public void setMinLargeMessageSize(final int minLargeMessageSize) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setMinLargeMessageSize(minLargeMessageSize);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized boolean isBlockOnAcknowledge() {
-      return serverLocator.isBlockOnAcknowledge();
+   public boolean isBlockOnAcknowledge() {
+      lock.lock();
+      try {
+         return serverLocator.isBlockOnAcknowledge();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setBlockOnAcknowledge(final boolean blockOnAcknowledge) {
-      checkWrite();
-      serverLocator.setBlockOnAcknowledge(blockOnAcknowledge);
+   public void setBlockOnAcknowledge(final boolean blockOnAcknowledge) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setBlockOnAcknowledge(blockOnAcknowledge);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized boolean isBlockOnNonDurableSend() {
-      return serverLocator.isBlockOnNonDurableSend();
+   public boolean isBlockOnNonDurableSend() {
+      lock.lock();
+      try {
+         return serverLocator.isBlockOnNonDurableSend();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setBlockOnNonDurableSend(final boolean blockOnNonDurableSend) {
-      checkWrite();
-      serverLocator.setBlockOnNonDurableSend(blockOnNonDurableSend);
+   public void setBlockOnNonDurableSend(final boolean blockOnNonDurableSend) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setBlockOnNonDurableSend(blockOnNonDurableSend);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized boolean isBlockOnDurableSend() {
-      return serverLocator.isBlockOnDurableSend();
+   public boolean isBlockOnDurableSend() {
+      lock.lock();
+      try {
+         return serverLocator.isBlockOnDurableSend();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setBlockOnDurableSend(final boolean blockOnDurableSend) {
-      checkWrite();
-      serverLocator.setBlockOnDurableSend(blockOnDurableSend);
+   public void setBlockOnDurableSend(final boolean blockOnDurableSend) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setBlockOnDurableSend(blockOnDurableSend);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized boolean isAutoGroup() {
-      return serverLocator.isAutoGroup();
+   public boolean isAutoGroup() {
+      lock.lock();
+      try {
+         return serverLocator.isAutoGroup();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setAutoGroup(final boolean autoGroup) {
-      checkWrite();
-      serverLocator.setAutoGroup(autoGroup);
+   public void setAutoGroup(final boolean autoGroup) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setAutoGroup(autoGroup);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized boolean isPreAcknowledge() {
-      return serverLocator.isPreAcknowledge();
+   public boolean isPreAcknowledge() {
+      lock.lock();
+      try {
+         return serverLocator.isPreAcknowledge();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setPreAcknowledge(final boolean preAcknowledge) {
-      checkWrite();
-      serverLocator.setPreAcknowledge(preAcknowledge);
+   public void setPreAcknowledge(final boolean preAcknowledge) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setPreAcknowledge(preAcknowledge);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized long getRetryInterval() {
-      return serverLocator.getRetryInterval();
+   public long getRetryInterval() {
+      lock.lock();
+      try {
+         return serverLocator.getRetryInterval();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setRetryInterval(final long retryInterval) {
-      checkWrite();
-      serverLocator.setRetryInterval(retryInterval);
+   public void setRetryInterval(final long retryInterval) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setRetryInterval(retryInterval);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized long getMaxRetryInterval() {
-      return serverLocator.getMaxRetryInterval();
+   public long getMaxRetryInterval() {
+      lock.lock();
+      try {
+         return serverLocator.getMaxRetryInterval();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setMaxRetryInterval(final long retryInterval) {
-      checkWrite();
-      serverLocator.setMaxRetryInterval(retryInterval);
+   public void setMaxRetryInterval(final long retryInterval) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setMaxRetryInterval(retryInterval);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized double getRetryIntervalMultiplier() {
-      return serverLocator.getRetryIntervalMultiplier();
+   public double getRetryIntervalMultiplier() {
+      lock.lock();
+      try {
+         return serverLocator.getRetryIntervalMultiplier();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setRetryIntervalMultiplier(final double retryIntervalMultiplier) {
-      checkWrite();
-      serverLocator.setRetryIntervalMultiplier(retryIntervalMultiplier);
+   public void setRetryIntervalMultiplier(final double retryIntervalMultiplier) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setRetryIntervalMultiplier(retryIntervalMultiplier);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getReconnectAttempts() {
-      return serverLocator.getReconnectAttempts();
+   public int getReconnectAttempts() {
+      lock.lock();
+      try {
+         return serverLocator.getReconnectAttempts();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setReconnectAttempts(final int reconnectAttempts) {
-      checkWrite();
-      serverLocator.setReconnectAttempts(reconnectAttempts);
+   public void setReconnectAttempts(final int reconnectAttempts) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setReconnectAttempts(reconnectAttempts);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setInitialConnectAttempts(final int reconnectAttempts) {
-      checkWrite();
-      serverLocator.setInitialConnectAttempts(reconnectAttempts);
+   public void setInitialConnectAttempts(final int reconnectAttempts) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setInitialConnectAttempts(reconnectAttempts);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getInitialConnectAttempts() {
+   public int getInitialConnectAttempts() {
       return serverLocator.getInitialConnectAttempts();
    }
 
    @Deprecated
-   public synchronized boolean isFailoverOnInitialConnection() {
+   public boolean isFailoverOnInitialConnection() {
       return false;
    }
 
    @Deprecated
-   public synchronized void setFailoverOnInitialConnection(final boolean failover) {
+   public void setFailoverOnInitialConnection(final boolean failover) {
    }
 
-   public synchronized boolean isUseGlobalPools() {
-      return serverLocator.isUseGlobalPools();
+   public boolean isUseGlobalPools() {
+      lock.lock();
+      try {
+         return serverLocator.isUseGlobalPools();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setUseGlobalPools(final boolean useGlobalPools) {
-      checkWrite();
-      serverLocator.setUseGlobalPools(useGlobalPools);
+   public void setUseGlobalPools(final boolean useGlobalPools) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setUseGlobalPools(useGlobalPools);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getScheduledThreadPoolMaxSize() {
-      return serverLocator.getScheduledThreadPoolMaxSize();
+   public int getScheduledThreadPoolMaxSize() {
+      lock.lock();
+      try {
+         return serverLocator.getScheduledThreadPoolMaxSize();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setScheduledThreadPoolMaxSize(final int scheduledThreadPoolMaxSize) {
-      checkWrite();
-      serverLocator.setScheduledThreadPoolMaxSize(scheduledThreadPoolMaxSize);
+   public void setScheduledThreadPoolMaxSize(final int scheduledThreadPoolMaxSize) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setScheduledThreadPoolMaxSize(scheduledThreadPoolMaxSize);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getThreadPoolMaxSize() {
-      return serverLocator.getThreadPoolMaxSize();
+   public int getThreadPoolMaxSize() {
+      lock.lock();
+      try {
+         return serverLocator.getThreadPoolMaxSize();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setThreadPoolMaxSize(final int threadPoolMaxSize) {
-      checkWrite();
-      serverLocator.setThreadPoolMaxSize(threadPoolMaxSize);
+   public void setThreadPoolMaxSize(final int threadPoolMaxSize) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setThreadPoolMaxSize(threadPoolMaxSize);
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized int getInitialMessagePacketSize() {
-      return serverLocator.getInitialMessagePacketSize();
+   public int getInitialMessagePacketSize() {
+      lock.lock();
+      try {
+         return serverLocator.getInitialMessagePacketSize();
+      } finally {
+         lock.unlock();
+      }
    }
 
-   public synchronized void setInitialMessagePacketSize(final int size) {
-      checkWrite();
-      serverLocator.setInitialMessagePacketSize(size);
+   public void setInitialMessagePacketSize(final int size) {
+      lock.lock();
+      try {
+         checkWrite();
+         serverLocator.setInitialMessagePacketSize(size);
+      } finally {
+         lock.unlock();
+      }
    }
 
    public boolean isIgnoreJTA() {
@@ -903,61 +1242,67 @@ public class ActiveMQConnectionFactory extends JNDIStorable implements Connectio
       return JMSFactoryType.CF.intValue();
    }
 
-   protected synchronized ActiveMQConnection createConnectionInternal(final String username,
+   protected ActiveMQConnection createConnectionInternal(final String username,
                                                                       final String password,
                                                                       final boolean isXA,
                                                                       final int type) throws JMSException {
-      makeReadOnly();
-
-      ClientSessionFactory factory;
+      lock.lock();
 
       try {
-         factory = serverLocator.createSessionFactory();
-      } catch (Exception e) {
-         JMSException jmse = new JMSException("Failed to create session factory");
+         makeReadOnly();
 
-         jmse.initCause(e);
-         jmse.setLinkedException(e);
+         ClientSessionFactory factory;
 
-         throw jmse;
-      }
-
-      ActiveMQConnection connection = null;
-
-      if (isXA) {
-         if (type == ActiveMQConnection.TYPE_GENERIC_CONNECTION) {
-            connection = new ActiveMQXAConnection(this, username, password, type, clientID, dupsOKBatchSize, transactionBatchSize, cacheDestinations, enable1xPrefixes, factory);
-         } else if (type == ActiveMQConnection.TYPE_QUEUE_CONNECTION) {
-            connection = new ActiveMQXAConnection(this, username, password, type, clientID, dupsOKBatchSize, transactionBatchSize, cacheDestinations, enable1xPrefixes, factory);
-         } else if (type == ActiveMQConnection.TYPE_TOPIC_CONNECTION) {
-            connection = new ActiveMQXAConnection(this, username, password, type, clientID, dupsOKBatchSize, transactionBatchSize, cacheDestinations, enable1xPrefixes, factory);
-         }
-      } else {
-         if (type == ActiveMQConnection.TYPE_GENERIC_CONNECTION) {
-            connection = new ActiveMQConnection(this, username, password, type, clientID, dupsOKBatchSize, transactionBatchSize, cacheDestinations, enable1xPrefixes, factory);
-         } else if (type == ActiveMQConnection.TYPE_QUEUE_CONNECTION) {
-            connection = new ActiveMQConnection(this, username, password, type, clientID, dupsOKBatchSize, transactionBatchSize, cacheDestinations, enable1xPrefixes, factory);
-         } else if (type == ActiveMQConnection.TYPE_TOPIC_CONNECTION) {
-            connection = new ActiveMQConnection(this, username, password, type, clientID, dupsOKBatchSize, transactionBatchSize, cacheDestinations, enable1xPrefixes, factory);
-         }
-      }
-
-      if (connection == null) {
-         throw new JMSException("Failed to create connection: invalid type " + type);
-      }
-      connection.setReference(this);
-
-      try {
-         connection.authorize(!isEnableSharedClientID());
-      } catch (JMSException e) {
          try {
-            connection.close();
-         } catch (JMSException me) {
-         }
-         throw e;
-      }
+            factory = serverLocator.createSessionFactory();
+         } catch (Exception e) {
+            JMSException jmse = new JMSException("Failed to create session factory");
 
-      return connection;
+            jmse.initCause(e);
+            jmse.setLinkedException(e);
+
+            throw jmse;
+         }
+
+         ActiveMQConnection connection = null;
+
+         if (isXA) {
+            if (type == ActiveMQConnection.TYPE_GENERIC_CONNECTION) {
+               connection = new ActiveMQXAConnection(this, username, password, type, clientID, dupsOKBatchSize, transactionBatchSize, cacheDestinations, enable1xPrefixes, factory);
+            } else if (type == ActiveMQConnection.TYPE_QUEUE_CONNECTION) {
+               connection = new ActiveMQXAConnection(this, username, password, type, clientID, dupsOKBatchSize, transactionBatchSize, cacheDestinations, enable1xPrefixes, factory);
+            } else if (type == ActiveMQConnection.TYPE_TOPIC_CONNECTION) {
+               connection = new ActiveMQXAConnection(this, username, password, type, clientID, dupsOKBatchSize, transactionBatchSize, cacheDestinations, enable1xPrefixes, factory);
+            }
+         } else {
+            if (type == ActiveMQConnection.TYPE_GENERIC_CONNECTION) {
+               connection = new ActiveMQConnection(this, username, password, type, clientID, dupsOKBatchSize, transactionBatchSize, cacheDestinations, enable1xPrefixes, factory);
+            } else if (type == ActiveMQConnection.TYPE_QUEUE_CONNECTION) {
+               connection = new ActiveMQConnection(this, username, password, type, clientID, dupsOKBatchSize, transactionBatchSize, cacheDestinations, enable1xPrefixes, factory);
+            } else if (type == ActiveMQConnection.TYPE_TOPIC_CONNECTION) {
+               connection = new ActiveMQConnection(this, username, password, type, clientID, dupsOKBatchSize, transactionBatchSize, cacheDestinations, enable1xPrefixes, factory);
+            }
+         }
+
+         if (connection == null) {
+            throw new JMSException("Failed to create connection: invalid type " + type);
+         }
+         connection.setReference(this);
+
+         try {
+            connection.authorize(!isEnableSharedClientID());
+         } catch (JMSException e) {
+            try {
+               connection.close();
+            } catch (JMSException me) {
+            }
+            throw e;
+         }
+
+         return connection;
+      } finally {
+         lock.unlock();
+      }
    }
 
    @Override

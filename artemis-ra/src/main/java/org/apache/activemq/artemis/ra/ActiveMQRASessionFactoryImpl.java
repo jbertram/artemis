@@ -51,6 +51,8 @@ import org.apache.activemq.artemis.jms.client.ActiveMQConnectionForContextImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Implements the JMS Connection API and produces {@link ActiveMQRASession} objects.
@@ -80,9 +82,15 @@ public final class ActiveMQRASessionFactoryImpl extends ActiveMQConnectionForCon
 
    private final Set<ActiveMQRASession> sessions = new HashSet<>();
 
+   private final Lock sessionsLock = new ReentrantLock();
+
    private final Set<TemporaryQueue> tempQueues = new HashSet<>();
 
+   private final Lock tempQueuesLock = new ReentrantLock();
+
    private final Set<TemporaryTopic> tempTopics = new HashSet<>();
+
+   private final Lock tempTopicsLock = new ReentrantLock();
 
    public ActiveMQRASessionFactoryImpl(final ActiveMQRAManagedConnectionFactory mcf,
                                        final ConnectionManager cm,
@@ -409,7 +417,8 @@ public final class ActiveMQRASessionFactoryImpl extends ActiveMQConnectionForCon
 
       logger.trace("start() {}", this);
 
-      synchronized (sessions) {
+      sessionsLock.lock();
+      try {
          if (started) {
             return;
          }
@@ -417,6 +426,8 @@ public final class ActiveMQRASessionFactoryImpl extends ActiveMQConnectionForCon
          for (ActiveMQRASession session : sessions) {
             session.start();
          }
+      } finally {
+         sessionsLock.unlock();
       }
    }
 
@@ -443,7 +454,8 @@ public final class ActiveMQRASessionFactoryImpl extends ActiveMQConnectionForCon
 
       closed = true;
 
-      synchronized (tempQueues) {
+      tempQueuesLock.lock();
+      try {
          for (Iterator<TemporaryQueue> i = tempQueues.iterator(); i.hasNext(); ) {
             TemporaryQueue temp = i.next();
             try {
@@ -454,9 +466,12 @@ public final class ActiveMQRASessionFactoryImpl extends ActiveMQConnectionForCon
             }
             i.remove();
          }
+      } finally {
+         tempQueuesLock.unlock();
       }
 
-      synchronized (tempTopics) {
+      tempTopicsLock.lock();
+      try {
          for (Iterator<TemporaryTopic> i = tempTopics.iterator(); i.hasNext(); ) {
             TemporaryTopic temp = i.next();
             try {
@@ -467,9 +482,12 @@ public final class ActiveMQRASessionFactoryImpl extends ActiveMQConnectionForCon
             }
             i.remove();
          }
+      } finally {
+         tempTopicsLock.unlock();
       }
 
-      synchronized (sessions) {
+      sessionsLock.lock();
+      try {
          for (Iterator<ActiveMQRASession> i = sessions.iterator(); i.hasNext(); ) {
             ActiveMQRASession session = i.next();
             try {
@@ -479,6 +497,8 @@ public final class ActiveMQRASessionFactoryImpl extends ActiveMQConnectionForCon
             }
             i.remove();
          }
+      } finally {
+         sessionsLock.unlock();
       }
    }
 
@@ -489,8 +509,11 @@ public final class ActiveMQRASessionFactoryImpl extends ActiveMQConnectionForCon
    public void closeSession(final ActiveMQRASession session) throws JMSException {
       logger.trace("closeSession({})", session);
 
-      synchronized (sessions) {
+      sessionsLock.lock();
+      try {
          sessions.remove(session);
+      } finally {
+         sessionsLock.unlock();
       }
    }
 
@@ -501,8 +524,11 @@ public final class ActiveMQRASessionFactoryImpl extends ActiveMQConnectionForCon
    public void addTemporaryQueue(final TemporaryQueue temp) {
       logger.trace("addTemporaryQueue({})", temp);
 
-      synchronized (tempQueues) {
+      tempQueuesLock.lock();
+      try {
          tempQueues.add(temp);
+      } finally {
+         tempQueuesLock.unlock();
       }
    }
 
@@ -513,8 +539,11 @@ public final class ActiveMQRASessionFactoryImpl extends ActiveMQConnectionForCon
    public void addTemporaryTopic(final TemporaryTopic temp) {
       logger.trace("addTemporaryTopic({})", temp);
 
-      synchronized (tempTopics) {
+      tempTopicsLock.lock();
+      try {
          tempTopics.add(temp);
+      } finally {
+         tempTopicsLock.unlock();
       }
    }
 
@@ -568,7 +597,8 @@ public final class ActiveMQRASessionFactoryImpl extends ActiveMQConnectionForCon
       }
 
       try {
-         synchronized (sessions) {
+         sessionsLock.lock();
+         try {
             if (sessions.isEmpty() == false) {
                throw new IllegalStateException("Only allowed one session per connection. See the J2EE spec, e.g. J2EE1.4 Section 6.6");
             }
@@ -648,6 +678,8 @@ public final class ActiveMQRASessionFactoryImpl extends ActiveMQConnectionForCon
                   throw new RuntimeException("Unexpected error: ", t);
                }
             }
+         } finally {
+            sessionsLock.unlock();
          }
       } catch (Exception e) {
          Throwable current = e;

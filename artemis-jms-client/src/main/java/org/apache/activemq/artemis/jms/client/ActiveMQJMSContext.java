@@ -41,6 +41,8 @@ import javax.jms.XAConnection;
 import javax.jms.XASession;
 import javax.transaction.xa.XAResource;
 import java.io.Serializable;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * ActiveMQ Artemis implementation of a JMSContext.
@@ -58,6 +60,7 @@ public class ActiveMQJMSContext implements JMSContext {
    private volatile Message lastMessagesWaitingAck;
 
    private final ActiveMQConnectionForContext connection;
+   private final Lock lock = new ReentrantLock();
    private volatile Session session;
    private boolean autoStart = ActiveMQJMSContext.DEFAULT_AUTO_START;
    private MessageProducer innerProducer;
@@ -117,17 +120,23 @@ public class ActiveMQJMSContext implements JMSContext {
       }
    }
 
-   private synchronized MessageProducer getInnerProducer() throws JMSException {
-      if (innerProducer == null) {
-         innerProducer = session.createProducer(null);
-      }
+   private MessageProducer getInnerProducer() throws JMSException {
+      lock.lock();
+      try {
+         if (innerProducer == null) {
+            innerProducer = session.createProducer(null);
+         }
 
-      return innerProducer;
+         return innerProducer;
+      } finally {
+         lock.unlock();
+      }
    }
 
    private void checkSession() {
       if (session == null) {
-         synchronized (this) {
+         lock.lock();
+         try {
             if (closed)
                throw new IllegalStateRuntimeException("Context is closed");
             if (session == null) {
@@ -141,6 +150,8 @@ public class ActiveMQJMSContext implements JMSContext {
                   throw JmsExceptionUtils.convertToRuntimeException(e);
                }
             }
+         } finally {
+            lock.unlock();
          }
       }
    }
@@ -224,11 +235,14 @@ public class ActiveMQJMSContext implements JMSContext {
       threadAwareContext.assertNotCompletionListenerThreadRuntime();
       threadAwareContext.assertNotMessageListenerThreadRuntime();
       try {
-         synchronized (this) {
+         lock.lock();
+         try {
             if (session != null)
                session.close();
             connection.closeFromContext();
             closed = true;
+         } finally {
+            lock.unlock();
          }
       } catch (JMSException e) {
          throw JmsExceptionUtils.convertToRuntimeException(e);
@@ -566,11 +580,16 @@ public class ActiveMQJMSContext implements JMSContext {
       return this.session;
    }
 
-   private synchronized void checkAutoStart() throws JMSException {
-      if (closed)
-         throw new IllegalStateRuntimeException("Context is closed");
-      if (autoStart) {
-         connection.start();
+   private void checkAutoStart() throws JMSException {
+      lock.lock();
+      try {
+         if (closed)
+            throw new IllegalStateRuntimeException("Context is closed");
+         if (autoStart) {
+            connection.start();
+         }
+      } finally {
+         lock.unlock();
       }
    }
 
