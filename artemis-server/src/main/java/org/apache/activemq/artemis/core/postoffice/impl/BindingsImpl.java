@@ -343,12 +343,6 @@ public final class BindingsImpl implements Bindings {
          } else if (groupRouting && groupingHandler != null && (groupId = message.getGroupID()) != null) {
             context.clear().setReusable(false);
             routeUsingStrictOrdering(message, context, groupingHandler, groupId, 0);
-         } else if (CompositeAddress.isFullyQualified(message.getAddress())) {
-            context.clear().setReusable(false);
-            final Binding theBinding = bindingsNameMap.get(String.valueOf(CompositeAddress.extractQueueName(message.getAddressSimpleString())));
-            if (theBinding != null && (theBinding.getFilter() == null || theBinding.getFilter().match(message))) {
-               theBinding.route(message, context);
-            }
          } else {
             // in a optimization, we are reusing the previous context if everything is right for it
             // so the simpleRouting will only happen if needed
@@ -494,8 +488,11 @@ public final class BindingsImpl implements Bindings {
          return false;
       }
 
-      final Filter filter = binding.getFilter();
+      if (CompositeAddress.isFullyQualified(message.getAddress()) && !binding.getClusterName().startsWith(CompositeAddress.extractQueueName(message.getAddressSimpleString()))) {
+         return false;
+      }
 
+      final Filter filter = binding.getFilter();
       if (filter == null || filter.match(message)) {
          return true;
       }
