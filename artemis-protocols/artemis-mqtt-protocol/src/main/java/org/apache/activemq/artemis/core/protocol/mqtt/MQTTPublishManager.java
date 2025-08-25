@@ -16,8 +16,10 @@
  */
 package org.apache.activemq.artemis.core.protocol.mqtt;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -50,8 +52,6 @@ import org.apache.activemq.artemis.core.transaction.Transaction;
 import org.apache.activemq.artemis.utils.UUIDGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.lang.invoke.MethodHandles;
-import java.util.Objects;
 
 import static io.netty.handler.codec.mqtt.MqttProperties.MqttPropertyType.CONTENT_TYPE;
 import static io.netty.handler.codec.mqtt.MqttProperties.MqttPropertyType.CORRELATION_DATA;
@@ -77,6 +77,8 @@ public class MQTTPublishManager {
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
    private SimpleString managementAddress;
+
+   private Queue managementQueue;
 
    private final String senderName = UUIDGenerator.getInstance().generateUUID().toString();
 
@@ -117,16 +119,13 @@ public class MQTTPublishManager {
    }
 
    void clean() throws Exception {
-      SimpleString managementAddress = createManagementAddress();
-      Queue queue = session.getServer().locateQueue(managementAddress);
-      if (queue != null) {
-         queue.deleteQueue();
+      if (managementQueue != null) {
+         managementQueue.deleteQueue();
       }
    }
 
    private void createManagementConsumer() throws Exception {
-      long consumerId = session.getServer().getStorageManager().generateID();
-      managementConsumer = session.getInternalServerSession().createConsumer(consumerId, managementAddress, null, false, false, -1);
+      managementConsumer = session.getServerSession().createInternalConsumer(managementAddress);
       managementConsumer.setStarted(true);
    }
 
@@ -135,11 +134,11 @@ public class MQTTPublishManager {
    }
 
    private void createManagementQueue() throws Exception {
-      Queue q = session.getServer().locateQueue(managementAddress);
-      if (q == null) {
-         session.getServer().createQueue(QueueConfiguration.of(managementAddress)
-                                            .setRoutingType(RoutingType.ANYCAST)
-                                            .setDurable(MQTTUtil.DURABLE_MESSAGES));
+      if (managementQueue == null) {
+         managementQueue = session.getServer().createQueue(QueueConfiguration.of(managementAddress)
+                                                              .setRoutingType(RoutingType.ANYCAST)
+                                                              .setDurable(MQTTUtil.DURABLE_MESSAGES),
+                                                           true);
       }
    }
 
@@ -326,8 +325,7 @@ public class MQTTPublishManager {
          Pair<Long, Long> ref = outboundStore.publishReceived(messageId);
          if (ref != null) {
             Message m = MQTTUtil.createPubRelMessage(session, getManagementAddress(), messageId);
-            //send the management message via the internal server session to bypass security.
-            session.getInternalServerSession().send(m, true, senderName);
+            MQTTUtil.sendMessageToQueue(session.getServer().getStorageManager(), session.getServer().getPostOffice(), m, managementQueue, null);
             session.getServerSession().individualAcknowledge(ref.getB(), ref.getA());
             releaseFlowControl(ref.getB());
          } else {
@@ -352,7 +350,7 @@ public class MQTTPublishManager {
       Pair<Long, Long> ref = session.getState().getOutboundStore().publishComplete(messageId);
       if (ref != null) {
          // ack the message via the internal server session to bypass security.
-         session.getInternalServerSession().individualAcknowledge(managementConsumer.getID(), ref.getA());
+         session.getServerSession().individualAcknowledge(managementConsumer.getID(), ref.getA());
       }
    }
 

@@ -48,6 +48,13 @@ import org.apache.activemq.artemis.api.core.Pair;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.config.WildcardConfiguration;
 import org.apache.activemq.artemis.core.message.impl.CoreMessage;
+import org.apache.activemq.artemis.core.persistence.StorageManager;
+import org.apache.activemq.artemis.core.postoffice.PostOffice;
+import org.apache.activemq.artemis.core.server.Queue;
+import org.apache.activemq.artemis.core.server.RoutingContext;
+import org.apache.activemq.artemis.core.server.impl.RoutingContextImpl;
+import org.apache.activemq.artemis.core.transaction.Transaction;
+import org.apache.activemq.artemis.core.transaction.impl.TransactionImpl;
 import org.apache.activemq.artemis.reader.MessageUtil;
 import org.apache.commons.text.CaseUtils;
 import org.slf4j.Logger;
@@ -589,5 +596,16 @@ public class MQTTUtil {
       } else {
          return false;
       }
+   }
+
+   public static void sendMessageToQueue(StorageManager storageManager, PostOffice postOffice, Message message, Queue queue, Transaction tx) throws Exception {
+      if (tx == null) {
+         tx = new TransactionImpl(storageManager);
+         tx.setAsync(true);
+      }
+      RoutingContext context = new RoutingContextImpl(tx);
+      queue.route(message, context);
+      postOffice.processRoute(message, context, false);
+      tx.commit();
    }
 }

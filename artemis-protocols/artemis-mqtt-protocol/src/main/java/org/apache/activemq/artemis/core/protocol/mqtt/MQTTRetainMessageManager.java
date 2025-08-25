@@ -59,7 +59,7 @@ public class MQTTRetainMessageManager {
 
       if (!reset) {
          Message message = LargeServerMessageImpl.checkLargeMessage(messageParameter, session.getServer().getStorageManager());
-         sendToQueue(message.copy(session.getServer().getStorageManager().generateID()), queue, tx);
+         MQTTUtil.sendMessageToQueue(session.getServer().getStorageManager(), session.getServer().getPostOffice(), message.copy(session.getServer().getStorageManager().generateID()), queue, tx);
       }
    }
 
@@ -84,7 +84,7 @@ public class MQTTRetainMessageManager {
                   }
                   Message message = ref.getMessage().copy(session.getServer().getStorageManager().generateID());
                   message.putStringProperty(MQTT_MESSAGE_RETAIN_INITIAL_DISTRIBUTION_KEY, (String) null);
-                  sendToQueue(message, queue, tx);
+                  MQTTUtil.sendMessageToQueue(session.getServer().getStorageManager(), session.getServer().getPostOffice(), message, queue, tx);
                }
             }
          }
