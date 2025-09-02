@@ -135,9 +135,24 @@ public interface Connection {
    }
 
    /**
-    * {@return the string representation of the remote address this connection is connected to}
+    * {@return a string representation of the remote address of this connection; if this connection is made via the
+    * proxy protocol then this will be the original address, not the proxy address}
     */
    String getRemoteAddress();
+
+   /**
+    * {@return if this connection is made via the proxy protocol then this will be the address of the proxy}
+    */
+   default String getProxyAddress() {
+      return null;
+   }
+
+   /**
+    * {@return the version of the proxy protocol used to make the connection or null if not applicable}
+    */
+   default String getProxyVersion() {
+      return null;
+   }
 
    /**
     * Returns a string representation of the local address this connection is connected to. This is useful when the

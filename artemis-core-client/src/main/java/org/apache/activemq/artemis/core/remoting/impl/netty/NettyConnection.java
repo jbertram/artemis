@@ -49,6 +49,12 @@ import org.apache.activemq.artemis.utils.IPV6Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.activemq.artemis.utils.ProxyProtocolUtil.PROXY_PROTOCOL_DESTINATION_ADDRESS;
+import static org.apache.activemq.artemis.utils.ProxyProtocolUtil.PROXY_PROTOCOL_DESTINATION_PORT;
+import static org.apache.activemq.artemis.utils.ProxyProtocolUtil.PROXY_PROTOCOL_SOURCE_ADDRESS;
+import static org.apache.activemq.artemis.utils.ProxyProtocolUtil.PROXY_PROTOCOL_SOURCE_PORT;
+import static org.apache.activemq.artemis.utils.ProxyProtocolUtil.PROXY_PROTOCOL_VERSION;
+
 public class NettyConnection implements Connection {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -388,16 +394,38 @@ public class NettyConnection implements Connection {
 
    @Override
    public final String getRemoteAddress() {
-      SocketAddress address = channel.remoteAddress();
-      if (address == null) {
+      String proxyProtocolSourceAddress = channel.attr(PROXY_PROTOCOL_SOURCE_ADDRESS).get();
+      String proxyProtocolSourcePort = channel.attr(PROXY_PROTOCOL_SOURCE_PORT).get();
+      if (proxyProtocolSourceAddress != null && !proxyProtocolSourceAddress.isEmpty() && proxyProtocolSourcePort != null && !proxyProtocolSourcePort.isEmpty()) {
+         return proxyProtocolSourceAddress + ":" + proxyProtocolSourcePort;
+      } else {
+         SocketAddress address = channel.remoteAddress();
+         if (address == null) {
+            return null;
+         }
+         String result = address.toString();
+         if (result.startsWith("/")) {
+            return result.substring(1);
+         } else {
+            return result;
+         }
+      }
+   }
+
+   @Override
+   public String getProxyAddress() {
+      String proxyProtocolDestinationAddress = channel.attr(PROXY_PROTOCOL_DESTINATION_ADDRESS).get();
+      String proxyProtocolDestinationPort = channel.attr(PROXY_PROTOCOL_DESTINATION_PORT).get();
+      if (proxyProtocolDestinationAddress != null && !proxyProtocolDestinationAddress.isEmpty() && proxyProtocolDestinationPort != null && !proxyProtocolDestinationPort.isEmpty()) {
+         return proxyProtocolDestinationAddress + ":" + proxyProtocolDestinationPort;
+      } else {
          return null;
       }
-      String result = address.toString();
-      if (result.startsWith("/")) {
-         return result.substring(1);
-      } else {
-         return result;
-      }
+   }
+
+   @Override
+   public String getProxyVersion() {
+      return channel.attr(PROXY_PROTOCOL_VERSION).get() == null ? null : channel.attr(PROXY_PROTOCOL_VERSION).get().toString();
    }
 
    @Override

@@ -50,9 +50,24 @@ public interface RemotingConnection extends BufferHandler {
    long getCreationTime();
 
    /**
-    * {@return a string representation of the remote address of this connection}
+    * {@return a string representation of the remote address of this connection; if this connection is made via the
+    * proxy protocol then this will be the original address, not the proxy address}
     */
    String getRemoteAddress();
+
+   /**
+    * {@return if this connection is made via the proxy protocol then this will be the address of the proxy}
+    */
+   default String getProxyAddress() {
+      return null;
+   }
+
+   /**
+    * {@return the version of the proxy protocol used to make the connection or null if not applicable}
+    */
+   default String getProxyVersion() {
+      return null;
+   }
 
    void scheduledFlush();
 

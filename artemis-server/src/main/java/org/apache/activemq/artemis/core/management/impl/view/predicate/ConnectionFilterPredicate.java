@@ -53,6 +53,8 @@ public class ConnectionFilterPredicate extends ActiveMQFilterPredicate<RemotingC
          case SESSION_ID -> matchAny(server.getSessions(connection.getID().toString()));
          case CREATION_TIME -> matches(connection.getCreationTime());
          case IMPLEMENTATION -> matches(connection.getClass().getSimpleName());
+         case PROXY_ADDRESS -> matches(connection.getTransportConnection().getProxyAddress());
+         case PROXY_VERSION -> matches(connection.getTransportConnection().getProxyVersion());
       };
    }
 

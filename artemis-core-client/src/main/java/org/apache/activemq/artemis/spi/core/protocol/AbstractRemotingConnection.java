@@ -145,6 +145,16 @@ public abstract class AbstractRemotingConnection implements RemotingConnection {
    }
 
    @Override
+   public String getProxyAddress() {
+      return transportConnection.getProxyAddress();
+   }
+
+   @Override
+   public String getProxyVersion() {
+      return transportConnection.getProxyVersion();
+   }
+
+   @Override
    public void addFailureListener(final FailureListener listener) {
       if (listener == null) {
          throw ActiveMQClientMessageBundle.BUNDLE.failListenerCannotBeNull();

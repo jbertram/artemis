@@ -32,6 +32,8 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.haproxy.HAProxyMessage;
+import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -39,7 +41,6 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
-
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
 import org.apache.activemq.artemis.core.buffers.impl.ChannelBufferWrapper;
 import org.apache.activemq.artemis.core.remoting.impl.netty.ConnectionCreator;
@@ -58,6 +59,11 @@ import org.apache.activemq.artemis.utils.ConfigurationHelper;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import static org.apache.activemq.artemis.utils.ProxyProtocolUtil.PROXY_PROTOCOL_DESTINATION_ADDRESS;
+import static org.apache.activemq.artemis.utils.ProxyProtocolUtil.PROXY_PROTOCOL_DESTINATION_PORT;
+import static org.apache.activemq.artemis.utils.ProxyProtocolUtil.PROXY_PROTOCOL_SOURCE_ADDRESS;
+import static org.apache.activemq.artemis.utils.ProxyProtocolUtil.PROXY_PROTOCOL_SOURCE_PORT;
+import static org.apache.activemq.artemis.utils.ProxyProtocolUtil.PROXY_PROTOCOL_VERSION;
 
 public class ProtocolHandler {
 
@@ -122,6 +128,10 @@ public class ProtocolHandler {
 
       private NettySNIHostnameHandler nettySNIHostnameHandler;
 
+      private boolean skipProxyBytes = false;
+
+      private boolean proxyAttributesSet = false;
+
       ProtocolDecoder(boolean http, boolean httpEnabled) {
          this.http = http;
          this.httpEnabled = httpEnabled;
@@ -147,11 +157,26 @@ public class ProtocolHandler {
             timeoutFuture.cancel(true);
             timeoutFuture = null;
          }
+         if (proxyAttributesSet) {
+            ctx.channel().attr(PROXY_PROTOCOL_SOURCE_ADDRESS).remove();
+            ctx.channel().attr(PROXY_PROTOCOL_SOURCE_PORT).remove();
+            ctx.channel().attr(PROXY_PROTOCOL_DESTINATION_ADDRESS).remove();
+            ctx.channel().attr(PROXY_PROTOCOL_DESTINATION_PORT).remove();
+            ctx.channel().attr(PROXY_PROTOCOL_VERSION).remove();
+         }
       }
 
       @Override
       public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-         if (msg instanceof FullHttpRequest httpRequest) {
+         if (msg instanceof HAProxyMessage haProxyMessage) {
+            ctx.channel().attr(PROXY_PROTOCOL_SOURCE_ADDRESS).set(haProxyMessage.sourceAddress());
+            ctx.channel().attr(PROXY_PROTOCOL_SOURCE_PORT).set(Integer.toString(haProxyMessage.sourcePort()));
+            ctx.channel().attr(PROXY_PROTOCOL_DESTINATION_ADDRESS).set(haProxyMessage.destinationAddress());
+            ctx.channel().attr(PROXY_PROTOCOL_DESTINATION_PORT).set(Integer.toString(haProxyMessage.destinationPort()));
+            ctx.channel().attr(PROXY_PROTOCOL_VERSION).set(haProxyMessage.protocolVersion().toString());
+            proxyAttributesSet = true;
+            skipProxyBytes = true;
+         } else if (msg instanceof FullHttpRequest httpRequest) {
             HttpHeaders headers = httpRequest.headers();
             String upgrade = headers.get("upgrade");
 
@@ -184,7 +209,9 @@ public class ProtocolHandler {
                ctx.writeAndFlush(new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN)).addListener(ChannelFutureListener.CLOSE);
             }
          } else {
-            super.channelRead(ctx, msg);
+            // slice off the proxy-related bytes that have already been read so other protocol handlers don't choke on them
+            super.channelRead(ctx, skipProxyBytes ? ((ByteBuf) msg).slice() : msg);
+            skipProxyBytes = false;
          }
       }
 
@@ -204,10 +231,16 @@ public class ProtocolHandler {
             timeoutFuture = null;
          }
 
-         final int magic1 = in.getUnsignedByte(in.readerIndex());
-         final int magic2 = in.getUnsignedByte(in.readerIndex() + 1);
-         if (http && isHttp(magic1, magic2)) {
+         final int magic0 = in.getUnsignedByte(in.readerIndex());
+         final int magic1 = in.getUnsignedByte(in.readerIndex() + 1);
+         if (http && isHttp(magic0, magic1)) {
             switchToHttp(ctx);
+            return;
+         }
+         final int magic2 = in.getUnsignedByte(in.readerIndex() + 2);
+         final int magic3 = in.getUnsignedByte(in.readerIndex() + 3);
+         if (isHaProxy(magic0, magic1, magic2, magic3)) {
+            switchToHaProxy(ctx.pipeline());
             return;
          }
          String protocolToUse = null;
@@ -215,7 +248,7 @@ public class ProtocolHandler {
          if (!protocolSet.isEmpty()) {
             // Use getBytes(...) as this works with direct and heap buffers.
             byte[] bytes = new byte[8];
-            in.getBytes(0, bytes);
+            in.getBytes(in.readerIndex(), bytes);
 
             for (String protocol : protocolSet) {
                ProtocolManager protocolManager = protocolMap.get(protocol);
@@ -265,16 +298,21 @@ public class ProtocolHandler {
          }
       }
 
-      private boolean isHttp(int magic1, int magic2) {
-         return magic1 == 'G' && magic2 == 'E' || // GET
-            magic1 == 'P' && magic2 == 'O' || // POST
-            magic1 == 'P' && magic2 == 'U' || // PUT
-            magic1 == 'H' && magic2 == 'E' || // HEAD
-            magic1 == 'O' && magic2 == 'P' || // OPTIONS
-            magic1 == 'P' && magic2 == 'A' || // PATCH
-            magic1 == 'D' && magic2 == 'E' || // DELETE
-            magic1 == 'T' && magic2 == 'R'; // TRACE
-         //magic1 == 'C' && magic2 == 'O'; // CONNECT
+      private boolean isHttp(int magic0, int magic1) {
+         return magic0 == 'G' && magic1 == 'E' || // GET
+            magic0 == 'P' && magic1 == 'O' || // POST
+            magic0 == 'P' && magic1 == 'U' || // PUT
+            magic0 == 'H' && magic1 == 'E' || // HEAD
+            magic0 == 'O' && magic1 == 'P' || // OPTIONS
+            magic0 == 'P' && magic1 == 'A' || // PATCH
+            magic0 == 'D' && magic1 == 'E' || // DELETE
+            magic0 == 'T' && magic1 == 'R'; // TRACE
+         // magic0 == 'C' && magic1 == 'O'; // CONNECT
+      }
+
+      private boolean isHaProxy(int magic0, int magic1, int magic2, int magic3) {
+         return magic0 == 'P' && magic1 == 'R' && magic2 == 'O' && magic3 == 'X' || // V1
+            magic0 == '\r' && magic1 == '\n' && magic2 == '\r' && magic3 == '\n'; // V2
       }
 
       private void switchToHttp(ChannelHandlerContext ctx) {
@@ -293,6 +331,12 @@ public class ProtocolHandler {
          HttpAcceptorHandler httpHandler = new HttpAcceptorHandler(httpKeepAliveRunnable, httpResponseTime, ctx.channel());
          ctx.pipeline().addLast(HTTP_HANDLER, httpHandler);
          p.addLast(new ProtocolDecoder(false, true));
+         p.remove(this);
+      }
+
+      private void switchToHaProxy(ChannelPipeline p) {
+         p.addLast(new HAProxyMessageDecoder());
+         p.addLast(new ProtocolDecoder(false, false));
          p.remove(this);
       }
    }

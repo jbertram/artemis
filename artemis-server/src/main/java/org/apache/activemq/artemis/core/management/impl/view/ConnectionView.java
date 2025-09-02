@@ -65,7 +65,9 @@ public class ConnectionView extends ActiveMQAbstractView<RemotingConnection> {
          .add(ConnectionField.PROTOCOL.getName(), toString(connection.getProtocolName()))
          .add(ConnectionField.CLIENT_ID.getName(), toString(connection.getClientID()))
          .add(ConnectionField.LOCAL_ADDRESS.getName(), toString(connection.getTransportLocalAddress()))
-         .add(ConnectionField.SESSION_COUNT.getName(), sessions.size());
+         .add(ConnectionField.SESSION_COUNT.getName(), sessions.size())
+         .add(ConnectionField.PROXY_ADDRESS.getName(), toString(connection.getProxyAddress()))
+         .add(ConnectionField.PROXY_VERSION.getName(), toString(connection.getProxyVersion()));
    }
 
    @Override
@@ -96,6 +98,10 @@ public class ConnectionView extends ActiveMQAbstractView<RemotingConnection> {
             return connection.getTransportLocalAddress();
          case SESSION_COUNT:
             return server.getSessions(connection.getID().toString()).size();
+         case PROXY_ADDRESS:
+            return connection.getProxyAddress();
+         case PROXY_VERSION:
+            return connection.getProxyVersion();
          default:
             throw new IllegalArgumentException("Unsupported field, " + fieldName);
       }
