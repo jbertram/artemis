@@ -16,12 +16,6 @@
  */
 package org.apache.activemq.artemis.core.server.management;
 
-
-import org.apache.activemq.artemis.logs.AuditLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.lang.invoke.MethodHandles;
-
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.JMException;
@@ -32,11 +26,14 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.security.auth.Subject;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
-import java.security.AccessControlContext;
-import java.security.AccessController;
 import java.security.Principal;
 import java.util.List;
+
+import org.apache.activemq.artemis.logs.AuditLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ArtemisMBeanServerGuard implements GuardInvocationHandler {
 
@@ -188,11 +185,7 @@ public class ArtemisMBeanServerGuard implements GuardInvocationHandler {
          clazz = "org.apache.activemq.artemis.spi.core.security.jaas.RolePrincipal";
          role = requestedRole;
       }
-      AccessControlContext acc = AccessController.getContext();
-      if (acc == null) {
-         return false;
-      }
-      Subject subject = Subject.getSubject(acc);
+      Subject subject = Subject.current();
       if (subject == null) {
          return false;
       }

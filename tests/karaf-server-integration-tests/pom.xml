@@ -143,7 +143,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-               <skipTests>${skipIntegrationTests}</skipTests>
+               <skipTests>${skipKarafIntegrationTests}</skipTests>
             </configuration>
          </plugin>
       </plugins>

@@ -79,9 +79,10 @@
    <url>https://activemq.apache.org/components/artemis/</url>
 
    <properties>
-      <maven.compiler.source>17</maven.compiler.source>
-      <maven.compiler.target>17</maven.compiler.target>
-      <maven.compiler.release>17</maven.compiler.release>
+      <artemis.java.version>24</artemis.java.version>
+      <maven.compiler.source>${artemis.java.version}</maven.compiler.source>
+      <maven.compiler.target>${artemis.java.version}</maven.compiler.target>
+      <maven.compiler.release>${artemis.java.version}</maven.compiler.release>
 
       <logging.config>log4j2-tests-config.properties</logging.config>
       <modular.jdk.surefire.arg>--add-modules java.sql,jdk.unsupported </modular.jdk.surefire.arg>
@@ -212,6 +213,7 @@
       <skipJmsTests>true</skipJmsTests>
       <skipExtraTests>true</skipExtraTests>
       <skipIntegrationTests>true</skipIntegrationTests>
+      <skipKarafIntegrationTests>true</skipKarafIntegrationTests>
       <skipFeaturesVerification>true</skipFeaturesVerification>
       <skipIsolatedIntegrationTests>true</skipIsolatedIntegrationTests>
       <skipLeakTests>true</skipLeakTests>
@@ -272,6 +274,9 @@
       <fast-tests>false</fast-tests>
 
       <project.build.outputTimestamp>2025-10-13T15:12:34Z</project.build.outputTimestamp>
+
+      <!-- override from parent apache pom for building with JDK 25-->
+      <version.maven-shade-plugin>3.6.1</version.maven-shade-plugin>
    </properties>
 
    <scm>
@@ -430,8 +435,8 @@
                         <configuration>
                            <rules>
                               <requireJavaVersion>
-                                 <version>[17, 18)</version>
-                                 <message>JDK 17 is required when building the release</message>
+                                 <version>[${artemis.java.version},)</version>
+                                 <message>JDK ${artemis.java.version} is required when building the release</message>
                               </requireJavaVersion>
                            </rules>
                         </configuration>
@@ -1011,8 +1016,8 @@
                   <configuration>
                      <rules>
                         <requireJavaVersion>
-                           <version>[17,)</version>
-                           <message>You must use JDK 17+ when building</message>
+                           <version>[${artemis.java.version},)</version>
+                           <message>You must use JDK ${artemis.java.version}+ when building</message>
                         </requireJavaVersion>
                      </rules>
                   </configuration>

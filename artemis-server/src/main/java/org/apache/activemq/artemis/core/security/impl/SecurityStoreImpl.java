@@ -19,8 +19,6 @@ package org.apache.activemq.artemis.core.security.impl;
 import javax.security.auth.Subject;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
-import java.security.AccessControlContext;
-import java.security.AccessController;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
@@ -210,13 +208,10 @@ public class SecurityStoreImpl implements SecurityStore, HierarchicalRepositoryC
             }
          } else {
             if (user == null && password == null && connection instanceof ManagementRemotingConnection) {
-               AccessControlContext accessControlContext = AccessController.getContext();
-               if (accessControlContext != null) {
-                  check = false;
-                  userIsValid = true;
-                  subject = Subject.getSubject(accessControlContext);
-                  validatedUser = getUserFromSubject(subject);
-               }
+               check = false;
+               userIsValid = true;
+               subject = Subject.current();
+               validatedUser = getUserFromSubject(subject);
             }
          }
          if (check) {
@@ -467,10 +462,7 @@ public class SecurityStoreImpl implements SecurityStore, HierarchicalRepositoryC
     */
    private Subject getSubjectForAuthorization(SecurityAuth auth, ActiveMQSecurityManager5 securityManager) {
       if (auth.getUsername() == null && auth.getPassword() == null && auth.getRemotingConnection() instanceof ManagementRemotingConnection) {
-         AccessControlContext accessControlContext = AccessController.getContext();
-         if (accessControlContext != null) {
-            return Subject.getSubject(accessControlContext);
-         }
+         return Subject.current();
       }
 
       String authnCacheKey = createAuthenticationCacheKey(auth.getUsername(), auth.getPassword(), auth.getRemotingConnection());

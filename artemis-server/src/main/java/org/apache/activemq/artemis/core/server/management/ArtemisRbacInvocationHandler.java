@@ -28,8 +28,6 @@ import javax.management.ObjectName;
 import javax.security.auth.Subject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.AccessControlContext;
-import java.security.AccessController;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -338,11 +336,7 @@ public class ArtemisRbacInvocationHandler implements GuardInvocationHandler {
       final ManagementRemotingConnection managementRemotingConnection = new ManagementRemotingConnection() {
          @Override
          public Subject getSubject() {
-            AccessControlContext accessControlContext = AccessController.getContext();
-            if (accessControlContext != null) {
-               return Subject.getSubject(accessControlContext);
-            }
-            return null;
+            return Subject.current();
          }
       };
 

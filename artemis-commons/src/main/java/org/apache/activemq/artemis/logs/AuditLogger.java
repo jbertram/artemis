@@ -16,14 +16,8 @@
  */
 package org.apache.activemq.artemis.logs;
 
-import org.apache.activemq.artemis.logs.annotation.LogBundle;
-import org.apache.activemq.artemis.logs.annotation.GetLogger;
-import org.apache.activemq.artemis.logs.annotation.LogMessage;
-import org.slf4j.Logger;
-
 import javax.management.ObjectName;
 import javax.security.auth.Subject;
-import java.security.AccessController;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +25,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
+import org.apache.activemq.artemis.logs.annotation.GetLogger;
+import org.apache.activemq.artemis.logs.annotation.LogBundle;
+import org.apache.activemq.artemis.logs.annotation.LogMessage;
+import org.slf4j.Logger;
 
 /**
  * Logger Codes 600000 - 609999
@@ -70,7 +69,7 @@ public interface AuditLogger {
     * set)}
     */
    static String getCaller() {
-      Subject subject = Subject.getSubject(AccessController.getContext());
+      Subject subject = Subject.current();
       if (subject == null) {
          subject = currentCaller.get();
       }
