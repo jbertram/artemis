@@ -3,7 +3,7 @@
 :idseparator: -
 :docinfo: shared
 
-Apache ActiveMQ Artemis distributes a native library, used as a bridge for its fast journal, between Apache ActiveMQ Artemis and Linux libaio.
+{project-name-full} distributes a native library, used as a bridge for its fast journal, between {project-name-full} and Linux libaio.
 
 `libaio` is a library, developed as part of the Linux kernel project.
 With `libaio` we submit writes to the operating system where they are processed asynchronously.
@@ -11,13 +11,13 @@ Some time later the OS will call our code back when they have been processed.
 
 We use this in our high performance journal if configured to do so, please see xref:persistence.adoc#persistence[Persistence].
 
-These are the native libraries distributed by Apache ActiveMQ Artemis:
+These are the native libraries distributed by {project-name-full}:
 
 * libartemis-native-64.so - x86 64 bits
 * We distributed a 32-bit version until early 2017.
 While it's not available on the distribution any longer it should still be possible to compile to a 32-bit environment if needed.
 
-When using libaio, Apache ActiveMQ Artemis will always try loading these files as long as they are on the xref:using-server.adoc#library-path[library path]
+When using libaio, {project-name-full} will always try loading these files as long as they are on the xref:using-server.adoc#library-path[library path]
 
 == Runtime dependencies
 
@@ -55,12 +55,11 @@ The value for `<package-name>` will depend on which Linux distribution version y
 |libaio1t64
 |===
 +
-Since the package name in later versions of Ubuntu and Debian is different you'll also need to create a symlink on these versions so that the ActiveMQ Artemis Native library can find the shared library at the expected location, e.g.:
+Since the package name in later versions of Ubuntu and Debian is different, you'll also need to create a symlink on these versions so that the libaio shared library can be found at the expected location, e.g.:
 +
 ----
 ln -s /usr/lib/x86_64-linux-gnu/libaio.so.1t64 /usr/lib/libaio.so.1
 ----
-
 
 == Compiling the native libraries
 

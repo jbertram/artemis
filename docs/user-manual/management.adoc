@@ -3,21 +3,21 @@
 :idseparator: -
 :docinfo: shared
 
-Apache ActiveMQ Artemis has an extensive _management API_ that allows a user to modify a server configuration, create new resources (e.g. addresses and queues), inspect these resources (e.g. how many messages are currently held in a queue) and interact with it (e.g. to remove messages from a queue).
-Apache ActiveMQ Artemis also allows clients to subscribe to management notifications.
+{project-name-full} has an extensive _management API_ that allows a user to modify a server configuration, create new resources (e.g. addresses and queues), inspect these resources (e.g. how many messages are currently held in a queue) and interact with it (e.g. to remove messages from a queue).
+{project-name-full} also allows clients to subscribe to management notifications.
 
-There are numerous ways to access Apache ActiveMQ Artemis management API:
+There are numerous ways to access {project-name-full} management API:
 
 * Using JMX -- _JMX_ is the standard way to manage Java applications
 * Using Jolokia -- Jolokia exposes the JMX API of an application through an _HTTP interface_
-* Using the Core Client -- management operations are sent to Apache ActiveMQ Artemis server using _Core Client messages_
+* Using the Core Client -- management operations are sent to {project-name-full} server using _Core Client messages_
 * Using any JMS Client -- management operations are sent to Apache ActiveMQ  Artemis server using _JMS Client messages_
 * Web Console -- a web application which provides a graphical interface to the management API.
 
-Although there are four different ways to manage Apache ActiveMQ Artemis, each API supports the same functionality.
+Although there are four different ways to manage {project-name-full}, each API supports the same functionality.
 If it is possible to manage a resource using JMX it is also possible to achieve the same result using Core messages.
 
-Besides these four management interfaces, a xref:management-console.adoc#management-console[Web Console]  and a Command Line _management utility_ are also available to administrators of  ActiveMQ Artemis.
+Besides these four management interfaces, a xref:management-console.adoc#management-console[Web Console] and a Command Line _management utility_ are also available to administrators.
 
 The choice depends on your requirements, your application settings, and your environment to decide which way suits you best.
 
@@ -34,7 +34,7 @@ They are located in the `org.apache.activemq.artemis.api.core.management` packag
 
 The `ActiveMQServerControl` interface is the entry point for broker management.
 
-* Listing, creating, deploying and destroying queues
+* Listing, creating, deploying, and destroying queues
 +
 A list of deployed queues can be retrieved using the `getQueueNames()` method.
 +
@@ -62,7 +62,7 @@ To reset message counters, it is possible to invoke `resetAllMessageCounters()` 
 
 * Retrieving the server configuration and attributes
 +
-The `ActiveMQServerControl` exposes Apache ActiveMQ Artemis server configuration through all its attributes (e.g. `getVersion()` method to retrieve the server's version, etc.)
+The `ActiveMQServerControl` exposes {project-name-full} server configuration through all its attributes (e.g. `getVersion()` method to retrieve the server's version, etc.)
 
 * Listing, creating and destroying Core bridges and diverts
 +
@@ -94,7 +94,7 @@ Since this method actually stops the server you will probably receive some sort 
 The broker's tmp dir is configured via the system property `java.io.tmpdir`. The default value, set via the launch scripts, is `$ARTEMIS_INSTANCE/tmp`.
 ====
 
-* The status of the broker, a json string, can be obtained through the `getStatus()` operation. The status includes identity, uptime, activation state and information about broker properties configuration and reload.
+* The status of the broker, a json string, can be obtained through the `getStatus()` operation. The status includes identity, uptime, activation state, and information about broker properties configuration and reload.
 
 === Address Management
 
@@ -187,7 +187,7 @@ This is useful where you may need to disable message routing to a queue but wish
 
 === Other Resources Management
 
-Apache ActiveMQ Artemis allows to start and stop its remote resources (acceptors, diverts, bridges, etc.) so that a server can be taken off line for a given period of time without stopping it completely (e.g. if other management operations must be performed such as resolving heuristic transactions).
+{project-name-full} allows to start and stop its remote resources (acceptors, diverts, bridges, etc.) so that a server can be taken off line for a given period of time without stopping it completely (e.g. if other management operations must be performed such as resolving heuristic transactions).
 These resources are:
 
 * Acceptors
@@ -219,10 +219,10 @@ Cluster connections parameters can be retrieved using the `ClusterConnectionCont
 
 == Management Via JMX
 
-Apache ActiveMQ Artemis can be managed using http://www.oracle.com/technetwork/java/javase/tech/javamanagement-140525.html[JMX].
+{project-name-full} can be managed using http://www.oracle.com/technetwork/java/javase/tech/javamanagement-140525.html[JMX].
 
-The management API is exposed by Apache ActiveMQ Artemis using MBeans.
-By  default, Apache ActiveMQ Artemis registers its resources with the domain  `org.apache.activemq.artemis`.
+The management API is exposed by {project-name-full} using MBeans.
+By  default, {project-name-full} registers its resources with the domain  `org.apache.activemq.artemis`.
 For example, the `ObjectName` to manage the anycast queue `exampleQueue` on the address `exampleAddress` is:
 
 ----
@@ -245,12 +245,12 @@ objectNameBuilder = ObjectNameBuilder.create(ArtemisResolver.DEFAULT_DOMAIN, bro
 serverObjectName = objectNameBuilder.getActiveMQServerObjectName()
 ----
 
-Managing Apache ActiveMQ Artemis using JMX is identical to management of any Java Applications using JMX.
+Managing {project-name-full} using JMX is identical to management of any Java Applications using JMX.
 It can be done by reflection or by creating proxies of the MBeans.
 
 === Configuring JMX
 
-By default, JMX is enabled to manage Apache ActiveMQ Artemis.
+By default, JMX is enabled to manage {project-name-full}.
 It can be disabled by setting `jmx-management-enabled` to `false` in `broker.xml`:
 
 [,xml]
@@ -432,7 +432,7 @@ To ensure no user has permission to xref:management.adoc#force_failover[force a 
 
 ==== Local JMX Access with JConsole
 
-Due to the authorisation which is enabled by default Apache ActiveMQ Artemis  can _not_ be managed locally using JConsole when connecting as a _local  process_.
+Due to the authorisation which is enabled by default {project-name-full}  can _not_ be managed locally using JConsole when connecting as a _local  process_.
 This is because JConsole does not pass any authentication information when connecting this way which means the user cannot therefore be authorised  for any management operations.
 In order to use JConsole the user will either have to disable authorisation by completely removing the `authorisation` element from `management.xml` or by enabling remote access and providing the proper username and password credentials (discussed next).
 
@@ -524,8 +524,8 @@ If you want to expose this then you will need to disable both the connector and 
 Please refer to https://docs.oracle.com/javase/8/docs/technotes/guides/management/agent.html[Java Management guide] to configure the server for remote management (system properties must be set in `artemis.profile`).
 ====
 
-By default, Apache ActiveMQ Artemis server uses the JMX domain "org.apache.activemq.artemis".
-To manage several Apache ActiveMQ Artemis servers from the _same_ MBeanServer, the JMX domain can be configured for each individual Apache ActiveMQ Artemis server by setting `jmx-domain` in `broker.xml`:
+By default, {project-name-full} server uses the JMX domain "org.apache.activemq.artemis".
+To manage several {project-name-full} servers from the _same_ MBeanServer, the JMX domain can be configured for each individual {project-name-full} server by setting `jmx-domain` in `broker.xml`:
 
 [,xml]
 ----
@@ -535,7 +535,7 @@ To manage several Apache ActiveMQ Artemis servers from the _same_ MBeanServer, t
 
 === Example
 
-See the xref:examples.adoc#jmx-management[JMX Management Example] which shows how to use a remote connection to JMX and MBean proxies to manage Apache ActiveMQ Artemis.
+See the xref:examples.adoc#jmx-management[JMX Management Example] which shows how to use a remote connection to JMX and MBean proxies to manage {project-name-full}.
 
 === Exposing JMX using Jolokia
 
@@ -926,7 +926,7 @@ For query operations on the MBeanServer, the results of the query are limited to
 
 == Using Management Message API
 
-The management message API in ActiveMQ Artemis is accessed by sending Core Client messages to a special address, the _management address_.
+The management message API is accessed by sending Core Client messages to a special address, the _management address_.
 
 _Management messages_ are regular Core Client messages with well-known properties that the server needs to understand to interact with the management API:
 
@@ -934,7 +934,7 @@ _Management messages_ are regular Core Client messages with well-known propertie
 * The name of the management operation
 * The parameters of the management operation
 
-When such a management message is sent to the management address, Apache ActiveMQ Artemis server will handle it, extract the information, invoke the operation on the managed resources and send a _management reply_ to the management message's reply-to address (specified by `ClientMessageImpl.REPLYTO_HEADER_NAME`).
+When such a management message is sent to the management address the broker will handle it, extract the information, invoke the operation on the managed resources, and send a _management reply_ to the management message's reply-to address (specified by `ClientMessageImpl.REPLYTO_HEADER_NAME`).
 
 A `ClientConsumer` can be used to consume the management reply and retrieve the result of the operation (if any) stored in the reply's body.
 For portability, results are returned as a https://json.org[JSON] String rather than Java Serialization (the `org.apache.activemq.artemis.api.core.management.ManagementHelper` can be used to convert the JSON string to Java objects).
@@ -990,7 +990,7 @@ This is also configured in broker.xml:
 [,xml]
 ----
 <!-- users with the admin role will be allowed to manage -->
-<!-- Apache ActiveMQ Artemis using management messages    -->
+<!-- {project-name-full} using management messages    -->
 <security-setting match="activemq.management">
    <permission type="manage" roles="admin" />
 </security-setting>
@@ -1034,11 +1034,11 @@ If you want the `admin` role to have full access, use a wildcard after the manag
 
 === Management Example
 
-See the xref:examples.adoc#management[Management Example] which shows how to use JMS messages to manage the Apache ActiveMQ Artemis server.
+See the xref:examples.adoc#management[Management Example] which shows how to use JMS messages to manage the {project-name-full} server.
 
 == Management Notifications
 
-Apache ActiveMQ Artemis emits _notifications_ to inform listeners of potentially interesting events (creation of new resources, security violation, etc.).
+{project-name-full} emits _notifications_ to inform listeners of potentially interesting events (creation of new resources, security violation, etc.).
 
 These notifications can be received by two different ways:
 
@@ -1051,7 +1051,7 @@ If JMX is enabled (see Configuring JMX section), JMX notifications can be receiv
 
 === Notification Messages
 
-Apache ActiveMQ Artemis defines a special _management notification address_.
+{project-name-full} defines a special _management notification address_.
 Queues can be bound to this address so that clients will receive management notifications as messages.
 
 A client which wants to receive management notifications must create a queue bound to the management notification address.
@@ -1088,7 +1088,7 @@ Default value is `false`
 
 ==== Receiving Notification Messages
 
-Apache ActiveMQ Artemis's Core JMS Client can be used to receive notifications:
+{project-name-full}'s Core JMS Client can be used to receive notifications:
 
 [,java]
 ----
@@ -1115,7 +1115,7 @@ notificationConsumer.setMessageListener(new MessageListener() {
 
 === Example
 
-See the xref:examples.adoc#management-notification[Management Notification Example] which shows how to use a JMS `MessageListener` to receive management notifications from ActiveMQ Artemis server.
+See the xref:examples.adoc#management-notification[Management Notification Example] which shows how to use a JMS `MessageListener` to receive management notifications.
 
 === Notification Types and Headers
 
@@ -1206,7 +1206,7 @@ MESSAGE_EXPIRED (29)::
 
 == Message Counters
 
-Message counters can be used to obtain information on queues _over time_ as Apache ActiveMQ Artemis keeps a history on queue metrics.
+Message counters can be used to obtain information on queues _over time_ as {project-name-full} keeps a history on queue metrics.
 
 They can be used to show _trends_ on queues.
 For example, using the management API, it would be possible to query the number of messages in a queue at regular interval.
@@ -1267,7 +1267,7 @@ For example, to retrieve message counters on a queue using JMX:
 
 [,java]
 ----
-// retrieve a connection to Apache ActiveMQ Artemis's MBeanServer
+// retrieve a connection to {project-name-full}'s MBeanServer
 MBeanServerConnection mbsc = ...
 QueueControlMBean queueControl = (QueueControl)MBeanServerInvocationHandler.newProxyInstance(mbsc,
    on,

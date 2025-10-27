@@ -381,6 +381,8 @@
 
                         <!-- Version substitution attributes -->
                         <project-version>${project.version}</project-version>
+                        <project-name-full>Apache ActiveMQ Artemis</project-name-full>
+                        <project-name-short>ActiveMQ Artemis</project-name-short>
                         <log4j-version>${log4j.version}</log4j-version>
                      </attributes>
                      <logHandler>

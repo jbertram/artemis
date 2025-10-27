@@ -90,7 +90,7 @@ https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315920&versio
 * MQTT performance improvements for:
 ** xref:mqtt.adoc#persistent-subscriptions[persisting subscriptions]
 ** matching subscription identifiers to topic filters for 5.0 clients
-* Upgrade to https://activemq.apache.org/components/artemis-console/download/release-notes-1.2.1[ActiveMQ Artemis Console 1.2.1] with lots of usability improvements
+* Upgrade to https://activemq.apache.org/components/artemis-console/download/release-notes-1.2.1[{project-name-short} Console 1.2.1] with lots of usability improvements
 * Support for XOAUTH SASL mechanism for xref:amqp-broker-connections.adoc[AMQP broker connections]
 * And for developers...almost 2,500 lines of code were eliminated by consistently using the convenience methods from Java's `java.util.Objects` class across the code-base (e.g. https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html#hash(java.lang.Object...)[`hash`], https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html#toString(java.lang.Object)[`toString`], https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html#equals(java.lang.Object,java.lang.Object)[`equals`], https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html#requireNonNull(T)[`requireNonNull`], etc.).
 
@@ -369,7 +369,7 @@ https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315920&versio
 
 * Mirrored Core Messages can now be sent on their native format without conversions
 * Mirror bug fixes and improvements
-* https://issues.apache.org/jira/browse/ARTEMIS-3474[ActiveMQ Artemis has now adopted] more inclusive language definitions.
+* https://issues.apache.org/jira/browse/ARTEMIS-3474[{project-name-short} has now adopted] more inclusive language definitions.
 * The examples are now part of its own repository:  https://github.com/apache/activemq-artemis-examples/
 
 === Upgrading from 2.31.x
@@ -430,7 +430,7 @@ See https://issues.apache.org/jira/browse/ARTEMIS-4383[ARTEMIS-4383] for more de
 
 === Upgrading from 2.30.0
 
-* Due to https://issues.apache.org/jira/browse/ARTEMIS-4372[ARTEMIS-4372] and the introduction of the new Artemis shell feature when you invoke `./artemis` it will now start the new shell to navigate through the CLI commands rather than just spitting out the `help` text.
+* Due to https://issues.apache.org/jira/browse/ARTEMIS-4372[ARTEMIS-4372] and the introduction of the new shell feature when you invoke `./artemis` it will now start the new shell to navigate through the CLI commands rather than just spitting out the `help` text.
 
 == 2.30.0
 
@@ -690,7 +690,7 @@ https://issues.apache.org/jira/secure/ReleaseNote.jspa?version=12351083&projectI
 === Highlights
 
 * xref:mqtt.adoc#mqtt[MQTT 5] is now supported.
-* A new set of xref:perf-tools.adoc#performance-tools[performance tools] are now available to evaluate throughput and Response Under Load performance of Artemis
+* A new set of xref:perf-tools.adoc#performance-tools[performance tools] are now available to evaluate throughput and Response Under Load performance of {project-name-short}
 * Diverts now support xref:diverts.adoc#composite-divert[multiple addresses]
 * xref:config-reload.adoc#configuration-reload[Runtime configuration reloading] now supports bridges.
 * xref:paging.adoc#paging-mode[Paging] can now be configured by message count.
@@ -1209,7 +1209,7 @@ https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315920&versio
 
 === Upgrading from 2.4.0
 
-. Due to changes from https://issues.apache.org/jira/browse/ARTEMIS-1644[ARTEMIS-1644] any `acceptor` that needs to be compatible with HornetQ and/or Artemis 1.x clients needs to have `anycastPrefix=jms.queue.;multicastPrefix=jms.topic.` in the `acceptor` url.
+. Due to changes from https://issues.apache.org/jira/browse/ARTEMIS-1644[ARTEMIS-1644] any `acceptor` that needs to be compatible with HornetQ and/or {project-name-short} 1.x clients needs to have `anycastPrefix=jms.queue.;multicastPrefix=jms.topic.` in the `acceptor` url.
 This prefix used to be configured automatically behind the scenes when the broker detected  these old types of clients, but that broke certain use-cases with no possible work-around.
 See  https://issues.apache.org/jira/browse/ARTEMIS-1644[ARTEMIS-1644] for more details.
 

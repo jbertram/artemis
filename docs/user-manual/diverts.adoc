@@ -3,7 +3,7 @@
 :idseparator: -
 :docinfo: shared
 
-Apache ActiveMQ Artemis allows you to configure objects called _diverts_ with some simple server configuration.
+{project-name-full} allows you to configure objects called _diverts_ with some simple server configuration.
 Diverts allow you to transparently divert messages routed to one address to one or more other addresses, without making any changes to any client application logic.
 
 Diverts can be _exclusive_ or _non-exclusive_.
@@ -82,18 +82,18 @@ This allows you to change the messages body or properties before it is diverted.
 In this example the transformer simply adds a header that records the time the divert happened.
 See the xref:transformers.adoc#transformers[transformer chapter] for more details about transformer-specific configuration.
 
-This example is actually diverting messages to a local store and forward queue, which is configured with a bridge which forwards the message to an address on another ActiveMQ Artemis server.
+This example is actually diverting messages to a local store and forward queue, which is configured with a bridge which forwards the message to an address on another broker.
 Please see the example for more details.
 
 == Non-exclusive Divert
 
 Now we'll take a look at a non-exclusive divert.
-Non exclusive diverts are the same as exclusive diverts, but they only forward a _copy_ of the message to the new address.
+Non-exclusive diverts are the same as exclusive diverts, but they only forward a _copy_ of the message to the new address.
 The original message continues to the old address
 
 You can therefore think of non-exclusive diverts as _splitting_ a message flow.
 
-Non exclusive diverts can be configured in the same way as exclusive diverts with an optional filter and transformer, here's an example non-exclusive divert, again from the divert example:
+Non-exclusive diverts can be configured in the same way as exclusive diverts with an optional filter and transformer, here's an example non-exclusive divert, again from the divert example:
 
 [,xml]
 ----

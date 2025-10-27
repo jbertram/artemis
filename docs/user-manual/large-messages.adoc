@@ -3,7 +3,7 @@
 :idseparator: -
 :docinfo: shared
 
-Apache ActiveMQ Artemis can be configured to give special treatment to messages which are beyond a configured size.
+{project-name-full} can be configured to give special treatment to messages which are beyond a configured size.
 Instead of keeping the entire contents of these messages _in memory_ the broker will hold just a thin object on the queues with a reference to the content (e.g. in a file or a database table).
 
 This is supported on Core Protocol and on the AMQP Protocol.
@@ -76,7 +76,7 @@ This is determined by the URL parameter `minLargeMessageSize`
 
 [NOTE]
 ====
-Apache ActiveMQ Artemis messages are encoded using 2 bytes per character so if the message data is filled with ASCII characters (which are 1 byte) the size of the resulting Apache ActiveMQ Artemis message would roughly double.
+{project-name-full} messages are encoded using 2 bytes per character so if the message data is filled with ASCII characters (which are 1 byte) the size of the resulting {project-name-full} message would roughly double.
 This is important when calculating the size of a "large" message as it may appear to be less than the `minLargeMessageSize` before it is sent, but it then turns into a "large" message once it is encoded.
 ====
 
@@ -104,7 +104,7 @@ Make sure to tune this value according to its specific use-case.
 
 == Streaming large messages from Core Protocol
 
-Apache ActiveMQ Artemis supports setting the body of messages using input and output streams (`java.lang.io`)
+{project-name-full} supports setting the body of messages using input and output streams (`java.lang.io`)
 
 These streams are then used directly for sending (input streams) and receiving (output streams) messages.
 
@@ -166,7 +166,7 @@ On those cases you can use the message property _AMQ_LARGE_SIZE.
 
 === Streaming over JMS
 
-When using JMS, Apache ActiveMQ Artemis maps the streaming methods on the core API (see ClientMessage API table above) by setting object properties . You can use the method `Message.setObjectProperty` to set the input and output streams.
+When using JMS, {project-name-full} maps the streaming methods on the core API (see ClientMessage API table above) by setting object properties . You can use the method `Message.setObjectProperty` to set the input and output streams.
 
 The `InputStream` can be defined through the JMS Object Property JMS_AMQ_InputStream on messages being sent:
 
@@ -216,7 +216,7 @@ When using JMS, Streaming large messages are only supported on `StreamMessage` a
 
 === Streaming Alternative on Core Protocol
 
-If you choose not to use the `InputStream` or `OutputStream` capability of Apache ActiveMQ Artemis You could still access the data directly in an alternative fashion.
+If you choose not to use the `InputStream` or `OutputStream` capability of {project-name-full} You could still access the data directly in an alternative fashion.
 
 On the Core API just get the bytes of the body as you normally would.
 

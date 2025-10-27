@@ -3,7 +3,7 @@
 :idseparator: -
 :docinfo: shared
 
-Apache ActiveMQ Artemis core is a messaging system with its own API.
+{project-name-full} core is a messaging system with its own API.
 We call this the _core API_.
 
 If you don't want to use the JMS API or any of the other supported protocols you can use the core API directly.
@@ -39,7 +39,7 @@ The broker will attempt to deliver higher priority messages before lower priorit
 * Messages can be specified with an optional expiry time.
 The broker will not deliver messages after its expiry time has been exceeded.
 * Messages also have an optional timestamp which represents the time the message was sent.
-* Apache ActiveMQ Artemis also supports the sending/consuming of very large messages much larger than can fit in available RAM at any one time.
+* {project-name-full} also supports the sending/consuming of very large messages much larger than can fit in available RAM at any one time.
 
 == Core API
 
@@ -70,7 +70,7 @@ A client uses a ``ClientSession``for consuming and producing messages and for gr
 
 `ClientSession` instances can be registered with an optional `SendAcknowledgementHandler`.
 This allows your client code to be notified asynchronously when sent messages have successfully reached the server.
-This unique Apache ActiveMQ Artemis feature, allows you to have full guarantees that sent messages have reached the server without having to block on each message sent until a response is received.
+This unique {project-name-full} feature, allows you to have full guarantees that sent messages have reached the server without having to block on each message sent until a response is received.
 Blocking on each messages sent is costly since it requires a network round trip for each message sent.
 By not blocking and receiving send acknowledgements asynchronously you can create true end to end asynchronous systems which is not possible using the standard JMS API.
 For more information on this advanced feature please see the section xref:send-guarantees.adoc#guarantees-of-sends-and-commits[Guarantees of sends and commits].

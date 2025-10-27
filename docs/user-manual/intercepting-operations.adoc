@@ -3,7 +3,7 @@
 :idseparator: -
 :docinfo: shared
 
-Apache ActiveMQ Artemis supports _interceptors_ to intercept packets entering and exiting the server.
+{project-name-full} supports _interceptors_ to intercept packets entering and exiting the server.
 Incoming and outgoing interceptors are be called for any packet entering or exiting the server respectively.
 This allows custom code to be executed, e.g. for auditing packets, filtering or other reasons.
 Interceptors can change the packets they intercept.
@@ -72,7 +72,7 @@ See the documentation on xref:using-server.adoc#adding-runtime-dependencies[addi
 
 == Interceptors on the Client Side
 
-The interceptors can also be run on the Apache ActiveMQ Artemis client side to intercept packets either sent by the client to the server or by the server to the client.
+The interceptors can also be run on the {project-name-full} client side to intercept packets either sent by the client to the server or by the server to the client.
 This is done by adding the interceptor to the `ServerLocator` with the `addIncomingInterceptor(Interceptor)` or `addOutgoingInterceptor(Interceptor)` methods.
 
 As noted above, if an interceptor returns `false` then the sending of the packet is aborted which means that no other interceptors are be called and the packet is not be processed further by the client.

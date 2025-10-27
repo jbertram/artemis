@@ -3,7 +3,7 @@
 :idseparator: -
 :docinfo: shared
 
-This chapter describes how JMS destinations are mapped to the Apache ActiveMQ Artemis address model.
+This chapter describes how JMS destinations are mapped to the {project-name-full} address model.
 If you haven't already done so, please read about the xref:address-model.adoc[address model] as it introduces concepts which are referenced here.
 
 == JMS Topic
