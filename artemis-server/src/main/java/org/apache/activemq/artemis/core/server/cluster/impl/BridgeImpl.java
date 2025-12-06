@@ -466,19 +466,27 @@ public class BridgeImpl implements Bridge, SessionFailureListener, SendAcknowled
 
    @Override
    public void sendFailed(Message message, Exception e) {
-      ActiveMQServerLogger.LOGGER.bridgeFailedToSend(configuration.getName(), message.toString(), e.getClass().getSimpleName(), e.getMessage());
-      if (e instanceof ActiveMQAddressFullException) {
-         failed(e);
-      }
+      handleSendAcknowledgement(message, e);
    }
 
    @Override
    public void sendAcknowledged(final Message message) {
+      handleSendAcknowledgement(message, null);
+   }
+
+   private void handleSendAcknowledgement(Message message, Exception e) {
+      if (e == null) {
+         logger.debug("Bridge {} received confirmation for message {}", configuration.getName(), message);
+      } else {
+         ActiveMQServerLogger.LOGGER.bridgeFailedToSend(configuration.getName(), message.toString(), e.getClass().getSimpleName(), e.getMessage());
+         if (e instanceof ActiveMQAddressFullException) {
+            failed(e);
+         }
+      }
       OperationContext oldContext = OperationContextImpl.getContext();
 
       try {
          OperationContextImpl.setContext(bridgeContext);
-         logger.debug("Bridge {} received confirmation for message {}", configuration.getName(), message);
 
          State localState = state;
          if (localState == State.STARTED || localState == State.STOPPING || localState == State.PAUSING) {
@@ -491,24 +499,31 @@ public class BridgeImpl implements Bridge, SessionFailureListener, SendAcknowled
                }
 
                if (ref != null) {
-                  if (logger.isTraceEnabled()) {
-                     logger.trace("BridgeImpl::sendAcknowledged bridge {} Acking {} on queue {}", this, ref, ref.getQueue());
-                  }
-                  ref.getQueue().acknowledge(ref);
-                  pendingAcks.countDown();
-                  metrics.incrementMessagesAcknowledged();
+                  if (e == null) {
+                     if (logger.isTraceEnabled()) {
+                        logger.trace("BridgeImpl::handleSendAcknowledgement bridge {} acking {} on queue {}", this, ref, ref.getQueue());
+                     }
+                     ref.getQueue().acknowledge(ref);
+                     metrics.incrementMessagesAcknowledged();
 
-                  if (server.hasBrokerBridgePlugins()) {
-                     server.callBrokerBridgePlugins(plugin -> plugin.afterAcknowledgeBridge(this, ref));
+                     if (server.hasBrokerBridgePlugins()) {
+                        server.callBrokerBridgePlugins(plugin -> plugin.afterAcknowledgeBridge(this, ref));
+                     }
+                  } else {
+                     if (logger.isTraceEnabled()) {
+                        logger.trace("BridgeImpl::handleSendAcknowledgement bridge {} cancelling {} on queue {}", this, ref, ref.getQueue());
+                     }
+                     ref.getQueue().cancel(ref, System.currentTimeMillis());
                   }
+                  pendingAcks.countDown();
                } else {
-                  logger.trace("BridgeImpl::sendAcknowledged bridge {} could not find reference for message {}", this, message);
+                  logger.trace("BridgeImpl::handleSendAcknowledgement bridge {} could not find reference for message {}", this, message);
                }
-            } catch (Exception e) {
-               ActiveMQServerLogger.LOGGER.bridgeFailedToAck(e);
+            } catch (Exception e1) {
+               ActiveMQServerLogger.LOGGER.bridgeFailedToHandleSendAck(configuration.getName(), e1);
             }
          } else {
-            logger.debug("Bridge {} state is {}. Ignoring call to sendAcknowledged.", configuration.getName(), localState);
+            logger.debug("Bridge {} state is {}. Ignoring call to handleSendAcknowledgement.", configuration.getName(), localState);
          }
       } finally {
          OperationContextImpl.setContext(oldContext);

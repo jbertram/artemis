@@ -1230,8 +1230,8 @@ public interface ActiveMQServerLogger {
    @LogMessage(id = 224054, value = "exception while stopping the replication manager", level = LogMessage.Level.ERROR)
    void errorStoppingReplicationManager(Throwable t);
 
-   @LogMessage(id = 224055, value = "Bridge Failed to ack", level = LogMessage.Level.ERROR)
-   void bridgeFailedToAck(Throwable t);
+   @LogMessage(id = 224055, value = "Bridge {} failed to handle send acknowledgement", level = LogMessage.Level.ERROR)
+   void bridgeFailedToHandleSendAck(String name, Throwable t);
 
    @LogMessage(id = 224056, value = "Primary server will not fail-back automatically", level = LogMessage.Level.ERROR)
    void autoFailBackDenied();
