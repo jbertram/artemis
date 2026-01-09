@@ -41,7 +41,6 @@ public enum QueueField {
    TEMPORARY("temporary"),
    PURGE_ON_NO_CONSUMERS("purgeOnNoConsumers"),
    MESSAGES_KILLED("messagesKilled"),
-   DIRECT_DELIVER("directDeliver"),
    LAST_VALUE("lastValue"),
    EXCLUSIVE("exclusive"),
    SCHEDULED_COUNT("scheduledCount"),

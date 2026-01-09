@@ -142,13 +142,6 @@ public class AMQSession implements SessionCallback {
 
    }
 
-
-   @Override
-   public boolean supportsDirectDelivery() {
-      return false;
-   }
-
-
    @Override
    public boolean updateDeliveryCountAfterCancel(ServerConsumer consumer, MessageReference ref, boolean failed) {
       if (consumer.getProtocolData() != null) {
@@ -435,7 +428,7 @@ public class AMQSession implements SessionCallback {
                restoreAutoRead();
             }
 
-            getCoreSession().send(coreMsg, false, producerInfo.getProducerId().toString(), dest.isTemporary());
+            getCoreSession().send(coreMsg, producerInfo.getProducerId().toString(), dest.isTemporary());
 
             if (count == null || count.decrementAndGet() == 0) {
                if (sendProducerAck) {
@@ -461,7 +454,7 @@ public class AMQSession implements SessionCallback {
          public void atomicRun() {
             Exception exceptionToSend = null;
             try {
-               getCoreSession().send(coreMsg, false, producerInfo.getProducerId().toString(), dest.isTemporary());
+               getCoreSession().send(coreMsg, producerInfo.getProducerId().toString(), dest.isTemporary());
             } catch (Exception e) {
                logger.debug("Sending exception to the client", e);
                exceptionToSend = e;

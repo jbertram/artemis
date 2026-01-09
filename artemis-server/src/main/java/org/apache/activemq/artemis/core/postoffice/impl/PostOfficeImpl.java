@@ -1109,47 +1109,43 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
    }
 
    @Override
-   public RoutingStatus route(final Message message, final boolean direct) throws Exception {
-      return route(message, (Transaction) null, direct);
+   public RoutingStatus route(final Message message) throws Exception {
+      return route(message, (Transaction) null);
    }
 
    @Override
-   public RoutingStatus route(final Message message, final Transaction tx, final boolean direct) throws Exception {
-      return route(message, new RoutingContextImpl(tx), direct);
+   public RoutingStatus route(final Message message, final Transaction tx) throws Exception {
+      return route(message, new RoutingContextImpl(tx));
    }
 
    @Override
    public RoutingStatus route(Message message,
                               Transaction tx,
-                              boolean direct,
                               boolean rejectDuplicates) throws Exception {
-      return route(message, new RoutingContextImpl(tx), direct, rejectDuplicates, null);
+      return route(message, new RoutingContextImpl(tx), rejectDuplicates, null);
    }
 
    @Override
    public RoutingStatus route(final Message message,
                               final Transaction tx,
-                              final boolean direct,
                               final boolean rejectDuplicates,
                               final Binding binding) throws Exception {
-      return route(message, new RoutingContextImpl(tx), direct, rejectDuplicates, binding);
+      return route(message, new RoutingContextImpl(tx), rejectDuplicates, binding);
+   }
+
+   @Override
+   public RoutingStatus route(final Message message,
+                              final RoutingContext context) throws Exception {
+      return route(message, context, true, null, false);
    }
 
    @Override
    public RoutingStatus route(final Message message,
                               final RoutingContext context,
-                              final boolean direct) throws Exception {
-      return route(message, context, direct, true, null, false);
-   }
-
-   @Override
-   public RoutingStatus route(final Message message,
-                              final RoutingContext context,
-                              final boolean direct,
                               boolean rejectDuplicates,
                               final Binding bindingMove) throws Exception {
 
-      return route(message, context, direct, rejectDuplicates, bindingMove, false);
+      return route(message, context, rejectDuplicates, bindingMove, false);
    }
 
    /**
@@ -1157,7 +1153,6 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
     */
    private RoutingStatus route(final Message message,
                                final RoutingContext context,
-                               final boolean direct,
                                final boolean rejectDuplicates,
                                final Binding bindingMove,
                                final boolean sendToDLA) throws Exception {
@@ -1233,7 +1228,7 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
       }
 
       if (server.hasBrokerMessagePlugins()) {
-         server.callBrokerMessagePlugins(plugin -> plugin.beforeMessageRoute(message, context, direct, rejectDuplicates));
+         server.callBrokerMessagePlugins(plugin -> plugin.beforeMessageRoute(message, context, false, rejectDuplicates));
       }
 
       logger.trace("Message after routed={}\n{}", message, context);
@@ -1246,7 +1241,7 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
             finalStatus = status;
             try {
                if (context.getQueueCount() > 0) {
-                  processRoute(message, context, direct);
+                  processRoute(message, context);
                } else {
                   if (message.isLargeMessage()) {
                      ((LargeServerMessage) message).deleteFile();
@@ -1265,12 +1260,12 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
             context.getTransaction().commit();
          }
          if (server.hasBrokerMessagePlugins()) {
-            server.callBrokerMessagePlugins(plugin -> plugin.afterMessageRoute(message, context, direct, rejectDuplicates, finalStatus));
+            server.callBrokerMessagePlugins(plugin -> plugin.afterMessageRoute(message, context, false, rejectDuplicates, finalStatus));
          }
          return finalStatus;
       } catch (Exception e) {
          if (server.hasBrokerMessagePlugins()) {
-            server.callBrokerMessagePlugins(plugin -> plugin.onMessageRouteException(message, context, direct, rejectDuplicates, e));
+            server.callBrokerMessagePlugins(plugin -> plugin.onMessageRouteException(message, context, false, rejectDuplicates, e));
          }
          throw e;
       }
@@ -1350,7 +1345,7 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
 
             message.reencode();
 
-            route(message, new RoutingContextImpl(context.getTransaction()), false, true, null, true);
+            route(message, new RoutingContextImpl(context.getTransaction()), true, null, true);
             status = RoutingStatus.NO_BINDINGS_DLA;
          }
       } else {
@@ -1631,7 +1626,7 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
 
          queue.route(message, context);
 
-         processRoute(message, context, false);
+         processRoute(message, context);
       }
    }
 
@@ -1662,8 +1657,7 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
 
    @Override
    public void processRoute(final Message message,
-                            final RoutingContext context,
-                            final boolean direct) throws Exception {
+                            final RoutingContext context) throws Exception {
       final ArrayList<MessageReference> refs = new ArrayList<>();
 
       Transaction tx = context.getTransaction();
@@ -1731,7 +1725,7 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
       if (tx != null) {
          tx.addOperation(new AddOperation(refs));
       } else if (!containsDurables) {
-         processReferences(refs, direct);
+         processReferences(refs);
       } else {
          // This will use the same thread if there are no pending operations
          // avoiding a context switch on this case
@@ -1743,7 +1737,7 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
 
             @Override
             public void done() {
-               processReferences(refs, direct);
+               processReferences(refs);
             }
          });
       }
@@ -1753,12 +1747,12 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
       }
    }
 
-   public static void processReferences(List<MessageReference> refs, boolean direct) {
-      refs.forEach((ref) -> processReference(ref, direct));
+   public static void processReferences(List<MessageReference> refs) {
+      refs.forEach((ref) -> processReference(ref));
    }
 
-   public static void processReference(MessageReference ref, boolean direct) {
-      ref.getQueue().addTail(ref, direct);
+   public static void processReference(MessageReference ref) {
+      ref.getQueue().addTail(ref);
    }
 
    private void processRouteToDurableQueues(final Message message,
@@ -2127,7 +2121,7 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
       public void afterCommit(final Transaction tx) {
          for (MessageReference ref : refs) {
             if (!ref.isAlreadyAcked()) {
-               ref.getQueue().addTail(ref, false);
+               ref.getQueue().addTail(ref);
             }
          }
       }

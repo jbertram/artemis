@@ -429,7 +429,7 @@ public class AMQPMirrorControllerSource extends BasicMirrorController<Sender> im
             server.getStorageManager().afterStoreOperations(new IOCallback() {
                @Override
                public void done() {
-                  PostOfficeImpl.processReference(ref, false);
+                  PostOfficeImpl.processReference(ref);
                }
 
                @Override
@@ -725,7 +725,7 @@ public class AMQPMirrorControllerSource extends BasicMirrorController<Sender> im
 
       // forEach callback
       private void doAfterCommit(MessageReference ref) {
-         PostOfficeImpl.processReference(ref, false);
+         PostOfficeImpl.processReference(ref);
       }
    }
 
@@ -748,7 +748,7 @@ public class AMQPMirrorControllerSource extends BasicMirrorController<Sender> im
       // to other nodes if the SNF queue has the same name as the one on this node.
       ctx.clear().setMirrorOption(MirrorOption.disabled).setLoadBalancingType(MessageLoadBalancingType.LOCAL_ONLY).setTransaction(tx);
       logger.debug("SetTX {}", tx);
-      server.getPostOffice().route(message, ctx, false);
+      server.getPostOffice().route(message, ctx);
    }
 
    static class PagedRouteContext implements RouteContextList {

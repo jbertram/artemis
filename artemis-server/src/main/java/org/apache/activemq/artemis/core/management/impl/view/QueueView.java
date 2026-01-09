@@ -65,7 +65,6 @@ public class QueueView extends ActiveMQAbstractView<QueueControl> {
          .add(QueueField.MESSAGES_EXPIRED.getName(), toString(queue.getMessagesExpired()))
          .add(QueueField.DELIVERING_COUNT.getName(), toString(queue.getDeliveringCount()))
          .add(QueueField.MESSAGES_KILLED.getName(), toString(queue.getMessagesKilled()))
-         .add(QueueField.DIRECT_DELIVER.getName(), toString(q.isDirectDeliver()))
          .add(QueueField.EXCLUSIVE.getName(), toString(queue.isExclusive()))
          .add(QueueField.LAST_VALUE.getName(), toString(queue.isLastValue()))
          .add(QueueField.LAST_VALUE_KEY.getName(), toString(queue.getLastValueKey()))
@@ -110,7 +109,6 @@ public class QueueView extends ActiveMQAbstractView<QueueControl> {
          case MESSAGES_EXPIRED -> queue.getMessagesExpired();
          case DELIVERING_COUNT -> queue.getDeliveringCount();
          case MESSAGES_KILLED -> queue.getMessagesKilled();
-         case DIRECT_DELIVER -> q.isDirectDeliver();
          case EXCLUSIVE -> q.isExclusive();
          case LAST_VALUE -> q.isLastValue();
          case LAST_VALUE_KEY -> q.getLastValueKey();

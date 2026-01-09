@@ -291,12 +291,6 @@ public class FakeQueue extends CriticalComponentImpl implements Queue {
    PageSubscription subs;
 
    @Override
-   public boolean isDirectDeliver() {
-      // no-op
-      return false;
-   }
-
-   @Override
    public void close() {
       // no-op
 
@@ -336,12 +330,6 @@ public class FakeQueue extends CriticalComponentImpl implements Queue {
 
    @Override
    public void addHead(List<MessageReference> ref, boolean scheduling) {
-      // no-op
-
-   }
-
-   @Override
-   public void addTail(MessageReference ref, boolean direct) {
       // no-op
 
    }

@@ -152,8 +152,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
 
    public static final int MAX_DELIVERIES_IN_LOOP = 1000;
 
-   public static final int CHECK_QUEUE_SIZE_PERIOD = 1000;
-
    /**
     * If The system gets slow for any reason, this is the maximum time a Delivery or or depage executor should be
     * hanging on
@@ -283,11 +281,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
 
    private final ArtemisExecutor executor;
 
-   private volatile long lastDirectDeliveryCheck = 0;
-
-   private volatile boolean directDeliver = true;
-
-   private volatile boolean supportsDirectDeliver = false;
 
    private HierarchicalRepository<AddressSettings> addressSettingsRepository;
 
@@ -333,12 +326,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
    public void setSwept(boolean swept) {
       this.swept = swept;
    }
-
-   /**
-    * This is to avoid multi-thread races on calculating direct delivery, to guarantee ordering will be always be
-    * correct
-    */
-   private final Object directDeliveryGuard = new Object();
 
    private final ConcurrentHashSet<String> lingerSessionIds = new ConcurrentHashSet<>();
 
@@ -875,8 +862,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
                }
 
                internalAddHead(ref);
-
-               directDeliver = false;
             }
          }
       }
@@ -899,8 +884,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
                   return;
                }
                internalAddSorted(ref);
-
-               directDeliver = false;
             }
          }
       }
@@ -971,8 +954,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
          internalAddTail(ref);
       }
 
-      directDeliver = false;
-
       if (!ref.isPaged()) {
          incrementMesssagesAdded();
       }
@@ -981,11 +962,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
    @Override
    public void reloadSequence(final MessageReference ref) {
       ref.setSequence(queueSequence.incrementAndGet());
-   }
-
-   @Override
-   public void addTail(final MessageReference ref) {
-      addTail(ref, false);
    }
 
    @Override
@@ -1001,7 +977,7 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
    }
 
    @Override
-   public void addTail(final MessageReference ref, final boolean direct) {
+   public void addTail(final MessageReference ref) {
       try (ArtemisCloseable metric = measureCritical(CRITICAL_PATH_ADD_TAIL)) {
          if (scheduleIfPossible(ref)) {
             return;
@@ -1010,42 +986,9 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
             RefCountMessage.deferredDebug(ref.getMessage(), "add tail queue {}", this.getName());
          }
 
-         if (direct && supportsDirectDeliver && !directDeliver && System.currentTimeMillis() - lastDirectDeliveryCheck > CHECK_QUEUE_SIZE_PERIOD) {
-            logger.trace("Checking to re-enable direct deliver on queue {}", queueConfiguration.getName());
-
-            lastDirectDeliveryCheck = System.currentTimeMillis();
-            synchronized (directDeliveryGuard) {
-               // The checkDirect flag is periodically set to true, if the delivery is specified as direct then this causes the
-               // directDeliver flag to be re-computed resulting in direct delivery if the queue is empty
-               // We don't recompute it on every delivery since executing isEmpty is expensive for a ConcurrentQueue
-
-               if (deliveriesInTransit.getCount() == 0 && getExecutor().isFlushed() &&
-                  intermediateMessageReferences.isEmpty() && messageReferences.isEmpty() &&
-                  pageIterator != null && !pageIterator.hasNext() &&
-                  pageSubscription != null && !pageSubscription.isStorePaging()) {
-                  // We must block on the executor to ensure any async deliveries have completed or we might get out of order
-                  // deliveries
-                  // Go into direct delivery mode
-                  directDeliver = supportsDirectDeliver;
-                  if (logger.isTraceEnabled()) {
-                     logger.trace("Setting direct deliverer to {} on queue {}", supportsDirectDeliver, queueConfiguration.getName());
-                  }
-               } else {
-                  logger.trace("Couldn't set direct deliver back on queue {}", queueConfiguration.getName());
-               }
-            }
-         }
-
-         if (direct && supportsDirectDeliver && directDeliver && deliveriesInTransit.getCount() == 0 && deliverDirect(ref)) {
-            return;
-         }
-
-         // We only add queueMemorySize if not being delivered directly
          queueMemorySize.addSize(ref.getMessageMemoryEstimate());
 
          intermediateMessageReferences.add(ref);
-
-         directDeliver = false;
 
          // Delivery async will both poll for intermediate reference and deliver to clients
          deliverAsync();
@@ -1201,14 +1144,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
                throw ActiveMQMessageBundle.BUNDLE.maxConsumerLimitReachedForQueue(queueConfiguration.getAddress(), queueConfiguration.getName());
             }
 
-            if (consumers.isEmpty()) {
-               this.supportsDirectDeliver = consumer.supportsDirectDelivery();
-            } else {
-               if (!consumer.supportsDirectDelivery()) {
-                  this.supportsDirectDeliver = false;
-               }
-            }
-
             cancelRedistributor();
 
             if (queueConfiguration.isGroupRebalance()) {
@@ -1259,8 +1194,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
                }
             }
 
-            this.supportsDirectDeliver = checkConsumerDirectDeliver();
-
             if (consumerRemoved) {
                consumerRemovedTimestampUpdater.set(this, System.currentTimeMillis());
                if (refCountForConsumers.decrement() == 0) {
@@ -1307,19 +1240,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
       if (stopped) {
          dispatchStartTimeUpdater.set(this, -1);
       }
-   }
-
-   private boolean checkConsumerDirectDeliver() {
-      if (consumers.isEmpty()) {
-         return false;
-      }
-      boolean supports = true;
-      for (ConsumerHolder consumerCheck : consumers) {
-         if (!consumerCheck.consumer.supportsDirectDelivery()) {
-            supports = false;
-         }
-      }
-      return supports;
    }
 
    public synchronized Redistributor getRedistributor() {
@@ -2114,10 +2034,10 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
                   count++;
                   txCount++;
                   if (!messageAction.actMessage(tx, reference)) {
-                     addTail(reference, false);
+                     addTail(reference);
                   }
                } else {
-                  addTail(reference, false);
+                  addTail(reference);
                }
 
                if (txCount > 0 && txCount % flushLimit == 0) {
@@ -2590,7 +2510,7 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
             Message m = ref.getMessage();
             m.setAddress(address);
             server.getPostOffice().getBinding(queueName).route(m, routingContext);
-            postOffice.processRoute(m, routingContext, false);
+            postOffice.processRoute(m, routingContext);
             return false;
          }
       });
@@ -2658,7 +2578,7 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
                iter.remove();
                refRemoved(ref);
                ref.getMessage().setPriority(newPriority);
-               addTail(ref, false);
+               addTail(ref);
                return true;
             }
          }
@@ -2678,7 +2598,7 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
                iter.remove();
                refRemoved(ref);
                ref.getMessage().setPriority(newPriority);
-               addTail(ref, false);
+               addTail(ref);
             }
          }
          return count;
@@ -2750,11 +2670,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
    @Override
    public synchronized boolean isPersistedPause() {
       return this.pauseStatusRecord >= 0;
-   }
-
-   @Override
-   public boolean isDirectDeliver() {
-      return directDeliver && supportsDirectDeliver;
    }
 
    @Override
@@ -3270,8 +3185,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
             logger.trace("QueueMemorySize before depage on queue={} is {}", queueConfiguration.getName(), queueMemorySize.getSize());
          }
 
-         this.directDeliver = false;
-
          int depaged = 0;
          while (timeout - System.nanoTime() > 0 && needsDepage()) {
             PageIterator.NextResult status = pageIterator.tryNext();
@@ -3286,7 +3199,7 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
             if (logger.isDebugEnabled()) {
                logger.debug("Depaging reference {} on queue {} depaged::{}", reference, queueConfiguration.getName(), depaged);
             }
-            addTail(reference, false);
+            addTail(reference);
             pageIterator.remove();
          }
 
@@ -3439,7 +3352,7 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
             context.setMirrorOption(MirrorOption.disabled);
          }
 
-         routingStatus = postOffice.route(copyMessage, context, false, rejectDuplicate, binding);
+         routingStatus = postOffice.route(copyMessage, context, rejectDuplicate, binding);
       }
 
       acknowledge(tx, ref, reason, consumer, delivering);
@@ -3478,7 +3391,7 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
       RoutingStatus routingStatus;
       {
          RoutingContext context = new RoutingContextImpl(tx);
-         routingStatus = postOffice.route(copyMessage, context, false, false, binding);
+         routingStatus = postOffice.route(copyMessage, context, false, binding);
       }
 
       if (originalTX == null) {
@@ -3537,7 +3450,7 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
          }
       }
 
-      postOffice.processRoute(copyMessage, routingContext, false);
+      postOffice.processRoute(copyMessage, routingContext);
 
       ref.handled();
 
@@ -3732,80 +3645,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
                // ignore
             }
          }
-      }
-   }
-
-   // This method delivers the reference on the callers thread - this can give us better latency in the case there is nothing in the queue
-   private boolean deliverDirect(final MessageReference ref) {
-      //The order to enter the deliverLock re QueueImpl::this lock is very important:
-      //- acquire deliverLock::lock
-      //- acquire QueueImpl::this lock
-      //DeliverRunner::run is doing the same to avoid deadlocks.
-      //Without deliverLock, a directDeliver happening while a DeliverRunner::run
-      //could cause a deadlock.
-      //Both DeliverRunner::run and deliverDirect could trigger a ServerConsumerImpl::individualAcknowledge:
-      //- deliverDirect first acquire QueueImpl::this, then ServerConsumerImpl::this
-      //- DeliverRunner::run first acquire ServerConsumerImpl::this then QueueImpl::this
-      if (!deliverLock.tryLock()) {
-         logger.trace("Cannot perform a directDelivery because there is a running async deliver");
-         return false;
-      }
-      try {
-         return deliver(ref);
-      } finally {
-         deliverLock.unlock();
-      }
-   }
-
-   private boolean deliver(final MessageReference ref) {
-      synchronized (this) {
-         if (!supportsDirectDeliver) {
-            return false;
-         }
-         if (isPaused() || !canDispatch()) {
-            return false;
-         }
-
-         if (checkExpired(ref)) {
-            return true;
-         }
-
-         consumers.reset();
-
-         while (consumers.hasNext()) {
-
-            ConsumerHolder<? extends Consumer> holder = consumers.next();
-            Consumer consumer = holder.consumer;
-
-            final SimpleString groupID = extractGroupID(ref);
-            Consumer groupConsumer = getGroupConsumer(groupID);
-
-            if (groupConsumer != null) {
-               consumer = groupConsumer;
-            }
-
-            HandleStatus status = handle(ref, consumer);
-            if (status == HandleStatus.HANDLED) {
-               final MessageReference reference = handleMessageGroup(ref, consumer, groupConsumer, groupID);
-
-               incrementMesssagesAdded();
-
-               deliveriesInTransit.countUp();
-               reference.setInDelivery(true);
-               proceedDeliver(consumer, reference);
-               consumers.reset();
-               reference.setSequence(queueSequence.incrementAndGet());
-               return true;
-            }
-
-            if (groupConsumer != null) {
-               break;
-            }
-         }
-
-         logger.trace("Queue {} is out of direct delivery as no consumers handled a delivery", queueConfiguration.getName());
-
-         return false;
       }
    }
 

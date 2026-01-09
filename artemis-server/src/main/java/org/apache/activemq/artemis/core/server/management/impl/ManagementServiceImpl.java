@@ -851,7 +851,7 @@ public class ManagementServiceImpl implements ManagementService {
          notificationMessage.putLongProperty(ManagementHelper.HDR_NOTIFICATION_TIMESTAMP, timestamp);
          notificationMessage.setTimestamp(timestamp);
 
-         postOffice.route(notificationMessage, false);
+         postOffice.route(notificationMessage);
       }
    }
 

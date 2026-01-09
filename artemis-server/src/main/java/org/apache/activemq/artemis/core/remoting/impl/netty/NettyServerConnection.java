@@ -37,9 +37,8 @@ public class NettyServerConnection extends NettyConnection {
                                 Channel channel,
                                 ServerConnectionLifeCycleListener listener,
                                 boolean batchingEnabled,
-                                boolean directDeliver,
                                 String router) {
-      super(configuration, channel, listener, batchingEnabled, directDeliver);
+      super(configuration, channel, listener, batchingEnabled);
 
       this.router = router;
    }

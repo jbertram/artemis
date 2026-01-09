@@ -114,8 +114,6 @@ public class ProtonProtocolManager extends AbstractProtocolManager<AMQPMessage, 
 
    private long ackManagerFlushTimeout = 10_000;
 
-   private boolean directDeliver = true;
-
    private int mirrorMaxPendingAcks = 10_000;
 
    private final AMQPRoutingHandler routingHandler;
@@ -219,15 +217,6 @@ public class ProtonProtocolManager extends AbstractProtocolManager<AMQPMessage, 
    public ProtonProtocolManager setAmqpIdleTimeout(Long ttl) {
       logger.debug("Setting up {} as the connectionTtl", ttl);
       this.amqpIdleTimeout = ttl;
-      return this;
-   }
-
-   public boolean isDirectDeliver() {
-      return directDeliver;
-   }
-
-   public ProtonProtocolManager setDirectDeliver(boolean directDeliver) {
-      this.directDeliver = directDeliver;
       return this;
    }
 

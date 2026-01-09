@@ -332,9 +332,7 @@ public class GlobalJournalPagingTest extends JournalPagingTest {
                   final Queue queue = server.locateQueue(replyQueue);
                   final MessageReference reference = MessageReference.Factory.createReference(session.createMessage(false), queue);
                   reference.getMessage().setMessageID(id++);
-                  //it will cause QueueImpl::directDeliver -> false
                   queue.addHead(reference, false);
-                  Wait.assertFalse(queue::isDirectDeliver);
                   queue.removeReferenceWithID(reference.getMessageID());
                   ClientMessage message = session.createMessage(false);
                   message.putStringProperty(ClientMessageImpl.REPLYTO_HEADER_NAME, replyQueue);

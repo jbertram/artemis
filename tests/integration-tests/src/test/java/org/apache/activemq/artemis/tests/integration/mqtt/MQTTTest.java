@@ -16,17 +16,6 @@
  */
 package org.apache.activemq.artemis.tests.integration.mqtt;
 
-import static org.apache.activemq.artemis.utils.collections.IterableStream.iterableOf;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
 import javax.jms.BytesMessage;
 import javax.jms.Connection;
 import javax.jms.Destination;
@@ -58,8 +47,6 @@ import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.CoreAddressConfiguration;
 import org.apache.activemq.artemis.core.management.impl.view.ProducerField;
-import org.apache.activemq.artemis.core.postoffice.Binding;
-import org.apache.activemq.artemis.core.postoffice.QueueBinding;
 import org.apache.activemq.artemis.core.protocol.mqtt.MQTTUtil;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.Queue;
@@ -90,6 +77,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * MQTT Test imported from ActiveMQ MQTT component.
@@ -234,22 +231,6 @@ public class MQTTTest extends MQTTTestSupport {
       array = (JsonArray) producersAsJsonObject.get("data");
 
       assertEquals(0, array.size(), "number of producers returned from query");
-   }
-
-   @Test
-   @Timeout(60)
-   public void testDirectDeliverFalse() throws Exception {
-      final MQTTClientProvider subscriptionProvider = getMQTTClientProvider();
-      initializeConnection(subscriptionProvider);
-
-      subscriptionProvider.subscribe("foo/bah", AT_MOST_ONCE);
-
-
-      for (Binding b : iterableOf(server.getPostOffice().getAllBindings().filter(QueueBinding.class::isInstance))) {
-         assertFalse(((QueueBinding)b).getQueue().isDirectDeliver(), "Queue " + ((QueueBinding) b).getQueue().getName());
-      }
-
-      subscriptionProvider.disconnect();
    }
 
    @Test

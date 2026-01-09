@@ -159,8 +159,6 @@ public interface Connection {
     */
    TransportConfiguration getConnectorConfig();
 
-   boolean isDirectDeliver();
-
    ActiveMQPrincipal getDefaultActiveMQPrincipal();
 
    /**

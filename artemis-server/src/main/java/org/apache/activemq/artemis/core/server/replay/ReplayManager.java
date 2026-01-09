@@ -218,7 +218,7 @@ public class ReplayManager {
             message.setAddress(targetAddress);
             message.reencode();
          }
-         server.getPostOffice().route(message, context, false, false, null);
+         server.getPostOffice().route(message, context, false, null);
          context.clear();
       } else {
          if (message.isLargeMessage()) {

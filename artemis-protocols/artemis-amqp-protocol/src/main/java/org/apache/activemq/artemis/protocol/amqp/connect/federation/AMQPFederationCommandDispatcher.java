@@ -97,7 +97,7 @@ public class AMQPFederationCommandDispatcher implements SenderController {
 
       command.setAddress(getControlLinkAddress());
 
-      server.getPostOffice().route(command, true);
+      server.getPostOffice().route(command);
    }
 
    @Override

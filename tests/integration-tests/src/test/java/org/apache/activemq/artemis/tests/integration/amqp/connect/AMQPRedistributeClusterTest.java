@@ -376,7 +376,7 @@ public class AMQPRedistributeClusterTest extends AmqpTestSupport {
 
       // we will route a single message to subscription-0. a previous search found the RemoteBinding into remoteQueueBindins_a2;
       remoteQueueBindings_a2.get(0).route(directMessage, routingContext);
-      a2.getPostOffice().processRoute(directMessage, routingContext, false);
+      a2.getPostOffice().processRoute(directMessage, routingContext);
       routingContext.getTransaction().commit();
 
       for (int i = 0; i < 10; i++) {

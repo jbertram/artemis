@@ -221,7 +221,7 @@ public class MQTTPublishManager {
                if (addressInfo != null) {
                   serverMessage.setRoutingType(addressInfo.getRoutingType());
                }
-               session.getServerSession().send(tx, serverMessage, true, senderName, false);
+               session.getServerSession().send(tx, serverMessage, senderName, false);
 
                if (message.fixedHeader().isRetain()) {
                   ByteBuf payload = message.payload();

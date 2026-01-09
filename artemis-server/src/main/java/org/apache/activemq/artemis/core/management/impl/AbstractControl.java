@@ -146,8 +146,7 @@ public abstract class AbstractControl extends StandardMBean {
             message.setUserID(userID);
          }
 
-         // There's no point on direct delivery using the management thread, use false here
-         serverSession.send(message, false, null);
+         serverSession.send(message, null);
          return "" + message.getMessageID();
       } finally {
          try {

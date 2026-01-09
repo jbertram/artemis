@@ -507,9 +507,9 @@ public final class StompConnection extends AbstractRemotingConnection {
             message.putStringProperty("amqMessageId", "STOMP" + message.getMessageID());
          }
          if (minLargeMessageSize == -1 || (message.getBodyBuffer().writerIndex() < minLargeMessageSize)) {
-            stompSession.sendInternal(message, false);
+            stompSession.sendInternal(message);
          } else {
-            stompSession.sendInternalLarge((CoreMessage)message, false);
+            stompSession.sendInternalLarge((CoreMessage)message);
          }
       } catch (Exception e) {
          throw BUNDLE.errorSendMessage(message, e).setHandler(frameHandler);

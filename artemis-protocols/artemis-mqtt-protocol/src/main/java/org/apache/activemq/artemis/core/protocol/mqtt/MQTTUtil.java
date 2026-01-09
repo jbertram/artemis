@@ -594,7 +594,7 @@ public class MQTTUtil {
       }
       RoutingContext context = new RoutingContextImpl(tx);
       queue.route(message, context);
-      postOffice.processRoute(message, context, false);
+      postOffice.processRoute(message, context);
       if (incomingTx == null) {
          // commit the transaction we created otherwise leave it for the caller to commit
          tx.commit();

@@ -1935,35 +1935,32 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
 
 
    @Override
-   public RoutingStatus send(final Message message, final boolean direct, final String senderName) throws Exception {
-      return send(message, direct, senderName, false);
+   public RoutingStatus send(final Message message, final String senderName) throws Exception {
+      return send(message, senderName, false);
    }
 
    @Override
    public RoutingStatus send(final Message message,
-                             final boolean direct,
                              final String senderName,
                              boolean noAutoCreateQueue) throws Exception {
-      return send(getCurrentTransaction(), message, direct, senderName, noAutoCreateQueue);
+      return send(getCurrentTransaction(), message, senderName, noAutoCreateQueue);
    }
 
    @Override
    public synchronized RoutingStatus send(Transaction tx,
                                           Message message,
-                                          final boolean direct,
                                           final String senderName,
                                           boolean noAutoCreateQueue) throws Exception {
-      return send(tx, message, direct, senderName, noAutoCreateQueue, routingContext);
+      return send(tx, message, senderName, noAutoCreateQueue, routingContext);
    }
 
    @Override
    public synchronized RoutingStatus send(Transaction tx,
                                           Message message,
-                                          final boolean direct,
                                           final String senderName,
                                           boolean noAutoCreateQueue,
                                           RoutingContext routingContext) throws Exception {
-      return send(tx, message.getAddressSimpleString(), message.getRoutingType(), message, direct, senderName, noAutoCreateQueue, routingContext);
+      return send(tx, message.getAddressSimpleString(), message.getRoutingType(), message, senderName, noAutoCreateQueue, routingContext);
    }
 
    @Override
@@ -1971,14 +1968,13 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
                                           SimpleString address,
                                           RoutingType routingType,
                                           Message msg,
-                                          final boolean direct,
                                           final String senderName,
                                           boolean noAutoCreateQueue,
                                           RoutingContext routingContext) throws Exception {
       final Message theMessage = LargeServerMessageImpl.checkLargeMessage(msg, storageManager);
 
       if (server.hasBrokerMessagePlugins()) {
-         server.callBrokerMessagePlugins(plugin -> plugin.beforeSend(this, tx, theMessage, direct, noAutoCreateQueue));
+         server.callBrokerMessagePlugins(plugin -> plugin.beforeSend(this, tx, theMessage, true, noAutoCreateQueue));
       }
 
       final RoutingStatus result;
@@ -2013,7 +2009,7 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
          }
 
          if (logger.isTraceEnabled()) {
-            logger.trace("send(message={}, direct={}) being called", theMessage, direct);
+            logger.trace("send(message={}) being called", theMessage);
          }
 
          if (theMessage.getAddress() == null) {
@@ -2024,10 +2020,10 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
          if (theMessage.getAddressSimpleString().equals(managementAddress)) {
             // It's a management message
 
-            result = handleManagementMessage(tx, theMessage, direct);
+            result = handleManagementMessage(tx, theMessage);
          } else {
             try {
-               result = doSend(tx, routingType, theMessage, address, direct, senderName, noAutoCreateQueue, routingContext);
+               result = doSend(tx, routingType, theMessage, address, senderName, noAutoCreateQueue, routingContext);
             } catch (ActiveMQIOErrorException e) {
                if (tx != null) {
                   tx.markAsRollbackOnly(e);
@@ -2060,12 +2056,12 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
 
       } catch (Exception e) {
          if (server.hasBrokerMessagePlugins()) {
-            server.callBrokerMessagePlugins(plugin -> plugin.onSendException(this, tx, theMessage, direct, noAutoCreateQueue, e));
+            server.callBrokerMessagePlugins(plugin -> plugin.onSendException(this, tx, theMessage, false, noAutoCreateQueue, e));
          }
          throw e;
       }
       if (server.hasBrokerMessagePlugins()) {
-         server.callBrokerMessagePlugins(plugin -> plugin.afterSend(this, autoCommitSends ? null : tx, theMessage, direct, noAutoCreateQueue, result));
+         server.callBrokerMessagePlugins(plugin -> plugin.afterSend(this, autoCommitSends ? null : tx, theMessage, false, noAutoCreateQueue, result));
       }
       return result;
    }
@@ -2288,10 +2284,9 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
    }
 
    private RoutingStatus handleManagementMessage(final Transaction tx,
-                                                 final Message message,
-                                                 final boolean direct) throws Exception {
+                                                 final Message message) throws Exception {
       if (AuditLogger.isBaseLoggingEnabled()) {
-         AuditLogger.handleManagementMessage(this.getName(), remotingConnection.getSubject(), remotingConnection.getRemoteAddress(), tx, message, direct);
+         AuditLogger.handleManagementMessage(this.getName(), remotingConnection.getSubject(), remotingConnection.getRemoteAddress(), tx, message, true);
       }
       try {
          securityCheck(removePrefix(message.getAddressSimpleString()), CheckType.MANAGE, this);
@@ -2315,7 +2310,7 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
          }
          reply.setAddress(replyTo);
 
-         doSend(tx, reply, null, direct, null, false, routingContext);
+         doSend(tx, reply, null, null, false, routingContext);
       }
       return RoutingStatus.OK;
    }
@@ -2371,26 +2366,14 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
       theTx.rollback();
    }
 
-
    @Override
    public synchronized RoutingStatus doSend(final Transaction tx,
                                             final Message msg,
                                             final SimpleString originalAddress,
-                                            final boolean direct,
-                                            final String senderName,
-                                            final boolean noAutoCreateQueue) throws Exception {
-      return doSend(tx, msg, originalAddress, direct, senderName, noAutoCreateQueue, routingContext);
-   }
-
-   @Override
-   public synchronized RoutingStatus doSend(final Transaction tx,
-                                            final Message msg,
-                                            final SimpleString originalAddress,
-                                            final boolean direct,
                                             final String senderName,
                                             final boolean noAutoCreateQueue,
                                             final RoutingContext routingContext) throws Exception {
-      return doSend(tx, msg.getRoutingType(), msg, originalAddress, direct, senderName, noAutoCreateQueue, routingContext);
+      return doSend(tx, msg.getRoutingType(), msg, originalAddress, senderName, noAutoCreateQueue, routingContext);
    }
 
    @Override
@@ -2398,7 +2381,6 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
                                             final RoutingType routingType,
                                             final Message message,
                                             final SimpleString originalAddress,
-                                            final boolean direct,
                                             final String senderName,
                                             final boolean noAutoCreateQueue,
                                             final RoutingContext routingContext) throws Exception {
@@ -2452,7 +2434,7 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
          // since large message backing files may be closed once routing completes
          int mSize = message instanceof LargeServerMessageImpl lsmi ? lsmi.getBodyBufferSize() : message.getEncodeSize();
 
-         result = postOffice.route(message, routingContext, direct);
+         result = postOffice.route(message, routingContext);
 
          logger.debug("Routing result for {} = {}", message, result);
 

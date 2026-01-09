@@ -100,6 +100,6 @@ public class MQTTRetainMessageManager {
    private void sendToQueue(Message message, Queue queue, Transaction tx) throws Exception {
       RoutingContext context = new RoutingContextImpl(tx);
       queue.route(message, context);
-      session.getServer().getPostOffice().processRoute(message, context, false);
+      session.getServer().getPostOffice().processRoute(message, context);
    }
 }

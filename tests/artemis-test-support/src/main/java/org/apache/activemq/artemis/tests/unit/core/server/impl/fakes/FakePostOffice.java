@@ -266,40 +266,38 @@ public class FakePostOffice implements PostOffice {
 
    @Override
    public RoutingStatus route(Message message,
-                              Transaction tx,
-                              boolean direct) throws Exception {
+                              Transaction tx) throws Exception {
       return RoutingStatus.OK;
    }
 
    @Override
    public RoutingStatus route(Message message,
                               Transaction tx,
-                              boolean direct,
                               boolean rejectDuplicates) throws Exception {
       return RoutingStatus.OK;
    }
 
    @Override
-   public RoutingStatus route(Message message, Transaction tx, boolean direct, boolean rejectDuplicates, Binding binding) throws Exception {
+   public RoutingStatus route(Message message, Transaction tx, boolean rejectDuplicates, Binding binding) throws Exception {
       return null;
    }
 
    @Override
-   public RoutingStatus route(Message message, RoutingContext context, boolean direct) throws Exception {
+   public RoutingStatus route(Message message, RoutingContext context) throws Exception {
       return null;
    }
 
    @Override
-   public RoutingStatus route(Message message, RoutingContext context, boolean direct, boolean rejectDuplicates, Binding binding) throws Exception {
+   public RoutingStatus route(Message message, RoutingContext context, boolean rejectDuplicates, Binding binding) throws Exception {
       return null;
    }
 
    @Override
-   public void processRoute(Message message, RoutingContext context, boolean direct) throws Exception {
+   public void processRoute(Message message, RoutingContext context) throws Exception {
    }
 
    @Override
-   public RoutingStatus route(Message message, boolean direct) throws Exception {
+   public RoutingStatus route(Message message) throws Exception {
       return RoutingStatus.OK;
    }
 

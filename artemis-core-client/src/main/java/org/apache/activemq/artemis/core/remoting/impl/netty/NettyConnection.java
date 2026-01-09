@@ -57,7 +57,6 @@ public class NettyConnection implements Connection {
 
    protected final Channel channel;
    private final BaseConnectionLifeCycleListener<?> listener;
-   private final boolean directDeliver;
    private final Map<String, Object> configuration;
    /**
     * if {@link #isWritable(ReadyListener)} returns false, we add a callback here for when the connection (or Netty
@@ -76,15 +75,12 @@ public class NettyConnection implements Connection {
    public NettyConnection(final Map<String, Object> configuration,
                           final Channel channel,
                           final BaseConnectionLifeCycleListener<?> listener,
-                          boolean batchingEnabled,
-                          boolean directDeliver) {
+                          boolean batchingEnabled) {
       this.configuration = configuration;
 
       this.channel = Objects.requireNonNull(channel);
 
       this.listener = listener;
-
-      this.directDeliver = directDeliver;
 
       this.batchingEnabled = batchingEnabled;
    }
@@ -398,11 +394,6 @@ public class NettyConnection implements Connection {
          return null;
       }
       return IPV6Util.encloseHost(address);
-   }
-
-   @Override
-   public final boolean isDirectDeliver() {
-      return directDeliver;
    }
 
    //never allow this

@@ -400,11 +400,6 @@ public class ServerConsumerImpl implements ServerConsumer, ReadyListener {
    }
 
    @Override
-   public boolean supportsDirectDelivery() {
-      return callback.supportsDirectDelivery();
-   }
-
-   @Override
    public void errorProcessing(Throwable e, MessageReference deliveryObject) {
       messageQueue.errorProcessing(this, e, deliveryObject);
    }

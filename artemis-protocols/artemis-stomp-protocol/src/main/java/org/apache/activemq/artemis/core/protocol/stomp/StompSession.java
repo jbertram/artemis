@@ -109,11 +109,6 @@ public class StompSession implements SessionCallback {
    }
 
    @Override
-   public boolean supportsDirectDelivery() {
-      return false;
-   }
-
-   @Override
    public boolean isWritable(ReadyListener callback, Object protocolContext) {
       return connection.isWritable(callback);
    }
@@ -421,15 +416,15 @@ public class StompSession implements SessionCallback {
       return subscriptions.size();
    }
 
-   public void sendInternal(Message message, boolean direct) throws Exception {
+   public void sendInternal(Message message) throws Exception {
       if (createProducer) {
          session.addProducer(senderName, STOMP_PROTOCOL_NAME, ServerProducer.ANONYMOUS);
          createProducer = false;
       }
-      session.send(message, direct, senderName);
+      session.send(message, senderName);
    }
 
-   public void sendInternalLarge(CoreMessage message, boolean direct) throws Exception {
+   public void sendInternalLarge(CoreMessage message) throws Exception {
       if (createProducer) {
          session.addProducer(senderName, STOMP_PROTOCOL_NAME, ServerProducer.ANONYMOUS);
          createProducer = false;
@@ -453,7 +448,7 @@ public class StompSession implements SessionCallback {
 
       largeMessage.toMessage().putLongProperty(Message.HDR_LARGE_BODY_SIZE, bytes.length);
 
-      session.send(largeMessage.toMessage(), direct, senderName);
+      session.send(largeMessage.toMessage(), senderName);
    }
 
 }

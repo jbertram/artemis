@@ -211,8 +211,6 @@ public interface Queue extends Bindable, CriticalComponent {
 
    void addTail(MessageReference ref);
 
-   void addTail(MessageReference ref, boolean direct);
-
    void addHead(MessageReference ref, boolean scheduling);
 
    /**
@@ -474,8 +472,6 @@ public interface Queue extends Bindable, CriticalComponent {
    boolean flushExecutor();
 
    void close() throws Exception;
-
-   boolean isDirectDeliver();
 
    SimpleString getAddress();
 

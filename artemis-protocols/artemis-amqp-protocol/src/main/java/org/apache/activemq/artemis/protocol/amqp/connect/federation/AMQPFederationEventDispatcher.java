@@ -92,7 +92,7 @@ public class AMQPFederationEventDispatcher implements SenderController, ActiveMQ
 
       event.setAddress(getEventsLinkAddress());
 
-      server.getPostOffice().route(event, true);
+      server.getPostOffice().route(event);
    }
 
    @Override

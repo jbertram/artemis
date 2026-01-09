@@ -22,18 +22,8 @@ import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.activemq.artemis.core.PriorityAware;
 import org.apache.activemq.artemis.core.filter.Filter;
 import org.apache.activemq.artemis.core.postoffice.Binding;
-import org.apache.activemq.artemis.spi.core.protocol.SessionCallback;
 
 public interface Consumer extends PriorityAware {
-
-   /**
-    * Whether this {@code Consumer} supports direct delivery.
-    *
-    * @see SessionCallback#supportsDirectDelivery()
-    */
-   default boolean supportsDirectDelivery() {
-      return true;
-   }
 
    /**
     * There was a change on semantic during 2.3 here.

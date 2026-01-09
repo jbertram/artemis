@@ -49,8 +49,6 @@ import org.apache.activemq.artemis.api.core.management.ManagementHelper;
 import org.apache.activemq.artemis.api.core.management.ResourceNames;
 import org.apache.activemq.artemis.api.jms.ActiveMQJMSClient;
 import org.apache.activemq.artemis.core.management.impl.view.ProducerField;
-import org.apache.activemq.artemis.core.postoffice.Binding;
-import org.apache.activemq.artemis.core.postoffice.QueueBinding;
 import org.apache.activemq.artemis.core.postoffice.impl.LocalQueueBinding;
 import org.apache.activemq.artemis.core.protocol.stomp.Stomp;
 import org.apache.activemq.artemis.core.protocol.stomp.StompProtocolManager;
@@ -79,7 +77,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.apache.activemq.artemis.utils.collections.IterableStream.iterableOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -2182,30 +2179,6 @@ public class StompTest extends StompTestBase {
       Wait.assertTrue("Address should be created now", () -> (server.getAddressInfo(simpleQueueName) != null));
       assertTrue(server.getAddressInfo(simpleQueueName).getRoutingTypes().contains(RoutingType.MULTICAST));
       assertNull(server.locateQueue(simpleQueueName));
-   }
-
-   @Test
-   public void directDeliverDisabledOnStomp() throws Exception {
-      String payload = "This is a test message";
-
-      // Set up STOMP subscription
-      conn.connect(defUser, defPass);
-      subscribe(conn, null, Stomp.Headers.Subscribe.AckModeValues.AUTO);
-
-      for (Binding b : iterableOf(server.getPostOffice().getAllBindings().filter(QueueBinding.class::isInstance))) {
-         assertFalse(((QueueBinding) b).getQueue().isDirectDeliver(), "Queue " + ((QueueBinding) b).getQueue().getName());
-      }
-
-      // Send MQTT Message
-      MQTTClientProvider clientProvider = new FuseMQTTClientProvider();
-      clientProvider.connect("tcp://" + hostname + ":" + port);
-      clientProvider.publish(getQueuePrefix() + getQueueName(), payload.getBytes(), 0);
-      clientProvider.disconnect();
-
-      // Receive STOMP Message
-      ClientStompFrame frame = conn.receiveFrame();
-      assertTrue(frame.getBody().contains(payload));
-
    }
 
    @Test

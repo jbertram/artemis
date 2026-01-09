@@ -151,30 +151,25 @@ public interface PostOffice extends ActiveMQComponent {
 
    SimpleString getMatchingQueue(SimpleString address, SimpleString queueName, RoutingType routingType) throws Exception;
 
-   RoutingStatus route(Message message, boolean direct) throws Exception;
+   RoutingStatus route(Message message) throws Exception;
+
+   RoutingStatus route(Message message,
+                       Transaction tx) throws Exception;
 
    RoutingStatus route(Message message,
                        Transaction tx,
-                       boolean direct) throws Exception;
-
-   RoutingStatus route(Message message,
-                       Transaction tx,
-                       boolean direct,
                        boolean rejectDuplicates) throws Exception;
 
    RoutingStatus route(Message message,
                        Transaction tx,
-                       boolean direct,
                        boolean rejectDuplicates,
                        Binding binding) throws Exception;
 
    RoutingStatus route(Message message,
-                       RoutingContext context,
-                       boolean direct) throws Exception;
+                       RoutingContext context) throws Exception;
 
    RoutingStatus route(Message message,
                        RoutingContext context,
-                       boolean direct,
                        boolean rejectDuplicates,
                        Binding binding) throws Exception;
 
@@ -191,7 +186,7 @@ public interface PostOffice extends ActiveMQComponent {
    Pair<RoutingContext, Message> redistribute(Message message,
                                                     Queue originatingQueue) throws Exception;
 
-   void processRoute(Message message, RoutingContext context, boolean direct) throws Exception;
+   void processRoute(Message message, RoutingContext context) throws Exception;
 
    DuplicateIDCache getDuplicateIDCache(SimpleString address);
 

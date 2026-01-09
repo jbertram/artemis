@@ -211,7 +211,7 @@ public class ServerSessionPacketHandler implements ChannelHandler {
       // use the same executor
       this.packetActor = new Actor<>(callExecutor, this::onMessagePacket);
 
-      this.direct = conn.isDirectDeliver();
+      this.direct = true;
 
       // no confirmation window size means no resend cache hence NullResponsePackets
       // won't get cached on it because need confirmation
@@ -769,7 +769,7 @@ public class ServerSessionPacketHandler implements ChannelHandler {
          try {
             final SessionSendMessage message = (SessionSendMessage) packet;
             requiresResponse = message.isRequiresResponse();
-            this.session.send(EmbedMessageUtil.extractEmbedded(message.getMessage(), storageManager), this.direct, producers.get(message.getSenderID()));
+            this.session.send(EmbedMessageUtil.extractEmbedded(message.getMessage(), storageManager), producers.get(message.getSenderID()));
             if (requiresResponse) {
                response = createNullResponseMessage(packet);
             }
@@ -1114,7 +1114,7 @@ public class ServerSessionPacketHandler implements ChannelHandler {
 
             try {
                Message m = EmbedMessageUtil.extractEmbedded((ICoreMessage) message.toMessage(), storageManager);
-               session.send(session.getCurrentTransaction(), m, false, producers.get(senderID), false);
+               session.send(session.getCurrentTransaction(), m, producers.get(senderID), false);
 
                /*
                 * The message embedded in the large Core message (e.g. an AMQP message) may, in fact, not be large. If

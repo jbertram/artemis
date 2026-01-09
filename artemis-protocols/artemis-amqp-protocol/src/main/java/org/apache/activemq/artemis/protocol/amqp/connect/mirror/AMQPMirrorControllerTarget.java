@@ -570,9 +570,9 @@ public class AMQPMirrorControllerTarget extends ProtonAbstractReceiver implement
       routingContext.clear().setMirrorSource(this).setLoadBalancingType(MessageLoadBalancingType.LOCAL_ONLY).disableDivert();
       if (targetQueues != null) {
          targetQueuesRouting(message, routingContext, targetQueues);
-         server.getPostOffice().processRoute(message, routingContext, false);
+         server.getPostOffice().processRoute(message, routingContext);
       } else {
-         server.getPostOffice().route(message, routingContext, false);
+         server.getPostOffice().route(message, routingContext);
       }
       // We use this as part of a transaction because of the duplicate detection cache that needs to be done atomically
       transaction.commit();

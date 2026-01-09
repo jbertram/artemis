@@ -141,7 +141,7 @@ public class QueueConcurrentTest extends ActiveMQTestBase {
 
             MessageReference ref = MessageReference.Factory.createReference(message, queue);
 
-            queue.addTail(ref, false);
+            queue.addTail(ref);
 
             refs.add(ref);
 

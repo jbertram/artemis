@@ -61,6 +61,7 @@ import org.apache.activemq.artemis.tests.unit.core.server.impl.fakes.FakePostOff
 import org.apache.activemq.artemis.tests.util.ActiveMQTestBase;
 import org.apache.activemq.artemis.utils.ActiveMQThreadFactory;
 import org.apache.activemq.artemis.utils.FutureLatch;
+import org.apache.activemq.artemis.utils.ReusableLatch;
 import org.apache.activemq.artemis.utils.actors.ArtemisExecutor;
 import org.apache.activemq.artemis.utils.collections.LinkedListIterator;
 import org.junit.jupiter.api.AfterEach;
@@ -1413,8 +1414,7 @@ public class QueueImplTest extends ActiveMQTestBase {
 
    @Test
    public void testGroupMessageWithManyConsumers() throws Exception {
-      final CountDownLatch firstMessageHandled = new CountDownLatch(1);
-      final CountDownLatch finished = new CountDownLatch(2);
+      final ReusableLatch handled = new ReusableLatch(1);
       final Consumer groupConsumer = new FakeConsumer() {
 
          int count = 0;
@@ -1425,13 +1425,13 @@ public class QueueImplTest extends ActiveMQTestBase {
                //the first message is handled and will be used to determine this consumer
                //to be the group consumer
                count++;
-               firstMessageHandled.countDown();
+               handled.countDown();
                return HandleStatus.HANDLED;
             } else if (count <= 2) {
                //the next two attempts to send the second message will be done
                //attempting a direct delivery and an async one after that
                count++;
-               finished.countDown();
+               handled.countDown();
                return HandleStatus.BUSY;
             } else {
                //this shouldn't happen, because the last attempt to deliver
@@ -1452,17 +1452,17 @@ public class QueueImplTest extends ActiveMQTestBase {
       final QueueImpl queue = new QueueImpl(QueueConfiguration.of(QueueImplTest.queue1).setAddress("address1").setRoutingType(RoutingType.MULTICAST).setId(1L).setDurable(false).setTemporary(true), null, null, null, scheduledExecutor, null, null, null, ArtemisExecutor.delegate(executor), defaultServer, null);
       queue.addConsumer(groupConsumer);
       queue.addConsumer(noConsumer);
-      final MessageReference firstMessageReference = generateReference(queue, 1);
       final SimpleString groupName = SimpleString.of("group");
+      final MessageReference firstMessageReference = generateReference(queue, 1);
       firstMessageReference.getMessage().putStringProperty(Message.HDR_GROUP_ID, groupName);
+      queue.addTail(firstMessageReference);
+      assertTrue(handled.await(3000, TimeUnit.MILLISECONDS));
+      handled.countUp();
+      assertEquals(groupConsumer, queue.getGroups().get(groupName), "group consumer isn't correctly set");
       final MessageReference secondMessageReference = generateReference(queue, 2);
       secondMessageReference.getMessage().putStringProperty(Message.HDR_GROUP_ID, groupName);
-      queue.addTail(firstMessageReference, true);
-      assertTrue(firstMessageHandled.await(3000, TimeUnit.MILLISECONDS), "first message isn't handled");
-      assertEquals(groupConsumer, queue.getGroups().get(groupName), "group consumer isn't correctly set");
-      queue.addTail(secondMessageReference, true);
-      final boolean atLeastTwoDeliverAttempts = finished.await(3000, TimeUnit.MILLISECONDS);
-      assertTrue(atLeastTwoDeliverAttempts);
+      queue.addTail(secondMessageReference);
+      assertTrue(handled.await(3000, TimeUnit.MILLISECONDS));
       Thread.sleep(1000);
       assertEquals(1, queue.getMessageCount(), "The second message should be in the queue");
    }

@@ -55,7 +55,7 @@ public class AMQPConnectionContextTest {
       Mockito.when(transportChannel.config()).thenReturn(Mockito.mock(ChannelConfig.class));
       Mockito.when(transportChannel.eventLoop()).thenReturn(eventLoop);
       Mockito.when(eventLoop.inEventLoop()).thenReturn(true);
-      NettyConnection transportConnection = new NettyConnection(new HashMap<>(), transportChannel, null, false, false);
+      NettyConnection transportConnection = new NettyConnection(new HashMap<>(), transportChannel, null, false);
 
       Connection connection = Mockito.mock(Connection.class);
       AMQPConnectionCallback protonSPI = Mockito.mock(AMQPConnectionCallback.class);

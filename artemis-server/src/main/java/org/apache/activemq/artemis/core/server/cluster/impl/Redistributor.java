@@ -118,7 +118,7 @@ public class Redistributor implements Consumer {
       Message message = routingInfo.getB();
 
       try {
-         postOffice.processRoute(message, context, false);
+         postOffice.processRoute(message, context);
 
          if (RefCountMessage.isRefTraceEnabled()) {
             RefCountMessage.deferredDebug(reference.getMessage(), "redistributing");

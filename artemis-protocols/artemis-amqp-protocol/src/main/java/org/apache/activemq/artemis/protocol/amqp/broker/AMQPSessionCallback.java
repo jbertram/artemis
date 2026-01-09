@@ -106,8 +106,6 @@ public class AMQPSessionCallback implements SessionCallback {
 
    private final Executor sessionExecutor;
 
-   private final boolean directDeliver;
-
    private final CoreMessageObjectPools coreMessageObjectPools = new CoreMessageObjectPools();
 
    private ProtonTransactionHandler transactionHandler;
@@ -127,7 +125,6 @@ public class AMQPSessionCallback implements SessionCallback {
       this.transportConnection = transportConnection;
       this.sessionExecutor = executor;
       this.operationContext = operationContext;
-      this.directDeliver = manager.isDirectDeliver();
    }
 
    public StorageManager getStorageManager() {
@@ -191,11 +188,6 @@ public class AMQPSessionCallback implements SessionCallback {
    @Override
    public void browserFinished(ServerConsumer consumer) {
 
-   }
-
-   @Override
-   public boolean supportsDirectDelivery() {
-      return manager.isDirectDeliver();
    }
 
    public void init(AMQPSessionContext protonSession, SASLResult saslResult) throws Exception {
@@ -614,7 +606,7 @@ public class AMQPSessionCallback implements SessionCallback {
       OperationContext oldContext = recoverContext();
       try {
          if (invokeIncoming(message, (ActiveMQProtonRemotingConnection) transportConnection.getProtocolConnection()) == null) {
-            serverSession.send(transaction, address, routingType, message, directDeliver, receiver.getName(), false, routingContext);
+            serverSession.send(transaction, address, routingType, message, receiver.getName(), false, routingContext);
 
             afterIO(new IOCallback() {
                @Override

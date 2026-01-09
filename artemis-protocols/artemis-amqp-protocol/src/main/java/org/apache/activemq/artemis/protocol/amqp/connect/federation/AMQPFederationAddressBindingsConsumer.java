@@ -165,7 +165,7 @@ public final class AMQPFederationAddressBindingsConsumer extends AMQPFederationA
 
             // Process route will throw in some cases such as the address being full which
             // triggers a disposition of Rejected being sent back to the federation sender.
-            postOffice.processRoute(message, routingContext, false);
+            postOffice.processRoute(message, routingContext);
 
             storageManager.afterCompleteOperations(new IOCallback() {
 

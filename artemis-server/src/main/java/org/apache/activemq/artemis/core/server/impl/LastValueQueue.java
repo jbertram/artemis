@@ -69,10 +69,10 @@ public class LastValueQueue extends QueueImpl {
    }
 
    @Override
-   public synchronized void addTail(final MessageReference ref, final boolean direct) {
+   public synchronized void addTail(final MessageReference ref) {
       if (!scheduleIfPossible(ref)) {
          trackLastValue(ref);
-         super.addTail(ref, isNonDestructive() ? false : direct);
+         super.addTail(ref);
       }
    }
 

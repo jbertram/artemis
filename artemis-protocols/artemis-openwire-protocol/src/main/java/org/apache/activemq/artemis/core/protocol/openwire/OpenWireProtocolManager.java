@@ -502,7 +502,7 @@ public class OpenWireProtocolManager  extends AbstractProtocolManager<Command, O
       coreMessage.setAddress(address);
       coreMessage.setRoutingType(RoutingType.MULTICAST);
       // follow pattern from management notification to route directly
-      server.getPostOffice().route(coreMessage, false);
+      server.getPostOffice().route(coreMessage);
    }
 
    public String getBrokerName() {

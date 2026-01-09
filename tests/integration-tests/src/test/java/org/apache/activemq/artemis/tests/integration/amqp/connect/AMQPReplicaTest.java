@@ -176,12 +176,12 @@ public class AMQPReplicaTest extends AmqpClientTestSupport {
          // Adding some PostAck event that will never be found on the target for an expiry
          org.apache.activemq.artemis.api.core.Message message = AMQPMirrorMessageFactory.createMessage(mirrorQueue.getAddress().toString(), SimpleString.of("sometest"), SimpleString.of("sometest"), AMQPMirrorControllerSource.POST_ACK, "0000", 3333L, AckReason.EXPIRED).setDurable(true);
          message.setMessageID(server_2.getStorageManager().generateID());
-         server_2.getPostOffice().route(message, false);
+         server_2.getPostOffice().route(message);
 
          // Adding some PostAck event that will never be found on the target for a regular ack
          message = AMQPMirrorMessageFactory.createMessage(mirrorQueue.getAddress().toString(), SimpleString.of("sometest"), SimpleString.of("sometest"), AMQPMirrorControllerSource.POST_ACK, "0000", 3334L, AckReason.NORMAL).setDurable(true);
          message.setMessageID(server_2.getStorageManager().generateID());
-         server_2.getPostOffice().route(message, false);
+         server_2.getPostOffice().route(message);
 
          Wait.assertEquals(0L, mirrorQueue::getMessageCount, 2000, 100);
          assertFalse(loggerHandler.findText("AMQ224041"));

@@ -50,7 +50,7 @@ public class NettyConnectionTest extends ActiveMQTestBase {
    @Test
    public void testGetID() throws Exception {
       Channel channel = createChannel();
-      NettyConnection conn = new NettyConnection(emptyMap, channel, new MyListener(), false, false);
+      NettyConnection conn = new NettyConnection(emptyMap, channel, new MyListener(), false);
 
       assertEquals(channel.id(), conn.getID());
    }
@@ -62,7 +62,7 @@ public class NettyConnectionTest extends ActiveMQTestBase {
 
       assertEquals(0, channel.outboundMessages().size());
 
-      NettyConnection conn = new NettyConnection(emptyMap, channel, new MyListener(), false, false);
+      NettyConnection conn = new NettyConnection(emptyMap, channel, new MyListener(), false);
       conn.write(buff);
       channel.runPendingTasks();
       assertEquals(1, channel.outboundMessages().size());
@@ -71,7 +71,7 @@ public class NettyConnectionTest extends ActiveMQTestBase {
    @Test
    public void testCreateBuffer() throws Exception {
       EmbeddedChannel channel = createChannel();
-      NettyConnection conn = new NettyConnection(emptyMap, channel, new MyListener(), false, false);
+      NettyConnection conn = new NettyConnection(emptyMap, channel, new MyListener(), false);
 
       final int size = 1234;
 
@@ -85,7 +85,7 @@ public class NettyConnectionTest extends ActiveMQTestBase {
    public void throwsExceptionOnBlockUntilWritableIfClosed() {
       assertThrows(IllegalStateException.class, () -> {
          EmbeddedChannel channel = createChannel();
-         NettyConnection conn = new NettyConnection(emptyMap, channel, new MyListener(), false, false);
+         NettyConnection conn = new NettyConnection(emptyMap, channel, new MyListener(), false);
          conn.close();
          //to make sure the channel is closed it needs to run the pending tasks
          channel.runPendingTasks();
@@ -130,7 +130,7 @@ public class NettyConnectionTest extends ActiveMQTestBase {
       TransportConfiguration tf6 = new TransportConfiguration("some.other.FactoryClass", config6, "tf6");
 
       Channel channel = createChannel();
-      NettyConnection conn = new NettyConnection(config, channel, new MyListener(), false, false);
+      NettyConnection conn = new NettyConnection(config, channel, new MyListener(), false);
 
       assertTrue(conn.isSameTarget(tf1));
       assertTrue(conn.isSameTarget(tf2));

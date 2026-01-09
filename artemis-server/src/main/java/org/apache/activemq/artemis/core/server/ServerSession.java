@@ -337,13 +337,11 @@ public interface ServerSession extends SecurityAuth {
 
    RoutingStatus send(Transaction tx,
                       Message message,
-                      boolean direct,
                       String senderName,
                       boolean noAutoCreateQueue) throws Exception;
 
    RoutingStatus send(Transaction tx,
                       Message message,
-                      boolean direct,
                       String senderName,
                       boolean noAutoCreateQueue,
                       RoutingContext routingContext) throws Exception;
@@ -352,7 +350,6 @@ public interface ServerSession extends SecurityAuth {
                       SimpleString address,
                       RoutingType routingType,
                       Message message,
-                      boolean direct,
                       String senderName,
                       boolean noAutoCreateQueue,
                       RoutingContext routingContext) throws Exception;
@@ -360,14 +357,6 @@ public interface ServerSession extends SecurityAuth {
    RoutingStatus doSend(Transaction tx,
                         Message msg,
                         SimpleString originalAddress,
-                        boolean direct,
-                        String senderName,
-                        boolean noAutoCreateQueue) throws Exception;
-
-   RoutingStatus doSend(Transaction tx,
-                        Message msg,
-                        SimpleString originalAddress,
-                        boolean direct,
                         String senderName,
                         boolean noAutoCreateQueue,
                         RoutingContext routingContext) throws Exception;
@@ -376,14 +365,13 @@ public interface ServerSession extends SecurityAuth {
                         RoutingType routingType,
                         Message msg,
                         SimpleString originalAddress,
-                        boolean direct,
                         String senderName,
                         boolean noAutoCreateQueue,
                         RoutingContext routingContext) throws Exception;
 
-   RoutingStatus send(Message message, boolean direct, String senderName, boolean noAutoCreateQueue) throws Exception;
+   RoutingStatus send(Message message, String senderName, boolean noAutoCreateQueue) throws Exception;
 
-   RoutingStatus send(Message message, boolean direct, String senderName) throws Exception;
+   RoutingStatus send(Message message, String senderName) throws Exception;
 
    void forceConsumerDelivery(long consumerID, long sequence) throws Exception;
 

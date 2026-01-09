@@ -244,8 +244,6 @@ public class NettyAcceptor extends AbstractAcceptor {
 
    private final long batchDelay;
 
-   private final boolean directDeliver;
-
    private final boolean httpUpgradeEnabled;
 
    private final long connectionsAllowed;
@@ -411,8 +409,6 @@ public class NettyAcceptor extends AbstractAcceptor {
       this.scheduledThreadPool = scheduledThreadPool;
 
       batchDelay = ConfigurationHelper.getLongProperty(TransportConstants.BATCH_DELAY, TransportConstants.DEFAULT_BATCH_DELAY, configuration);
-
-      directDeliver = ConfigurationHelper.getBooleanProperty(TransportConstants.DIRECT_DELIVER, TransportConstants.DEFAULT_DIRECT_DELIVER, configuration);
 
       httpUpgradeEnabled = ConfigurationHelper.getBooleanProperty(TransportConstants.HTTP_UPGRADE_ENABLED_PROP_NAME, TransportConstants.DEFAULT_HTTP_UPGRADE_ENABLED, configuration);
 
@@ -954,7 +950,7 @@ public class NettyAcceptor extends AbstractAcceptor {
             super.channelActive(ctx);
             Listener connectionListener = new Listener();
 
-            NettyServerConnection nc = new NettyServerConnection(configuration, ctx.channel(), connectionListener, !httpEnabled && batchDelay > 0, directDeliver, router);
+            NettyServerConnection nc = new NettyServerConnection(configuration, ctx.channel(), connectionListener, !httpEnabled && batchDelay > 0, router);
 
             connectionListener.connectionCreated(NettyAcceptor.this, nc, protocolHandler.getProtocol(protocol));
 

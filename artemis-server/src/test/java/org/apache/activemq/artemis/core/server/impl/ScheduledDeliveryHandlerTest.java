@@ -1186,11 +1186,6 @@ public class ScheduledDeliveryHandlerTest {
       }
 
       @Override
-      public void addTail(MessageReference ref, boolean direct) {
-
-      }
-
-      @Override
       public void addHead(MessageReference ref, boolean scheduling) {
 
       }
@@ -1596,11 +1591,6 @@ public class ScheduledDeliveryHandlerTest {
       @Override
       public void close() throws Exception {
 
-      }
-
-      @Override
-      public boolean isDirectDeliver() {
-         return false;
       }
 
       @Override

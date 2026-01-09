@@ -181,6 +181,7 @@ public class TransportConstants {
 
    public static final String BATCH_DELAY = "batchDelay";
 
+   @Deprecated(forRemoval = true)
    public static final String DIRECT_DELIVER = "directDeliver";
 
    public static final String CLUSTER_CONNECTION = "clusterConnection";
@@ -313,8 +314,6 @@ public class TransportConstants {
    public static final String DEFAULT_SERVLET_PATH = "/messaging/ActiveMQServlet";
 
    public static final long DEFAULT_BATCH_DELAY = 0;
-
-   public static final boolean DEFAULT_DIRECT_DELIVER = true;
 
    public static final Set<String> ALLOWABLE_CONNECTOR_KEYS;
 
