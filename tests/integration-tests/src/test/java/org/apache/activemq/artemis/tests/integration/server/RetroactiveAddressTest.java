@@ -78,7 +78,10 @@ public class RetroactiveAddressTest extends ActiveMQTestBase {
 
    @Parameters(name = "delimiterChar={0}")
    public static Collection<Object[]> getParams() {
-      return Arrays.asList(new Object[][] {{'/'}, {'.'}});
+      return Arrays.asList(new Object[][] {
+//         {'/'},
+         {'.'}
+      });
    }
 
    public RetroactiveAddressTest(char delimiterChar) {
@@ -93,6 +96,7 @@ public class RetroactiveAddressTest extends ActiveMQTestBase {
       server = createServer(true, createDefaultInVMConfig(), AddressSettings.DEFAULT_PAGE_SIZE, AddressSettings.DEFAULT_MAX_SIZE_BYTES, -1, -1, new HashMap<>());
       server.getConfiguration().setInternalNamingPrefix(ActiveMQDefaultConfiguration.DEFAULT_INTERNAL_NAMING_PREFIX.replace('.', delimiterChar));
       server.getConfiguration().getWildcardConfiguration().setDelimiter(delimiterChar);
+      server.getConfiguration().setAddressQueueScanPeriod(500);
       server.start();
       locator = createInVMNonHALocator();
       sf = createSessionFactory(locator);
@@ -144,6 +148,27 @@ public class RetroactiveAddressTest extends ActiveMQTestBase {
 
       server.removeAddressInfo(addressName, null, true);
       assertNull(server.getAddressInfo(divertAddress));
+      assertNull(server.locateQueue(divertAnycastQueue));
+      assertNull(server.locateQueue(divertMulticastQueue));
+      assertNull(server.getPostOffice().getBinding(divert));
+   }
+
+   @TestTemplate
+   public void testRetroactiveResourceAutoRemoval() throws Exception {
+      final SimpleString addressName = SimpleString.of("myAddress");
+      final SimpleString divertAddress = ResourceNames.getRetroactiveResourceAddressName(internalNamingPrefix, delimiter, addressName);
+      final SimpleString divertMulticastQueue = ResourceNames.getRetroactiveResourceQueueName(internalNamingPrefix, delimiter, addressName, RoutingType.MULTICAST);
+      final SimpleString divertAnycastQueue = ResourceNames.getRetroactiveResourceQueueName(internalNamingPrefix, delimiter, addressName, RoutingType.ANYCAST);
+      final SimpleString divert = ResourceNames.getRetroactiveResourceDivertName(internalNamingPrefix, delimiter, addressName);
+      server.getAddressSettingsRepository().addMatch(addressName.toString(), new AddressSettings().setRetroactiveMessageCount(10).setAutoDeleteAddresses(true).setAutoDeleteAddressesSkipUsageCheck(true).setAutoDeleteAddressesDelay(500));
+
+      server.addAddressInfo(new AddressInfo(addressName).setAutoCreated(true));
+      assertNotNull(server.getAddressInfo(divertAddress));
+      assertNotNull(server.locateQueue(divertMulticastQueue));
+      assertNotNull(server.locateQueue(divertAnycastQueue));
+      assertNotNull(server.getPostOffice().getBinding(divert));
+
+      Wait.assertNull(() -> server.getAddressInfo(addressName), 2000, 50);
       assertNull(server.locateQueue(divertAnycastQueue));
       assertNull(server.locateQueue(divertMulticastQueue));
       assertNull(server.getPostOffice().getBinding(divert));

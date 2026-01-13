@@ -883,18 +883,19 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
             server.callBrokerAddressPlugins(plugin -> plugin.beforeRemoveAddress(address));
          }
 
-         final Collection<Binding> bindingsForAddress = getDirectBindings(address);
-         if (force) {
-            for (Binding binding : bindingsForAddress) {
-               if (binding instanceof LocalQueueBinding localQueueBinding) {
-                  localQueueBinding.getQueue().deleteQueue(true);
-               } else if (binding instanceof RemoteQueueBinding) {
-                  removeBinding(binding.getUniqueName(), null, true);
+         if (isAddressBound(address)) {
+            if (force) {
+               for (Binding binding : getDirectBindings(address)) {
+                  if (binding instanceof LocalQueueBinding localQueueBinding) {
+                     localQueueBinding.getQueue().deleteQueue(true);
+                  } else if (binding instanceof RemoteQueueBinding) {
+                     removeBinding(binding.getUniqueName(), null, true);
+                  }
                }
-            }
 
-         } else if (!bindingsForAddress.isEmpty()) {
-            throw ActiveMQMessageBundle.BUNDLE.addressHasBindings(address);
+            } else {
+               throw ActiveMQMessageBundle.BUNDLE.addressHasBindings(address);
+            }
          }
          managementService.unregisterAddress(address);
          final AddressInfo addressInfo = addressManager.removeAddressInfo(address);
@@ -1063,7 +1064,7 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
 
    @Override
    public boolean isAddressBound(final SimpleString address) throws Exception {
-      Collection<Binding> bindings = getDirectBindings(address);
+      Collection<Binding> bindings = getDirectBindings(address).stream().filter(binding -> binding.getType() != BindingType.DIVERT).toList();
       return bindings != null && !bindings.isEmpty();
    }
 
