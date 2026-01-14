@@ -117,6 +117,30 @@
          <artifactId>artemis-console</artifactId>
          <type>war</type>
       </dependency>
+      <dependency>
+         <groupId>org.jolokia</groupId>
+         <artifactId>jolokia-json</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.jolokia</groupId>
+         <artifactId>jolokia-server-core</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.jolokia</groupId>
+         <artifactId>jolokia-server-detector</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.jolokia</groupId>
+         <artifactId>jolokia-service-jmx</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.jolokia</groupId>
+         <artifactId>jolokia-service-jsr160</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.jolokia</groupId>
+         <artifactId>jolokia-service-serializer</artifactId>
+      </dependency>
       <!-- quorum -->
       <dependency>
          <groupId>org.apache.artemis</groupId>
