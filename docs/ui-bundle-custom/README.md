@@ -1,0 +1,1 @@
+This UI bundle is based on the default from https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable.

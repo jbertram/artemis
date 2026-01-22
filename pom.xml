@@ -911,6 +911,7 @@
                      <exclude>**/*.txt</exclude>
                      <exclude>**/*.md</exclude>
                      <exclude>**/*.adoc</exclude>
+                     <exclude>**/*-playbook.yml</exclude>
                      <exclude>**/docinfo.html</exclude>
                      <exclude>etc/ide-settings/**</exclude>
                      <exclude>**/*.json</exclude>

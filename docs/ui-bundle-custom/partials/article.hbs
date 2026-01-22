@@ -1,0 +1,15 @@
+<article class="doc">
+{{#unless (eq page.version page.component.latest.version)}}
+{{#with (lookup page.versions 0)}}
+<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 1rem; margin-bottom: 1.5rem; color: #856404">
+  <p><strong>⚠️ You are viewing documentation for an older version ({{../page.version}}).</strong>
+  <a href="{{relativize this.url}}">View the latest version{{#if this.version}} ({{this.version}}){{/if}}</a></p>
+</div>
+{{/with}}
+{{/unless}}
+{{#with page.title}}
+<h1 class="page">{{{this}}}</h1>
+{{/with}}
+{{{page.contents}}}
+{{> pagination}}
+</article>

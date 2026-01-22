@@ -1,0 +1,35 @@
+site:
+  title: Apache Artemis
+  url: https://artemis.apache.org
+  start_page: user-manual::index.adoc
+content:
+  sources:
+    - url: .. # set to https://github.com/apache/artemis.git when building a release
+      branches: [HEAD] # set to [] when building a release; HEAD is for local builds during development
+      tags: [] # fill in with all relevant the versions when building a release (e.g. [2.56.0, 2.55.0])
+      start_path: docs/user-manual
+    - url: .. # set to https://github.com/apache/artemis.git when building a release
+      branches: [HEAD]
+      start_path: docs/hacking-guide
+    - url: .. # set to https://github.com/apache/artemis.git when building a release
+      branches: [HEAD]
+      start_path: docs/migration-guide
+ui:
+  bundle:
+    url: ../docs/ui-bundle-custom
+    snapshot: true
+antora:
+  extensions:
+    - require: '@antora/lunr-extension'
+      index_latest_only: true
+      index_by_heading: true
+asciidoc:
+  attributes:
+    project-name-full: Apache Artemis
+    project-name-full-url: apache-artemis
+    project-name-short: Artemis
+    project-version: ${project-version}
+    log4j-version: ${log4j-version}
+    artemis-console-version: ${artemis-console-version}
+output:
+  dir: target/site
