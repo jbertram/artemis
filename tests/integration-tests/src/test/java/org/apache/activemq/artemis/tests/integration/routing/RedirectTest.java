@@ -30,7 +30,6 @@ import java.util.Map;
 import org.apache.activemq.artemis.api.core.QueueConfiguration;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.management.QueueControl;
-import org.apache.activemq.artemis.api.core.management.ResourceNames;
 import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 import org.apache.activemq.artemis.core.server.cluster.impl.MessageLoadBalancingType;
 import org.apache.activemq.artemis.core.server.routing.KeyType;
@@ -94,9 +93,9 @@ public class RedirectTest extends RoutingTestBase {
 
    private void testSimpleRedirectWithProtocol(final String protocol, final String queueName) throws Exception {
       QueueControl queueControl0 = (QueueControl)getServer(0).getManagementService()
-          .getResource(ResourceNames.QUEUE + queueName);
+          .getQueueControl(queueName);
       QueueControl queueControl1 = (QueueControl)getServer(1).getManagementService()
-          .getResource(ResourceNames.QUEUE + queueName);
+          .getQueueControl(queueName);
 
       assertEquals(0, queueControl0.countMessages());
       assertEquals(0, queueControl1.countMessages());
@@ -196,7 +195,7 @@ public class RedirectTest extends RoutingTestBase {
 
       for (int node : nodes) {
          queueControls[node] = (QueueControl)getServer(node).getManagementService()
-             .getResource(ResourceNames.QUEUE + queueName);
+             .getQueueControl(queueName);
 
          assertEquals(0, queueControls[node].countMessages(), "Unexpected message count for node " + node);
       }
@@ -235,7 +234,7 @@ public class RedirectTest extends RoutingTestBase {
          startServers(0);
 
          queueControls[0] = (QueueControl)getServer(0).getManagementService()
-             .getResource(ResourceNames.QUEUE + queueName);
+             .getQueueControl(queueName);
       }
 
       for (int i = 0; i < nodes.length - 1; i++) {
@@ -291,9 +290,9 @@ public class RedirectTest extends RoutingTestBase {
 
    private void testSymmetricRedirectWithProtocol(final String protocol, final String queueName) throws Exception {
       QueueControl queueControl0 = (QueueControl)getServer(0).getManagementService()
-          .getResource(ResourceNames.QUEUE + queueName);
+          .getQueueControl(queueName);
       QueueControl queueControl1 = (QueueControl)getServer(1).getManagementService()
-          .getResource(ResourceNames.QUEUE + queueName);
+          .getQueueControl(queueName);
 
       assertEquals(0, queueControl0.countMessages(), "Unexpected message count for node 0");
       assertEquals(0, queueControl1.countMessages(), "Unexpected message count for node 1");
@@ -371,7 +370,7 @@ public class RedirectTest extends RoutingTestBase {
       QueueControl[] queueControls = new QueueControl[nodes.length];
       for (int node : nodes) {
          queueControls[node] = (QueueControl)getServer(node).getManagementService()
-             .getResource(ResourceNames.QUEUE + queueName);
+             .getQueueControl(queueName);
 
          assertEquals(0, queueControls[node].countMessages(), "Unexpected message count for node " + node);
       }
@@ -404,7 +403,7 @@ public class RedirectTest extends RoutingTestBase {
       startServers(failedNode);
 
       queueControls[failedNode] = (QueueControl)getServer(failedNode).getManagementService()
-          .getResource(ResourceNames.QUEUE + queueName);
+          .getQueueControl(queueName);
 
       try (Connection connection = connectionFactory.createConnection()) {
          connection.start();

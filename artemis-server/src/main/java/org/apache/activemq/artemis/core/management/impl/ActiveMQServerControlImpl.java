@@ -63,10 +63,7 @@ import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
 import org.apache.activemq.artemis.api.core.management.ActiveMQServerControl;
-import org.apache.activemq.artemis.api.core.management.AddressControl;
-import org.apache.activemq.artemis.api.core.management.BridgeControl;
 import org.apache.activemq.artemis.api.core.management.CoreNotificationType;
-import org.apache.activemq.artemis.api.core.management.DivertControl;
 import org.apache.activemq.artemis.api.core.management.ManagementHelper;
 import org.apache.activemq.artemis.api.core.management.Parameter;
 import org.apache.activemq.artemis.api.core.management.QueueControl;
@@ -84,8 +81,12 @@ import org.apache.activemq.artemis.core.management.impl.view.ConnectionView;
 import org.apache.activemq.artemis.core.management.impl.view.ConsumerField;
 import org.apache.activemq.artemis.core.management.impl.view.ConsumerView;
 import org.apache.activemq.artemis.core.management.impl.view.ProducerView;
+import org.apache.activemq.artemis.core.management.impl.view.QueueField;
 import org.apache.activemq.artemis.core.management.impl.view.QueueView;
 import org.apache.activemq.artemis.core.management.impl.view.SessionView;
+import org.apache.activemq.artemis.core.management.impl.view.predicate.ActiveMQFilterPredicate;
+import org.apache.activemq.artemis.core.management.impl.view.predicate.QueueFilterPredicate;
+import org.apache.activemq.artemis.core.management.impl.view.predicate.QueuePredicateFilterPart;
 import org.apache.activemq.artemis.core.messagecounter.MessageCounterManager;
 import org.apache.activemq.artemis.core.messagecounter.impl.MessageCounterManagerImpl;
 import org.apache.activemq.artemis.core.persistence.StorageManager;
@@ -1457,8 +1458,7 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
 
       clearIO();
       try {
-         List<QueueControl> queueControls = server.getManagementService().getQueueControls();
-         return queueControls.size();
+         return server.getManagementService().getQueueControlCount();
       } finally {
          blockOnIO();
       }
@@ -1478,19 +1478,20 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
 
       clearIO();
       try {
-         List<QueueControl> queueControls = server.getManagementService().getQueueControls();
-         List<String> names = new ArrayList<>();
-         for (int i = 0; i < queueControls.size(); i++) {
-            QueueControl queueControl = (QueueControl) queueControls.get(i);
-            if (routingType != null && routingType.length() > 1 && queueControl.getRoutingType().equals(routingType.toUpperCase())) {
-               names.add(queueControl.getName());
-            } else if (routingType == null || routingType.isEmpty()) {
-               names.add(queueControl.getName());
+         if (routingType == null || routingType.isEmpty()) {
+            List<String> queueNames = server.getManagementService().getQueueControlNames();
+            return queueNames.toArray(new String[queueNames.size()]);
+         } else {
+            QueueFilterPredicate predicate = new QueueFilterPredicate(null);
+            predicate.addFilterPart(new QueuePredicateFilterPart(null, QueueField.ROUTING_TYPE.name(), ActiveMQFilterPredicate.Operation.EQUALS.name(), routingType));
+            List<QueueControl> queueControls = server.getManagementService().getQueueControls(predicate);
+            String[] names = new String[queueControls.size()];
+            for (int i = 0; i < queueControls.size(); i++) {
+               names[i] = queueControls.get(i).getName();
             }
-         }
 
-         String[] result = new String[names.size()];
-         return names.toArray(result);
+            return names;
+         }
       } finally {
          blockOnIO();
       }
@@ -1571,8 +1572,7 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
 
       clearIO();
       try {
-         List<AddressControl> addresses = server.getManagementService().getAddressControls();
-         return addresses.size();
+         return server.getManagementService().getAddressControlCount();
       } finally {
          blockOnIO();
       }
@@ -1587,13 +1587,8 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
 
       clearIO();
       try {
-         List<AddressControl> addresses = server.getManagementService().getAddressControls();
-         String[] names = new String[addresses.size()];
-         for (int i = 0; i < addresses.size(); i++) {
-            AddressControl address = (AddressControl) addresses.get(i);
-            names[i] = address.getAddress();
-         }
-         return names;
+         List<String> addressNames = server.getManagementService().getAddressControlNames();
+         return addressNames.toArray(new String[addressNames.size()]);
       } finally {
          blockOnIO();
       }
@@ -3630,11 +3625,10 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
 
       clearIO();
       try {
-         List<DivertControl> diverts = server.getManagementService().getDivertControls();
+         List<String> diverts = server.getManagementService().getDivertControlNames();
          String[] names = new String[diverts.size()];
          for (int i = 0; i < diverts.size(); i++) {
-            DivertControl divert = diverts.get(i);
-            names[i] = divert.getUniqueName();
+            names[i] = diverts.get(i);
          }
 
          return names;
@@ -3779,11 +3773,10 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
 
       clearIO();
       try {
-         List<BridgeControl> bridges = server.getManagementService().getBridgeControls();
+         List<String> bridges = server.getManagementService().getBridgeControlNames();
          String[] names = new String[bridges.size()];
          for (int i = 0; i < bridges.size(); i++) {
-            BridgeControl bridge = bridges.get(i);
-            names[i] = bridge.getName();
+            names[i] = bridges.get(i);
          }
 
          return names;

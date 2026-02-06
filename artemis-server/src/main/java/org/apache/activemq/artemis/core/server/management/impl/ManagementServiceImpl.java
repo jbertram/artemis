@@ -27,7 +27,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -233,7 +232,7 @@ public class ManagementServiceImpl implements ManagementService {
       messagingServerControl = new ActiveMQServerControlImpl(postOffice, configuration, resourceManager, remotingService, messagingServer, messageCounterManager, storageManager1, broadcaster);
       ObjectName objectName = objectNameBuilder.getActiveMQServerObjectName();
       registerInJMX(objectName, messagingServerControl);
-      registries.registerBroker(ResourceNames.BROKER, messagingServerControl);
+      registries.registerBroker(messagingServerControl);
       registerBrokerMeters();
 
       return messagingServerControl;
@@ -263,7 +262,7 @@ public class ManagementServiceImpl implements ManagementService {
    @Override
    public void unregisterServer() throws Exception {
       unregisterFromJMX(objectNameBuilder.getActiveMQServerObjectName());
-      registries.unRegisterBroker(ResourceNames.BROKER);
+      registries.unregisterBroker();
       if (messagingServer != null) {
          unregisterMeters(ResourceNames.BROKER + "." + messagingServer.getConfiguration().getName());
       }
@@ -273,12 +272,11 @@ public class ManagementServiceImpl implements ManagementService {
    public void registerAddress(AddressInfo addressInfo) throws Exception {
       AddressControlImpl addressControl = new AddressControlImpl(addressInfo, messagingServer, pagingManager, storageManager, securityRepository, securityStore, this);
       registerInJMX(objectNameBuilder.getAddressObjectName(addressInfo.getName()), addressControl);
-      registries.registerAddressControls(ResourceNames.ADDRESS + addressInfo.getName(), addressControl);
+      registries.registerAddressControl(addressInfo.getName().toString(), addressControl);
       registerAddressMeters(addressInfo, addressControl);
    }
 
-   @Override
-   public void registerAddressMeters(AddressInfo addressInfo, AddressControl addressControl) {
+   private void registerAddressMeters(AddressInfo addressInfo, AddressControl addressControl) {
       if (messagingServer != null) { // it could be null on tests, but never on a real server
          MetricsManager metricsManager = messagingServer.getMetricsManager();
          if (metricsManager != null) {
@@ -296,31 +294,36 @@ public class ManagementServiceImpl implements ManagementService {
    @Override
    public void unregisterAddress(final SimpleString address) throws Exception {
       unregisterFromJMX(objectNameBuilder.getAddressObjectName(address));
-      registries.unregisterAddressControls(ResourceNames.ADDRESS + address);
+      registries.unregisterAddressControl(address.toString());
       unregisterMeters(ResourceNames.ADDRESS + address);
    }
 
    @Override
    public void registerQueue(final Queue queue, final SimpleString address, final StorageManager storageManager) throws Exception {
-      QueueControlImpl queueControl = new QueueControlImpl(queue, address.toString(), messagingServer, storageManager, securityStore, addressSettingsRepository);
+      QueueControlImpl queueControl = new QueueControlImpl(queue, address.toString(), messagingServer, storageManager, addressSettingsRepository);
       if (messageCounterManager != null) {
          MessageCounter counter = new MessageCounter(queue.getName().toString(), null, queue, false, queue.isDurable(), messageCounterManager.getMaxDayCount());
          queueControl.setMessageCounter(counter);
          messageCounterManager.registerMessageCounter(queue.getName().toString(), counter);
       }
       registerInJMX(objectNameBuilder.getQueueObjectName(address, queue.getName(), queue.getRoutingType()), queueControl);
-      registries.registerQueueControls(ResourceNames.QUEUE + queue.getName(), queueControl);
+      registries.registerQueueControl(queue.getName().toString(), queueControl);
       registerQueueMeters(queue);
    }
 
    @Override
    public void unregisterQueue(final SimpleString name, final SimpleString address, RoutingType routingType) throws Exception {
       unregisterFromJMX(objectNameBuilder.getQueueObjectName(address, name, routingType));
-      registries.unregisterQueueControls(ResourceNames.QUEUE + name);
+      registries.unregisterQueueControl(name.toString());
       unregisterMeters(ResourceNames.QUEUE + name);
       if (messageCounterManager != null) {
          messageCounterManager.unregisterMessageCounter(name.toString());
       }
+   }
+
+   @Override
+   public int getQueueControlCount() {
+      return registries.getQueueControlCount();
    }
 
    @Override
@@ -334,6 +337,21 @@ public class ManagementServiceImpl implements ManagementService {
    }
 
    @Override
+   public QueueControl getQueueControl(String name) {
+      return registries.getQueueControl(name);
+   }
+
+   @Override
+   public List<String> getQueueControlNames() {
+      return registries.getQueueControlNames();
+   }
+
+   @Override
+   public int getAddressControlCount() {
+      return registries.getAddressControlCount();
+   }
+
+   @Override
    public List<AddressControl> getAddressControls() {
       return registries.getAddressControls(null);
    }
@@ -344,23 +362,33 @@ public class ManagementServiceImpl implements ManagementService {
    }
 
    @Override
-   public AddressControl getAddressControl(String resourceName) {
-      return registries.getAddressControl(resourceName);
+   public AddressControl getAddressControl(String name) {
+      return registries.getAddressControl(name);
    }
 
    @Override
-   public AcceptorControl getAcceptorControl(String resourceName) {
-      return registries.getAcceptorControl(resourceName);
+   public List<String> getAddressControlNames() {
+      return registries.getAddressControlNames();
    }
 
    @Override
-   public void registerAMQPControl(String amqpResourceName, Object control) {
-      registries.registerAMQPControl(amqpResourceName, control);
+   public AcceptorControl getAcceptorControl(String name) {
+      return registries.getAcceptorControl(name);
    }
 
    @Override
-   public void unRegisterAMQPControl(String amqpResourceName) {
-      registries.unRegisterAMQPControl(amqpResourceName);
+   public ConnectionRouterControl getConnectionRouterControl(String name) {
+      return registries.getConnectionRouterControl(name);
+   }
+
+   @Override
+   public void registerUntypedControl(String name, Object control) {
+      registries.registerUntypedControl(name, control);
+   }
+
+   @Override
+   public void unregisterUntypedControl(String name) {
+      registries.unregisterUntypedControl(name);
    }
 
    private void registerQueueMeters(final Queue queue) {
@@ -406,32 +434,29 @@ public class ManagementServiceImpl implements ManagementService {
    public void registerDivert(final Divert divert) throws Exception {
       DivertControl divertControl = new DivertControlImpl(divert, storageManager, messagingServer.getInternalNamingPrefix());
       registerInJMX(objectNameBuilder.getDivertObjectName(divert.getUniqueName().toString(), divert.getAddress().toString()), divertControl);
-      registries.registerDivertControl(ResourceNames.DIVERT + divert.getUniqueName(), divertControl);
+      registries.registerDivertControl(divert.getUniqueName().toString(), divertControl);
    }
 
    @Override
    public void unregisterDivert(final SimpleString name, final SimpleString address) throws Exception {
       unregisterFromJMX(objectNameBuilder.getDivertObjectName(name.toString(), address.toString()));
-      registries.unRegisterDivertControl(ResourceNames.DIVERT + name);
+      registries.unregisterDivertControl(name.toString());
    }
 
    @Override
    public void registerAcceptor(final Acceptor acceptor, final TransportConfiguration configuration) throws Exception {
       AcceptorControl control = new AcceptorControlImpl(acceptor, storageManager, configuration);
       registerInJMX(objectNameBuilder.getAcceptorObjectName(configuration.getName()), control);
-      registries.registerAcceptor(ResourceNames.ACCEPTOR + configuration.getName(), control);
+      registries.registerAcceptor(configuration.getName(), control);
    }
 
    @Override
-   public void unregisterAcceptors() {
-      for (String resourceName : new HashSet<>(registries.getAcceptorNames())) {
-         if (resourceName.startsWith(ResourceNames.ACCEPTOR)) {
-            String name = resourceName.substring(ResourceNames.ACCEPTOR.length());
-            try {
-               unregisterAcceptor(name);
-            } catch (Exception e) {
-               ActiveMQServerLogger.LOGGER.failedToUnregisterAcceptor(name, e);
-            }
+   public void unregisterAcceptor() {
+      for (String acceptorName : registries.getAcceptorNames()) {
+         try {
+            unregisterAcceptor(acceptorName);
+         } catch (Exception e) {
+            ActiveMQServerLogger.LOGGER.failedToUnregisterAcceptor(acceptorName, e);
          }
       }
    }
@@ -439,14 +464,14 @@ public class ManagementServiceImpl implements ManagementService {
    @Override
    public void unregisterAcceptor(final String name) throws Exception {
       unregisterFromJMX(objectNameBuilder.getAcceptorObjectName(name));
-      registries.unregisterAcceptorControls(ResourceNames.ACCEPTOR + name);
+      registries.unregisterAcceptorControl(name);
    }
 
    @Override
    public void registerBroadcastGroup(final BroadcastGroup broadcastGroup, final BroadcastGroupConfiguration configuration) throws Exception {
       broadcastGroup.setNotificationService(this);
       BroadcastEndpointFactory endpointFactory = configuration.getEndpointFactory();
-      BaseBroadcastGroupControl control = null;
+      BaseBroadcastGroupControl control;
       if (endpointFactory instanceof UDPBroadcastEndpointFactory factory) {
          control = new BroadcastGroupControlImpl(broadcastGroup, storageManager, configuration, factory);
       } else if (endpointFactory instanceof JGroupsFileBroadcastEndpointFactory factory) {
@@ -457,26 +482,26 @@ public class ManagementServiceImpl implements ManagementService {
          control = new BaseBroadcastGroupControlImpl(broadcastGroup, storageManager, configuration);
       }
       registerInJMX(objectNameBuilder.getBroadcastGroupObjectName(configuration.getName()), control);
-      registries.registerBroadcastGroupControls(ResourceNames.BROADCAST_GROUP + configuration.getName(), control);
+      registries.registerBroadcastGroupControl(configuration.getName(), control);
    }
 
    @Override
    public void unregisterBroadcastGroup(final String name) throws Exception {
       unregisterFromJMX(objectNameBuilder.getBroadcastGroupObjectName(name));
-      registries.unRegisterBroadcastGroupControls(ResourceNames.BROADCAST_GROUP + name);
+      registries.unregisterBroadcastGroupControls(name);
    }
 
    @Override
    public void registerBrokerConnection(BrokerConnection brokerConnection) throws Exception {
       BrokerConnectionControl control = new BrokerConnectionControlImpl(brokerConnection, storageManager);
       registerInJMX(objectNameBuilder.getBrokerConnectionObjectName(brokerConnection.getName()), control);
-      registries.registerBrokerConnectionControl(ResourceNames.BROKER_CONNECTION + brokerConnection.getName(), control);
+      registries.registerBrokerConnectionControl(brokerConnection.getName(), control);
    }
 
    @Override
    public void unregisterBrokerConnection(String name) throws Exception {
       unregisterFromJMX(objectNameBuilder.getBrokerConnectionObjectName(name));
-      registries.unRegisterBrokerConnectionControl(ResourceNames.BROKER_CONNECTION + name);
+      registries.unregisterBrokerConnectionControl(name);
    }
 
    @Override
@@ -497,13 +522,13 @@ public class ManagementServiceImpl implements ManagementService {
 
       RemoteBrokerConnectionControl control = new RemoteBrokerConnectionControlImpl(brokerConnection, storageManager);
       registerInJMX(objectNameBuilder.getRemoteBrokerConnectionObjectName(nodeId, name), control);
-      registries.registerRemoteBrokerConnectionControl(ResourceNames.REMOTE_BROKER_CONNECTION + nodeId + "." + name, control);
+      registries.registerRemoteBrokerConnectionControl(nodeId + "." + name, control);
    }
 
    @Override
    public void unregisterRemoteBrokerConnection(String nodeId, String name) throws Exception {
       unregisterFromJMX(objectNameBuilder.getRemoteBrokerConnectionObjectName(nodeId, name));
-      registries.unRegisterRemoteBrokerConnectionControl(ResourceNames.REMOTE_BROKER_CONNECTION + nodeId + "." + name);
+      registries.unregisterRemoteBrokerConnectionControl(nodeId + "." + name);
    }
 
    @Override
@@ -511,52 +536,67 @@ public class ManagementServiceImpl implements ManagementService {
       bridge.setNotificationService(this);
       BridgeControl control = new BridgeControlImpl(bridge, storageManager);
       registerInJMX(objectNameBuilder.getBridgeObjectName(bridge.getConfiguration().getName()), control);
-      registries.registerBridgeControl(ResourceNames.BRIDGE + bridge.getName(), control);
+      registries.registerBridgeControl(bridge.getName().toString(), control);
    }
 
    @Override
    public void unregisterBridge(final String name) throws Exception {
-      unregisterFromJMX(objectNameBuilder.getBridgeObjectName(name));
-      registries.unRegisterBridgeControl(ResourceNames.BRIDGE + name);
+      unregisterFromJMX(objectNameBuilder.getBridgeObjectName(name.toString()));
+      registries.unregisterBridgeControl(name);
+   }
+
+   @Override
+   public List<BridgeControl> getBridgeControls() {
+      return registries.getBridgeControls();
+   }
+
+   @Override
+   public List<String> getBridgeControlNames() {
+      return registries.getBridgeControlNames();
+   }
+
+   @Override
+   public int getBridgeControlCount() {
+      return registries.getBridgeControlCount();
    }
 
    @Override
    public void registerCluster(final ClusterConnection cluster, final ClusterConnectionConfiguration configuration) throws Exception {
       ClusterConnectionControl control = new ClusterConnectionControlImpl(cluster, storageManager, configuration);
       registerInJMX(objectNameBuilder.getClusterConnectionObjectName(configuration.getName()), control);
-      registries.registerClusterConnectionControl(ResourceNames.CORE_CLUSTER_CONNECTION + configuration.getName(), control);
+      registries.registerClusterConnectionControl(configuration.getName(), control);
    }
 
    @Override
    public void unregisterCluster(final String name) throws Exception {
-      unregisterFromJMX(objectNameBuilder.getClusterConnectionObjectName(name));
-      registries.unRegisterClusterConnectionControl(ResourceNames.CORE_CLUSTER_CONNECTION + name);
+      unregisterFromJMX(objectNameBuilder.getClusterConnectionObjectName(name.toString()));
+      registries.unregisterClusterConnectionControl(name);
    }
 
    @Override
    public void registerConnectionRouter(final ConnectionRouter router) throws Exception {
       ConnectionRouterControl connectionRouterControl = new ConnectionRouterControlImpl(router, storageManager);
       registerInJMX(objectNameBuilder.getConnectionRouterObjectName(router.getName()), connectionRouterControl);
-      registries.registerConnectionRouterControl(ResourceNames.CONNECTION_ROUTER + router.getName(), connectionRouterControl);
+      registries.registerConnectionRouterControl(router.getName(), connectionRouterControl);
    }
 
    @Override
    public void unregisterConnectionRouter(final String name) throws Exception {
       unregisterFromJMX(objectNameBuilder.getConnectionRouterObjectName(name));
-      registries.unRegisterConnectionRouterControl(ResourceNames.CONNECTION_ROUTER + name);
+      registries.unregisterConnectionRouterControl(name);
    }
 
    @Override
    public void registerHawtioSecurity(GuardInvocationHandler guard) throws Exception {
       HawtioSecurityControl control = new HawtioSecurityControlImpl(guard, storageManager);
       registerInJMX(objectNameBuilder.getSecurityObjectName(), control);
-      registries.registerHawtioSecurityControl(ResourceNames.MANAGEMENT_SECURITY, control);
+      registries.registerHawtioSecurityControl(control);
    }
 
    @Override
    public void unregisterHawtioSecurity() throws Exception {
       unregisterFromJMX(objectNameBuilder.getSecurityObjectName());
-      registries.unRegisterHawtioSecurityControl(ResourceNames.MANAGEMENT_SECURITY);
+      registries.unregisterHawtioSecurityControl();
    }
 
    @Override
@@ -644,24 +684,39 @@ public class ManagementServiceImpl implements ManagementService {
       return CheckType.EDIT;
    }
 
-   // This is only used by tests and left to avoid massive refactoring
    @Override
-   public Object getResource(final String resourceName) {
-      Object resource = registries.get(resourceName);
-      if (resource == null) {
-         return registries.legacyGetResource(resourceName);
-      }
-      return resource;
-   }
-
-   @Override
-   public List<DivertControl>  getDivertControls() {
+   public List<DivertControl> getDivertControls() {
       return registries.getDivertControls();
    }
 
    @Override
-   public List<BridgeControl> getBridgeControls() {
-      return registries.getBridgeControls();
+   public List<String> getDivertControlNames() {
+      return registries.getDivertControlNames();
+   }
+
+   @Override
+   public BrokerConnectionControl getBrokerConnectionControl(String name) {
+      return registries.getBrokerConnectionControl(name);
+   }
+
+   @Override
+   public RemoteBrokerConnectionControl getRemoteBrokerConnectionControl(String name) {
+      return registries.getRemoteBrokerConnectionControl(name);
+   }
+
+   @Override
+   public Object getUntypedControl(String name) {
+      return registries.getUntypedControl(name);
+   }
+
+   @Override
+   public Object getResource(String resourceName) {
+      return registries.getByName(resourceName);
+   }
+
+   @Override
+   public ActiveMQServerControl getServerControl() {
+      return registries.getServerControl();
    }
 
    @Override
@@ -755,7 +810,7 @@ public class ManagementServiceImpl implements ManagementService {
 
       started = false;
 
-      Set<String> resourceNames = registries.unRegisterAll();//new HashSet<>(registry.keySet());
+      Set<String> resourceNames = registries.unregisterAll();
 
       for (String resourceName : resourceNames) {
          unregisterMeters(resourceName);
@@ -883,10 +938,7 @@ public class ManagementServiceImpl implements ManagementService {
    @Override
    public Object getAttribute(final String resourceName, final String attribute, SecurityAuth auth) {
       try {
-         Object resource = registries.get(resourceName);
-         if (resource == null) {
-            resource = registries.legacyGetResource(resourceName);
-         }
+         Object resource = registries.getByName(resourceName);
 
          if (resource == null) {
             throw ActiveMQMessageBundle.BUNDLE.cannotFindResource(resourceName);
@@ -920,10 +972,7 @@ public class ManagementServiceImpl implements ManagementService {
                                  final String operation,
                                  final Object[] params,
                                  SecurityAuth auth) throws Exception {
-      Object resource = registries.get(resourceName);
-      if (resource == null) {
-         resource = registries.legacyGetResource(resourceName);
-      }
+      Object resource = registries.getByName(resourceName);
 
       if (resource == null) {
          throw ActiveMQMessageBundle.BUNDLE.cannotFindResource(resourceName);
