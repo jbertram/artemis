@@ -34,8 +34,11 @@ import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.api.core.management.AcceptorControl;
+import org.apache.activemq.artemis.api.core.management.ActiveMQServerControl;
 import org.apache.activemq.artemis.api.core.management.AddressControl;
 import org.apache.activemq.artemis.api.core.management.BridgeControl;
+import org.apache.activemq.artemis.api.core.management.BrokerConnectionControl;
+import org.apache.activemq.artemis.api.core.management.ConnectionRouterControl;
 import org.apache.activemq.artemis.api.core.management.DivertControl;
 import org.apache.activemq.artemis.api.core.management.ManagementHelper;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
@@ -234,22 +237,32 @@ public class ClusteredResetMockTest extends ServerTestBase {
       }
 
       @Override
-      public AddressControl getAddressControl(String resourceName) {
+      public AddressControl getAddressControl(String name) {
          return null;
       }
 
       @Override
-      public AcceptorControl getAcceptorControl(String resourceName) {
+      public List<String> getAddressControlNames() {
+         return List.of();
+      }
+
+      @Override
+      public AcceptorControl getAcceptorControl(String name) {
          return null;
       }
 
       @Override
-      public void registerAMQPControl(String amqpResourceName, Object control) {
+      public ConnectionRouterControl getConnectionRouterControl(String name) {
+         return null;
+      }
+
+      @Override
+      public void registerUntypedControl(String name, Object control) {
 
       }
 
       @Override
-      public void unRegisterAMQPControl(String amqpResourceName) {
+      public void unregisterUntypedControl(String name) {
 
       }
 
@@ -259,8 +272,38 @@ public class ClusteredResetMockTest extends ServerTestBase {
       }
 
       @Override
+      public List<String> getDivertControlNames() {
+         return List.of();
+      }
+
+      @Override
       public List<BridgeControl> getBridgeControls() {
          return List.of();
+      }
+
+      @Override
+      public List<String> getBridgeControlNames() {
+         return List.of();
+      }
+
+      @Override
+      public int getBridgeControlCount() {
+         return 0;
+      }
+
+      @Override
+      public BrokerConnectionControl getBrokerConnectionControl(String name) {
+         return null;
+      }
+
+      @Override
+      public Object getUntypedControl(String name) {
+         return null;
+      }
+
+      @Override
+      public ActiveMQServerControl getServerControl() {
+         return null;
       }
 
       @Override
@@ -280,11 +323,6 @@ public class ClusteredResetMockTest extends ServerTestBase {
 
       @Override
       public void registerAddress(AddressInfo addressInfo) throws Exception {
-
-      }
-
-      @Override
-      public void registerAddressMeters(AddressInfo addressInfo, AddressControl addressControl) throws Exception {
 
       }
 
@@ -314,7 +352,7 @@ public class ClusteredResetMockTest extends ServerTestBase {
       }
 
       @Override
-      public void unregisterAcceptors() {
+      public void unregisterAcceptor() {
 
       }
 
@@ -371,11 +409,6 @@ public class ClusteredResetMockTest extends ServerTestBase {
       }
 
       @Override
-      public Object getResource(String resourceName) {
-         return null;
-      }
-
-      @Override
       public ICoreMessage handleMessage(SecurityAuth auth, Message message) throws Exception {
          return null;
       }
@@ -401,6 +434,11 @@ public class ClusteredResetMockTest extends ServerTestBase {
       }
 
       @Override
+      public int getQueueControlCount() {
+         return 0;
+      }
+
+      @Override
       public List<QueueControl> getQueueControls() {
          return List.of();
       }
@@ -408,6 +446,21 @@ public class ClusteredResetMockTest extends ServerTestBase {
       @Override
       public List<QueueControl> getQueueControls(Predicate<QueueControl> predicate) {
          return List.of();
+      }
+
+      @Override
+      public QueueControl getQueueControl(String name) {
+         return null;
+      }
+
+      @Override
+      public List<String> getQueueControlNames() {
+         return List.of();
+      }
+
+      @Override
+      public int getAddressControlCount() {
+         return 0;
       }
 
       @Override

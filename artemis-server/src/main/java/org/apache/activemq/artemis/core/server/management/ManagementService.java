@@ -30,8 +30,11 @@ import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.api.core.management.AcceptorControl;
+import org.apache.activemq.artemis.api.core.management.ActiveMQServerControl;
 import org.apache.activemq.artemis.api.core.management.AddressControl;
 import org.apache.activemq.artemis.api.core.management.BridgeControl;
+import org.apache.activemq.artemis.api.core.management.BrokerConnectionControl;
+import org.apache.activemq.artemis.api.core.management.ConnectionRouterControl;
 import org.apache.activemq.artemis.api.core.management.DivertControl;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.activemq.artemis.api.core.management.QueueControl;
@@ -64,7 +67,6 @@ import org.apache.activemq.artemis.core.transaction.ResourceManager;
 import org.apache.activemq.artemis.spi.core.remoting.Acceptor;
 
 public interface ManagementService extends NotificationService, ActiveMQComponent {
-   // Configuration
 
    MessageCounterManager getMessageCounterManager();
 
@@ -74,9 +76,11 @@ public interface ManagementService extends NotificationService, ActiveMQComponen
 
    ObjectNameBuilder getObjectNameBuilder();
 
-   // Resource Registration
-
    void setStorageManager(StorageManager storageManager);
+
+   void registerInJMX(ObjectName objectName, Object managedResource) throws Exception;
+
+   void unregisterFromJMX(ObjectName objectName) throws Exception;
 
    ActiveMQServerControlImpl registerServer(PostOffice postOffice,
                                             SecurityStore securityStore,
@@ -94,42 +98,65 @@ public interface ManagementService extends NotificationService, ActiveMQComponen
 
    void unregisterServer() throws Exception;
 
-   void registerInJMX(ObjectName objectName, Object managedResource) throws Exception;
-
-   void unregisterFromJMX(ObjectName objectName) throws Exception;
+   ActiveMQServerControl getServerControl();
 
    void registerAddress(AddressInfo addressInfo) throws Exception;
 
-   void registerAddressMeters(AddressInfo addressInfo, AddressControl addressControl) throws Exception;
-
    void unregisterAddress(SimpleString address) throws Exception;
+
+   int getAddressControlCount();
+
+   List<AddressControl> getAddressControls();
+
+   List<AddressControl> getAddressControls(Predicate<AddressControl> predicate);
+
+   AddressControl getAddressControl(String name);
+
+   List<String> getAddressControlNames();
 
    void registerQueue(Queue queue, SimpleString address, StorageManager storageManager) throws Exception;
 
    void unregisterQueue(SimpleString name, SimpleString address, RoutingType routingType) throws Exception;
 
+   int getQueueControlCount();
+
+   List<QueueControl> getQueueControls();
+
+   List<QueueControl> getQueueControls(Predicate<QueueControl> predicate);
+
+   QueueControl getQueueControl(String name);
+
+   List<String> getQueueControlNames();
+
    void registerAcceptor(Acceptor acceptor, TransportConfiguration configuration) throws Exception;
 
    void unregisterAcceptor(String acceptorName) throws Exception;
 
-   void unregisterAcceptors();
+   void unregisterAcceptor();
+
+   AcceptorControl getAcceptorControl(String name);
 
    void registerDivert(Divert divert) throws Exception;
 
    void unregisterDivert(SimpleString name, SimpleString address) throws Exception;
 
-   void registerBroadcastGroup(BroadcastGroup broadcastGroup,
-                               BroadcastGroupConfiguration configuration) throws Exception;
+   List<DivertControl> getDivertControls();
+
+   List<String> getDivertControlNames();
+
+   void registerBroadcastGroup(BroadcastGroup broadcastGroup, BroadcastGroupConfiguration configuration) throws Exception;
 
    void unregisterBroadcastGroup(String name) throws Exception;
-
-   //  void registerDiscoveryGroup(DiscoveryGroup discoveryGroup, DiscoveryGroupConfiguration configuration) throws Exception;
-
-   //void unregisterDiscoveryGroup(String name) throws Exception;
 
    void registerBridge(Bridge bridge) throws Exception;
 
    void unregisterBridge(String name) throws Exception;
+
+   List<BridgeControl> getBridgeControls();
+
+   List<String> getBridgeControlNames();
+
+   int getBridgeControlCount();
 
    void registerCluster(ClusterConnection cluster, ClusterConnectionConfiguration configuration) throws Exception;
 
@@ -139,43 +166,31 @@ public interface ManagementService extends NotificationService, ActiveMQComponen
 
    void unregisterConnectionRouter(String name) throws Exception;
 
+   ConnectionRouterControl getConnectionRouterControl(String name);
+
    void registerBrokerConnection(BrokerConnection brokerConnection) throws Exception;
 
    void unregisterBrokerConnection(String name) throws Exception;
+
+   BrokerConnectionControl getBrokerConnectionControl(String name);
 
    void registerRemoteBrokerConnection(RemoteBrokerConnection brokerConnection) throws Exception;
 
    void unregisterRemoteBrokerConnection(String nodeId, String name) throws Exception;
 
-   Object getResource(String resourceName);
-
-   ICoreMessage handleMessage(SecurityAuth auth, Message message) throws Exception;
-
    void registerHawtioSecurity(GuardInvocationHandler guardInvocationHandler) throws Exception;
 
    void unregisterHawtioSecurity() throws Exception;
 
+   void registerUntypedControl(String name, Object control);
+
+   void unregisterUntypedControl(String name);
+
+   Object getUntypedControl(String name);
+
+   ICoreMessage handleMessage(SecurityAuth auth, Message message) throws Exception;
+
    Object getAttribute(String resourceName, String attribute, SecurityAuth auth);
 
    Object invokeOperation(String resourceName, String operation, Object[] params, SecurityAuth auth) throws Exception;
-
-   List<QueueControl> getQueueControls();
-
-   List<QueueControl> getQueueControls(Predicate<QueueControl> predicate);
-
-   List<AddressControl> getAddressControls();
-
-   List<AddressControl> getAddressControls(Predicate<AddressControl> predicate);
-
-   AddressControl getAddressControl(String resourceName);
-
-   AcceptorControl getAcceptorControl(String resourceName);
-
-   void registerAMQPControl(String amqpResourceName, Object control);
-
-   void unRegisterAMQPControl(String amqpResourceName);
-
-   List<DivertControl> getDivertControls();
-
-   List<BridgeControl> getBridgeControls();
 }

@@ -16,12 +16,6 @@
  */
 package org.apache.activemq.artemis.tests.integration.cluster.failover;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.MessageConsumer;
@@ -40,7 +34,6 @@ import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
 import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.apache.activemq.artemis.api.core.management.QueueControl;
-import org.apache.activemq.artemis.api.core.management.ResourceNames;
 import org.apache.activemq.artemis.core.client.impl.ClientSessionFactoryImpl;
 import org.apache.activemq.artemis.core.client.impl.ServerLocatorImpl;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
@@ -49,6 +42,12 @@ import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.apache.activemq.artemis.jms.client.ActiveMQSession;
 import org.apache.activemq.artemis.tests.util.Wait;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ClientConnectorFailoverTest extends StaticClusterWithBackupFailoverTest {
 
@@ -118,7 +117,7 @@ public class ClientConnectorFailoverTest extends StaticClusterWithBackupFailover
                }
 
                QueueControl testQueueControlAfterCrash = (QueueControl)getServer(serverIdAfterCrash).
-                  getManagementService().getResource(ResourceNames.QUEUE + QUEUE_NAME);
+                  getManagementService().getQueueControl(QUEUE_NAME);
                Wait.waitFor(() -> testQueueControlAfterCrash.getMessageCount() == 0, 3000);
 
                clientSession.stop();
@@ -174,7 +173,7 @@ public class ClientConnectorFailoverTest extends StaticClusterWithBackupFailover
                   getConnectorConfiguration().getName().substring(4));
 
                QueueControl testQueueControlBeforeCrash = (QueueControl)getServer(serverIdBeforeCrash).
-                  getManagementService().getResource(ResourceNames.QUEUE + QUEUE_NAME);
+                  getManagementService().getQueueControl(QUEUE_NAME);
 
                assertEquals(0, testQueueControlBeforeCrash.getMessageCount());
 
@@ -204,7 +203,7 @@ public class ClientConnectorFailoverTest extends StaticClusterWithBackupFailover
                   assertTrue(isPrimaryServerID(serverIdAfterCrash));
 
                   QueueControl testQueueControlAfterCrash = (QueueControl)getServer(serverIdAfterCrash).
-                     getManagementService().getResource(ResourceNames.QUEUE + QUEUE_NAME);
+                     getManagementService().getQueueControl(QUEUE_NAME);
 
                   Wait.waitFor(() -> testQueueControlAfterCrash.getMessageCount() == 1, 3000);
 
@@ -256,12 +255,12 @@ public class ClientConnectorFailoverTest extends StaticClusterWithBackupFailover
 
                createQueue(serverIdBeforeCrash, QUEUES_TESTADDRESS, QUEUE_NAME, null, false);
 
-               QueueControl testQueueControlBeforeCrash = (QueueControl) getServer(serverIdBeforeCrash).getManagementService().getResource(ResourceNames.QUEUE + QUEUE_NAME);
+               QueueControl testQueueControlBeforeCrash = (QueueControl) getServer(serverIdBeforeCrash).getManagementService().getQueueControl(QUEUE_NAME);
                assertEquals(0, testQueueControlBeforeCrash.getMessageCount());
 
                for (int i : getPrimaryServerIDs()) {
                   if (i != serverIdBeforeCrash) {
-                     assertNull(getServer(i).getManagementService().getResource(ResourceNames.QUEUE + QUEUE_NAME));
+                     assertNull(getServer(i).getManagementService().getQueueControl(QUEUE_NAME));
                   }
                }
 
@@ -289,7 +288,7 @@ public class ClientConnectorFailoverTest extends StaticClusterWithBackupFailover
                   }
                   assertTrue(serverIdAfterCrashFound);
 
-                  QueueControl testQueueControlAfterCrash = (QueueControl) getServer(serverIdAfterCrash).getManagementService().getResource(ResourceNames.QUEUE + QUEUE_NAME);
+                  QueueControl testQueueControlAfterCrash = (QueueControl) getServer(serverIdAfterCrash).getManagementService().getQueueControl(QUEUE_NAME);
                   assertNotNull(testQueueControlAfterCrash);
                   assertEquals(0, testQueueControlAfterCrash.getMessageCount());
 
@@ -373,7 +372,7 @@ public class ClientConnectorFailoverTest extends StaticClusterWithBackupFailover
             }
 
             QueueControl testQueueControlAfterCrash = (QueueControl)getServer(serverIdAfterCrash).
-               getManagementService().getResource(ResourceNames.QUEUE + QUEUE_NAME);
+               getManagementService().getQueueControl(QUEUE_NAME);
             Wait.waitFor(() -> testQueueControlAfterCrash.getMessageCount() == 0, 3000);
          }
          connection.stop();

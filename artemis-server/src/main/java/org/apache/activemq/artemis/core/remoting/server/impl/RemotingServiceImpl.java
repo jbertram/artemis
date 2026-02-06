@@ -56,7 +56,6 @@ import org.apache.activemq.artemis.api.core.BaseInterceptor;
 import org.apache.activemq.artemis.api.core.Pair;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.api.core.management.AcceptorControl;
-import org.apache.activemq.artemis.api.core.management.ResourceNames;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.ConfigurationUtils;
 import org.apache.activemq.artemis.core.protocol.core.CoreRemotingConnection;
@@ -498,7 +497,7 @@ public class RemotingServiceImpl implements RemotingService, ServerConnectionLif
       connectionCountLatch.setCount(0);
 
       if (managementService != null) {
-         managementService.unregisterAcceptors();
+         managementService.unregisterAcceptor();
       }
 
       threadPool.shutdown();
@@ -1081,7 +1080,7 @@ public class RemotingServiceImpl implements RemotingService, ServerConnectionLif
          server.getReloadManager().addCallback(storeURL, (uri) -> {
             // preference for Control to capture consistent audit logging
             if (managementService != null) {
-               AcceptorControl targetControl = managementService.getAcceptorControl(ResourceNames.ACCEPTOR + acceptorName);
+               AcceptorControl targetControl = managementService.getAcceptorControl(acceptorName);
                if (targetControl != null) {
                   targetControl.reload();
                }

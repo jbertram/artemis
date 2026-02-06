@@ -187,8 +187,8 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
          final String brokerConnectionName = ResourceNames.BROKER_CONNECTION + getTestName();
 
-         final BrokerConnectionControl brokerConnection = (BrokerConnectionControl)
-            server.getManagementService().getResource(brokerConnectionName);
+         final BrokerConnectionControl brokerConnection =
+            server.getManagementService().getBrokerConnectionControl(brokerConnectionName);
 
          assertNotNull(brokerConnection);
          assertTrue(brokerConnection.isConnected());
@@ -198,9 +198,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          final String consumerResourceName = AMQPFederationManagementSupport.getFederationSourceAddressConsumerResourceName(getTestName(), getTestName(), "address-policy", getTestName());
 
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
          final AMQPFederationLocalPolicyControl addressPolicyControl =
-            (AMQPFederationLocalPolicyControl) server.getManagementService().getResource(policyResourceName);
+            (AMQPFederationLocalPolicyControl) server.getManagementService().getUntypedControl(policyResourceName);
 
          assertNotNull(federationControl);
          assertEquals(getTestName(), federationControl.getName());
@@ -212,7 +212,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          assertEquals(0, addressPolicyControl.getMessagesReceived());
 
          final AMQPFederationConsumerControl consumerControl = (AMQPFederationConsumerControl)
-            server.getManagementService().getResource(consumerResourceName);
+            server.getManagementService().getUntypedControl(consumerResourceName);
 
          assertNotNull(consumerControl);
          assertEquals(getTestName(), consumerControl.getAddress());
@@ -223,9 +223,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          brokerConnection.stop();
 
          // Stopping the connection should remove the federation consumer management objects.
-         Wait.assertTrue(() -> server.getManagementService().getResource(consumerResourceName) == null, 5_000, 100);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(consumerResourceName) == null, 5_000, 100);
 
-         assertNotNull(server.getManagementService().getResource(policyResourceName));
+         assertNotNull(server.getManagementService().getUntypedControl(policyResourceName));
 
          server.getBrokerConnections().forEach((connection) -> {
             try {
@@ -235,9 +235,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
             }
          });
 
-         Wait.assertTrue(() -> server.getManagementService().getResource(policyResourceName) == null, 5_000, 100);
-         Wait.assertTrue(() -> server.getManagementService().getResource(federationResourceName) == null, 5_000, 100);
-         Wait.assertTrue(() -> server.getManagementService().getResource(brokerConnectionName) == null, 5_000, 100);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(policyResourceName) == null, 5_000, 100);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(federationResourceName) == null, 5_000, 100);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(brokerConnectionName) == null, 5_000, 100);
 
          peer.close();
       }
@@ -302,8 +302,8 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
-         final BrokerConnectionControl brokerConnection = (BrokerConnectionControl)
-            server.getManagementService().getResource(ResourceNames.BROKER_CONNECTION + getTestName());
+         final BrokerConnectionControl brokerConnection =
+            server.getManagementService().getBrokerConnectionControl(getTestName());
 
          assertNotNull(brokerConnection);
          assertTrue(brokerConnection.isConnected());
@@ -313,11 +313,11 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          final String consumerResourceName = AMQPFederationManagementSupport.getFederationSourceAddressConsumerResourceName(getTestName(), getTestName(), "address-policy", getTestName());
 
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
          final AMQPFederationLocalPolicyControl addressPolicyControl =
-            (AMQPFederationLocalPolicyControl) server.getManagementService().getResource(policyResourceName);
+            (AMQPFederationLocalPolicyControl) server.getManagementService().getUntypedControl(policyResourceName);
          final AMQPFederationConsumerControl consumerControl = (AMQPFederationConsumerControl)
-            server.getManagementService().getResource(consumerResourceName);
+            server.getManagementService().getUntypedControl(consumerResourceName);
 
          assertNotNull(federationControl);
          assertNotNull(addressPolicyControl);
@@ -328,8 +328,8 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
          // Closing the connection without a detach or close frame should still cleanup the management
          // resources for the consumer but the policy views should still be in place
-         Wait.assertTrue(() -> server.getManagementService().getResource(consumerResourceName) == null, 5_000, 100);
-         Wait.assertTrue(() -> server.getManagementService().getResource(policyResourceName) != null, 5_000, 100);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(consumerResourceName) == null, 5_000, 100);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(policyResourceName) != null, 5_000, 100);
       }
    }
 
@@ -392,8 +392,8 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
-         final BrokerConnectionControl brokerConnection = (BrokerConnectionControl)
-            server.getManagementService().getResource(ResourceNames.BROKER_CONNECTION + getTestName());
+         final BrokerConnectionControl brokerConnection =
+            server.getManagementService().getBrokerConnectionControl(getTestName());
 
          assertNotNull(brokerConnection);
          assertTrue(brokerConnection.isConnected());
@@ -403,11 +403,11 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          final String consumerResourceName = AMQPFederationManagementSupport.getFederationSourceAddressConsumerResourceName(getTestName(), getTestName(), "address-policy", getTestName());
 
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
          final AMQPFederationLocalPolicyControl addressPolicyControl =
-            (AMQPFederationLocalPolicyControl) server.getManagementService().getResource(policyResourceName);
+            (AMQPFederationLocalPolicyControl) server.getManagementService().getUntypedControl(policyResourceName);
          final AMQPFederationConsumerControl consumerControl = (AMQPFederationConsumerControl)
-            server.getManagementService().getResource(consumerResourceName);
+            server.getManagementService().getUntypedControl(consumerResourceName);
 
          assertNotNull(federationControl);
          assertNotNull(addressPolicyControl);
@@ -422,9 +422,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
          // Closing the connection without a detach or close frame should still cleanup the management
          // resources for the consumer but the policy views should still be in place
-         Wait.assertTrue(() -> server.getManagementService().getResource(consumerResourceName) == null, 5_000, 100);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(consumerResourceName) == null, 5_000, 100);
 
-         assertNotNull(server.getManagementService().getResource(policyResourceName));
+         assertNotNull(server.getManagementService().getUntypedControl(policyResourceName));
 
          peer.close();
       }
@@ -504,9 +504,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
             final String consumerResourceName = AMQPFederationManagementSupport.getFederationSourceAddressConsumerResourceName(getTestName(), getTestName(), "queue-policy", getTestName() + "::" + getTestName());
 
             final BrokerConnectionControl brokerConnection = (BrokerConnectionControl)
-               server.getManagementService().getResource(brokerConnectionName);
+               server.getManagementService().getUntypedControl(brokerConnectionName);
             final AMQPFederationControl federationControl =
-               (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+               (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
 
             assertNotNull(brokerConnection);
             assertTrue(brokerConnection.isConnected());
@@ -516,14 +516,14 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
             assertEquals(0, federationControl.getMessagesSent());
 
             final AMQPFederationLocalPolicyControlType queuePolicyControl =
-               (AMQPFederationLocalPolicyControlType) server.getManagementService().getResource(policyResourceName);
+               (AMQPFederationLocalPolicyControlType) server.getManagementService().getUntypedControl(policyResourceName);
 
             assertNotNull(queuePolicyControl);
             assertEquals("queue-policy", queuePolicyControl.getName());
             assertEquals(0, queuePolicyControl.getMessagesReceived());
 
             final AMQPFederationConsumerControl consumerControl =
-               (AMQPFederationConsumerControl) server.getManagementService().getResource(consumerResourceName);
+               (AMQPFederationConsumerControl) server.getManagementService().getUntypedControl(consumerResourceName);
 
             assertNotNull(consumerControl);
             assertEquals(getTestName(), consumerControl.getAddress());
@@ -537,9 +537,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
             brokerConnection.stop();
 
             // Stopping the connection should remove the federation management objects.
-            Wait.assertTrue(() -> server.getManagementService().getResource(consumerResourceName) == null, 5_000, 100);
+            Wait.assertTrue(() -> server.getManagementService().getUntypedControl(consumerResourceName) == null, 5_000, 100);
 
-            assertNotNull(server.getManagementService().getResource(policyResourceName));
+            assertNotNull(server.getManagementService().getUntypedControl(policyResourceName));
 
             server.getBrokerConnections().forEach((brConnection) -> {
                try {
@@ -549,9 +549,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
                }
             });
 
-            Wait.assertTrue(() -> server.getManagementService().getResource(policyResourceName) == null, 5_000, 100);
-            Wait.assertTrue(() -> server.getManagementService().getResource(federationResourceName) == null, 5_000, 100);
-            Wait.assertTrue(() -> server.getManagementService().getResource(brokerConnectionName) == null, 5_000, 100);
+            Wait.assertTrue(() -> server.getManagementService().getUntypedControl(policyResourceName) == null, 5_000, 100);
+            Wait.assertTrue(() -> server.getManagementService().getUntypedControl(federationResourceName) == null, 5_000, 100);
+            Wait.assertTrue(() -> server.getManagementService().getUntypedControl(brokerConnectionName) == null, 5_000, 100);
 
             peer.close();
          }
@@ -630,18 +630,18 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
             final String policyResourceName = AMQPFederationManagementSupport.getFederationSourcePolicyResourceName(getTestName(), getTestName(), "queue-policy");
             final String consumerResourceName = AMQPFederationManagementSupport.getFederationSourceAddressConsumerResourceName(getTestName(), getTestName(), "queue-policy", getTestName() + "::" + getTestName());
 
-            final BrokerConnectionControl brokerConnection = (BrokerConnectionControl)
-               server.getManagementService().getResource(ResourceNames.BROKER_CONNECTION + getTestName());
+            final BrokerConnectionControl brokerConnection =
+               server.getManagementService().getBrokerConnectionControl(getTestName());
 
             assertNotNull(brokerConnection);
             assertTrue(brokerConnection.isConnected());
 
             final AMQPFederationControl federationControl =
-               (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+               (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
             final AMQPFederationLocalPolicyControlType queuePolicyControl =
-               (AMQPFederationLocalPolicyControlType) server.getManagementService().getResource(policyResourceName);
+               (AMQPFederationLocalPolicyControlType) server.getManagementService().getUntypedControl(policyResourceName);
             final AMQPFederationConsumerControl consumerControl =
-               (AMQPFederationConsumerControl) server.getManagementService().getResource(consumerResourceName);
+               (AMQPFederationConsumerControl) server.getManagementService().getUntypedControl(consumerResourceName);
 
             assertNotNull(federationControl);
             assertNotNull(queuePolicyControl);
@@ -652,8 +652,8 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
             // Closing the connection without a detach or close frame should still cleanup the management
             // resources for the consumer but the policy views should still be in place
-            Wait.assertTrue(() -> server.getManagementService().getResource(consumerResourceName) == null, 5_000, 100);
-            Wait.assertTrue(() -> server.getManagementService().getResource(policyResourceName) != null, 5_000, 100);
+            Wait.assertTrue(() -> server.getManagementService().getUntypedControl(consumerResourceName) == null, 5_000, 100);
+            Wait.assertTrue(() -> server.getManagementService().getUntypedControl(policyResourceName) != null, 5_000, 100);
          }
       }
    }
@@ -730,18 +730,18 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
             final String policyResourceName = AMQPFederationManagementSupport.getFederationSourcePolicyResourceName(getTestName(), getTestName(), "queue-policy");
             final String consumerResourceName = AMQPFederationManagementSupport.getFederationSourceAddressConsumerResourceName(getTestName(), getTestName(), "queue-policy", getTestName() + "::" + getTestName());
 
-            final BrokerConnectionControl brokerConnection = (BrokerConnectionControl)
-               server.getManagementService().getResource(ResourceNames.BROKER_CONNECTION + getTestName());
+            final BrokerConnectionControl brokerConnection =
+               server.getManagementService().getBrokerConnectionControl(getTestName());
 
             assertNotNull(brokerConnection);
             assertTrue(brokerConnection.isConnected());
 
             final AMQPFederationControl federationControl =
-               (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+               (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
             final AMQPFederationLocalPolicyControlType queuePolicyControl =
-               (AMQPFederationLocalPolicyControlType) server.getManagementService().getResource(policyResourceName);
+               (AMQPFederationLocalPolicyControlType) server.getManagementService().getUntypedControl(policyResourceName);
             final AMQPFederationConsumerControl consumerControl =
-               (AMQPFederationConsumerControl) server.getManagementService().getResource(consumerResourceName);
+               (AMQPFederationConsumerControl) server.getManagementService().getUntypedControl(consumerResourceName);
 
             assertNotNull(federationControl);
             assertNotNull(queuePolicyControl);
@@ -756,9 +756,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
             // Closing the connection without a detach or close frame should still cleanup the management
             // resources for the consumer but the policy views should still be in place
-            Wait.assertTrue(() -> server.getManagementService().getResource(consumerResourceName) == null, 5_000, 100);
+            Wait.assertTrue(() -> server.getManagementService().getUntypedControl(consumerResourceName) == null, 5_000, 100);
 
-            assertNotNull(server.getManagementService().getResource(policyResourceName));
+            assertNotNull(server.getManagementService().getUntypedControl(policyResourceName));
 
             peer.close();
          }
@@ -821,7 +821,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          final String consumerResourceName = AMQPFederationManagementSupport.getFederationSourceAddressConsumerResourceName(getTestName(), getTestName(), "address-policy", getTestName());
 
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
 
          final ConnectionFactory factory = CFUtil.createConnectionFactory("AMQP", "tcp://localhost:" + AMQP_PORT);
 
@@ -839,9 +839,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
             peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
             final AMQPFederationLocalPolicyControl addressPolicyControl = (AMQPFederationLocalPolicyControl)
-               server.getManagementService().getResource(policyResourceName);
+               server.getManagementService().getUntypedControl(policyResourceName);
             final AMQPFederationConsumerControl consumerControl = (AMQPFederationConsumerControl)
-               server.getManagementService().getResource(consumerResourceName);
+               server.getManagementService().getUntypedControl(consumerResourceName);
 
             assertEquals(1, federationControl.getMessagesReceived());
             assertEquals(1, addressPolicyControl.getMessagesReceived());
@@ -858,9 +858,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          // Policy bean should still be active but consumer bean should be unregistered
          {
             final AMQPFederationLocalPolicyControl addressPolicyControl = (AMQPFederationLocalPolicyControl)
-               server.getManagementService().getResource(policyResourceName);
+               server.getManagementService().getUntypedControl(policyResourceName);
             final AMQPFederationConsumerControl consumerControl = (AMQPFederationConsumerControl)
-               server.getManagementService().getResource(consumerResourceName);
+               server.getManagementService().getUntypedControl(consumerResourceName);
 
             assertNotNull(addressPolicyControl);
             assertNull(consumerControl);
@@ -895,9 +895,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
             peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
             final AMQPFederationLocalPolicyControl addressPolicyControl = (AMQPFederationLocalPolicyControl)
-               server.getManagementService().getResource(policyResourceName);
+               server.getManagementService().getUntypedControl(policyResourceName);
             final AMQPFederationConsumerControl consumerControl = (AMQPFederationConsumerControl)
-               server.getManagementService().getResource(consumerResourceName);
+               server.getManagementService().getUntypedControl(consumerResourceName);
 
             assertEquals(2, federationControl.getMessagesReceived());
             assertEquals(2, addressPolicyControl.getMessagesReceived());
@@ -973,7 +973,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          final String consumerResourceName = AMQPFederationManagementSupport.getFederationSourceAddressConsumerResourceName(getTestName(), getTestName(), "queue-policy", getTestName() + "::" + getTestName());
 
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
 
          final ConnectionFactory factory = CFUtil.createConnectionFactory("AMQP", "tcp://localhost:" + AMQP_PORT);
 
@@ -991,9 +991,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
             peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
             final AMQPFederationLocalPolicyControlType queuePolicyControl = (AMQPFederationLocalPolicyControlType)
-               server.getManagementService().getResource(policyResourceName);
+               server.getManagementService().getUntypedControl(policyResourceName);
             final AMQPFederationConsumerControl consumerControl = (AMQPFederationConsumerControl)
-               server.getManagementService().getResource(consumerResourceName);
+               server.getManagementService().getUntypedControl(consumerResourceName);
 
             assertEquals(1, federationControl.getMessagesReceived());
             assertEquals(1, queuePolicyControl.getMessagesReceived());
@@ -1010,9 +1010,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          // Policy bean should still be active but consumer bean should be unregistered
          {
             final AMQPFederationLocalPolicyControlType queuePolicyControl = (AMQPFederationLocalPolicyControlType)
-               server.getManagementService().getResource(policyResourceName);
+               server.getManagementService().getUntypedControl(policyResourceName);
             final AMQPFederationConsumerControl consumerControl = (AMQPFederationConsumerControl)
-               server.getManagementService().getResource(consumerResourceName);
+               server.getManagementService().getUntypedControl(consumerResourceName);
 
             assertNotNull(queuePolicyControl);
             assertNull(consumerControl);
@@ -1047,9 +1047,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
             peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
             final AMQPFederationLocalPolicyControlType queuePolicyControl = (AMQPFederationLocalPolicyControlType)
-               server.getManagementService().getResource(policyResourceName);
+               server.getManagementService().getUntypedControl(policyResourceName);
             final AMQPFederationConsumerControl consumerControl = (AMQPFederationConsumerControl)
-               server.getManagementService().getResource(consumerResourceName);
+               server.getManagementService().getUntypedControl(consumerResourceName);
 
             assertEquals(2, federationControl.getMessagesReceived());
             assertEquals(2, queuePolicyControl.getMessagesReceived());
@@ -1175,11 +1175,11 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
          final AMQPFederationRemotePolicyControlType remotePolicyControl = (AMQPFederationRemotePolicyControlType)
-            server.getManagementService().getResource(policyResourceName);
+            server.getManagementService().getUntypedControl(policyResourceName);
          AMQPFederationProducerControl producerControl = (AMQPFederationProducerControl)
-            server.getManagementService().getResource(producerResourceName);
+            server.getManagementService().getUntypedControl(producerResourceName);
 
          assertNotNull(remotePolicyControl);
          assertNotNull(producerControl);
@@ -1215,7 +1215,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(500000, TimeUnit.SECONDS);
 
          // Should have cleaned up the producer management resource
-         assertNull(server.getManagementService().getResource(producerResourceName));
+         assertNull(server.getManagementService().getUntypedControl(producerResourceName));
 
          peer.expectAttach().ofSender().withName("federation-address-receiver")
                                        .withOfferedCapabilities(FEDERATION_ADDRESS_RECEIVER.toString())
@@ -1242,7 +1242,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.expectTransfer().accept(); // Federated message
 
          producerControl = (AMQPFederationProducerControl)
-            server.getManagementService().getResource(producerResourceName);
+            server.getManagementService().getUntypedControl(producerResourceName);
 
          assertNotNull(producerControl);
          assertEquals(getTestName(), producerControl.getAddress());
@@ -1264,7 +1264,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.close();
 
          // Connection drop should clean up producer instance from management.
-         Wait.assertTrue(() -> server.getManagementService().getResource(producerResourceName) == null, 5000, 100);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(producerResourceName) == null, 5000, 100);
       }
    }
 
@@ -1364,14 +1364,14 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
          peer.expectConnectionToDrop();
 
-         final BrokerConnectionControl brokerConnection = (BrokerConnectionControl)
-            server.getManagementService().getResource(ResourceNames.BROKER_CONNECTION + getTestName());
+         final BrokerConnectionControl brokerConnection =
+            server.getManagementService().getBrokerConnectionControl(getTestName());
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
          final AMQPFederationRemotePolicyControlType remotePolicyControl = (AMQPFederationRemotePolicyControlType)
-            server.getManagementService().getResource(policyResourceName);
+            server.getManagementService().getUntypedControl(policyResourceName);
          final AMQPFederationProducerControl producerControl = (AMQPFederationProducerControl)
-            server.getManagementService().getResource(producerResourceName);
+            server.getManagementService().getUntypedControl(producerResourceName);
 
          assertNotNull(brokerConnection);
          assertTrue(brokerConnection.isConnected());
@@ -1386,9 +1386,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
          // Broker connection stop should clean up producer instance from management.
-         Wait.assertTrue(() -> server.getManagementService().getResource(producerResourceName) == null, 10_000, 100);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(producerResourceName) == null, 10_000, 100);
 
-         assertNotNull(server.getManagementService().getResource(policyResourceName));
+         assertNotNull(server.getManagementService().getUntypedControl(policyResourceName));
 
          peer.close();
       }
@@ -1501,11 +1501,11 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
          final AMQPFederationRemotePolicyControlType remotePolicyControl = (AMQPFederationRemotePolicyControlType)
-            server.getManagementService().getResource(policyResourceName);
+            server.getManagementService().getUntypedControl(policyResourceName);
          AMQPFederationProducerControl producerControl = (AMQPFederationProducerControl)
-            server.getManagementService().getResource(producerResourceName);
+            server.getManagementService().getUntypedControl(producerResourceName);
 
          assertNotNull(remotePolicyControl);
          assertNotNull(producerControl);
@@ -1541,7 +1541,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(500000, TimeUnit.SECONDS);
 
          // Should have cleaned up the producer management resource
-         assertNull(server.getManagementService().getResource(producerResourceName));
+         assertNull(server.getManagementService().getUntypedControl(producerResourceName));
 
          peer.expectAttach().ofSender().withName("federation-queue-receiver")
                                        .withOfferedCapabilities(FEDERATION_QUEUE_RECEIVER.toString())
@@ -1568,7 +1568,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.expectTransfer().accept(); // Federated message
 
          producerControl = (AMQPFederationProducerControl)
-            server.getManagementService().getResource(producerResourceName);
+            server.getManagementService().getUntypedControl(producerResourceName);
 
          assertNotNull(producerControl);
          assertEquals(getTestName(), producerControl.getQueueName());
@@ -1589,7 +1589,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
          peer.close();
 
-         Wait.assertTrue(() -> server.getManagementService().getResource(producerResourceName) == null, 5000, 100);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(producerResourceName) == null, 5000, 100);
       }
    }
 
@@ -1686,14 +1686,14 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
-         final BrokerConnectionControl brokerConnection = (BrokerConnectionControl)
-            server.getManagementService().getResource(ResourceNames.BROKER_CONNECTION + getTestName());
+         final BrokerConnectionControl brokerConnection =
+            server.getManagementService().getBrokerConnectionControl(getTestName());
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
          final AMQPFederationRemotePolicyControlType remotePolicyControl = (AMQPFederationRemotePolicyControlType)
-            server.getManagementService().getResource(policyResourceName);
+            server.getManagementService().getUntypedControl(policyResourceName);
          final AMQPFederationProducerControl producerControl = (AMQPFederationProducerControl)
-            server.getManagementService().getResource(producerResourceName);
+            server.getManagementService().getUntypedControl(producerResourceName);
 
          assertNotNull(brokerConnection);
          assertTrue(brokerConnection.isConnected());
@@ -1708,9 +1708,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
          // Broker connection stop should clean up producer instance from management.
-         Wait.assertTrue(() -> server.getManagementService().getResource(producerResourceName) == null, 5_000, 100);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(producerResourceName) == null, 5_000, 100);
 
-         assertNotNull(server.getManagementService().getResource(policyResourceName));
+         assertNotNull(server.getManagementService().getUntypedControl(policyResourceName));
 
          peer.close();
       }
@@ -1738,14 +1738,14 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
          final RemoteBrokerConnectionControl remoteBrokerConnection = (RemoteBrokerConnectionControl)
-            server.getManagementService().getResource(remoteBrokerConnectionName);
+            server.getManagementService().getUntypedControl(remoteBrokerConnectionName);
 
          assertNotNull(remoteBrokerConnection);
          assertEquals(getTestName(), remoteBrokerConnection.getName());
          assertEquals(server.getNodeID().toString(), remoteBrokerConnection.getNodeId());
 
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
 
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
          peer.expectAttach().ofSender().withName(getTestName())
@@ -1770,9 +1770,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
          final AMQPFederationRemotePolicyControlType remotePolicyControl = (AMQPFederationRemotePolicyControlType)
-            server.getManagementService().getResource(policyResourceName);
+            server.getManagementService().getUntypedControl(policyResourceName);
          final AMQPFederationProducerControl producerControl = (AMQPFederationProducerControl)
-            server.getManagementService().getResource(producerResourceName);
+            server.getManagementService().getUntypedControl(producerResourceName);
 
          assertNotNull(federationControl);
          assertNotNull(remotePolicyControl);
@@ -1785,10 +1785,10 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
          peer.close();
 
-         Wait.assertTrue(() -> server.getManagementService().getResource(remoteBrokerConnectionName) == null, 5_000, 50);
-         Wait.assertTrue(() -> server.getManagementService().getResource(federationResourceName) == null, 5_000, 50);
-         Wait.assertTrue(() -> server.getManagementService().getResource(policyResourceName) == null, 5_000, 50);
-         Wait.assertTrue(() -> server.getManagementService().getResource(producerResourceName) == null, 5_000, 50);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(remoteBrokerConnectionName) == null, 5_000, 50);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(federationResourceName) == null, 5_000, 50);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(policyResourceName) == null, 5_000, 50);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(producerResourceName) == null, 5_000, 50);
       }
 
       // Test registers and cleans up on connection dropped
@@ -1799,7 +1799,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
 
          assertNotNull(federationControl);
 
@@ -1826,9 +1826,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
          final AMQPFederationRemotePolicyControlType remotePolicyControl = (AMQPFederationRemotePolicyControlType)
-            server.getManagementService().getResource(policyResourceName);
+            server.getManagementService().getUntypedControl(policyResourceName);
          final AMQPFederationProducerControl producerControl = (AMQPFederationProducerControl)
-            server.getManagementService().getResource(producerResourceName);
+            server.getManagementService().getUntypedControl(producerResourceName);
 
          assertNotNull(federationControl);
          assertNotNull(remotePolicyControl);
@@ -1837,8 +1837,8 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
          peer.close();
 
-         Wait.assertTrue(() -> server.getManagementService().getResource(remoteBrokerConnectionName) == null, 5_000, 50);
-         Wait.assertTrue(() -> server.getManagementService().getResource(federationResourceName) == null, 5_000, 50);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(remoteBrokerConnectionName) == null, 5_000, 50);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(federationResourceName) == null, 5_000, 50);
       }
    }
 
@@ -1866,14 +1866,14 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
          final RemoteBrokerConnectionControl remoteBrokerConnection = (RemoteBrokerConnectionControl)
-            server.getManagementService().getResource(remoteBrokerConnectionName);
+            server.getManagementService().getUntypedControl(remoteBrokerConnectionName);
 
          assertNotNull(remoteBrokerConnection);
          assertEquals(getTestName(), remoteBrokerConnection.getName());
          assertEquals(server.getNodeID().toString(), remoteBrokerConnection.getNodeId());
 
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
 
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
          peer.expectAttach().ofSender().withName(getTestName() + "::" + getTestName())
@@ -1899,9 +1899,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
          final AMQPFederationRemotePolicyControlType remotePolicyControl = (AMQPFederationRemotePolicyControlType)
-            server.getManagementService().getResource(policyResourceName);
+            server.getManagementService().getUntypedControl(policyResourceName);
          final AMQPFederationProducerControl producerControl = (AMQPFederationProducerControl)
-            server.getManagementService().getResource(producerResourceName);
+            server.getManagementService().getUntypedControl(producerResourceName);
 
          assertNotNull(federationControl);
          assertNotNull(remotePolicyControl);
@@ -1914,10 +1914,10 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
          peer.close();
 
-         Wait.assertTrue(() -> server.getManagementService().getResource(remoteBrokerConnectionName) == null, 5_000, 50);
-         Wait.assertTrue(() -> server.getManagementService().getResource(federationResourceName) == null, 5_000, 50);
-         Wait.assertTrue(() -> server.getManagementService().getResource(policyResourceName) == null, 5_000, 50);
-         Wait.assertTrue(() -> server.getManagementService().getResource(producerResourceName) == null, 5_000, 50);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(remoteBrokerConnectionName) == null, 5_000, 50);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(federationResourceName) == null, 5_000, 50);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(policyResourceName) == null, 5_000, 50);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(producerResourceName) == null, 5_000, 50);
       }
 
       // Test registers and cleans up on connection dropped
@@ -1928,7 +1928,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
          final AMQPFederationControl federationControl =
-            (AMQPFederationControl) server.getManagementService().getResource(federationResourceName);
+            (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
 
          assertNotNull(federationControl);
 
@@ -1956,9 +1956,9 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
          final AMQPFederationRemotePolicyControlType remotePolicyControl = (AMQPFederationRemotePolicyControlType)
-            server.getManagementService().getResource(policyResourceName);
+            server.getManagementService().getUntypedControl(policyResourceName);
          final AMQPFederationProducerControl producerControl = (AMQPFederationProducerControl)
-            server.getManagementService().getResource(producerResourceName);
+            server.getManagementService().getUntypedControl(producerResourceName);
 
          assertNotNull(federationControl);
          assertNotNull(remotePolicyControl);
@@ -1967,8 +1967,8 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
          peer.close();
 
-         Wait.assertTrue(() -> server.getManagementService().getResource(remoteBrokerConnectionName) == null, 5_000, 50);
-         Wait.assertTrue(() -> server.getManagementService().getResource(federationResourceName) == null, 5_000, 50);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(remoteBrokerConnectionName) == null, 5_000, 50);
+         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(federationResourceName) == null, 5_000, 50);
       }
    }
 
