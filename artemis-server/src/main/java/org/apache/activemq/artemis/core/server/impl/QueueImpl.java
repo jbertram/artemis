@@ -4438,11 +4438,15 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
    }
 
    public void incDelivering(MessageReference ref) {
+//      new Exception("incDelivering: " + getName()).printStackTrace();
       deliveringMetrics.incrementMetrics(ref);
+      System.out.println(deliveringMetrics.getMessageCount());
    }
 
    public void decDelivering(final MessageReference reference) {
+//      new Exception("decDelivering: " + getName()).printStackTrace();
       deliveringMetrics.decrementMetrics(reference);
+      System.out.println(deliveringMetrics.getMessageCount());
       if (pageDelivered) {
          // We check for async delivery after acks in case paging stopped for lack of space
          deliverAsync();
