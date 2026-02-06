@@ -2238,10 +2238,6 @@ public class QueueControlImpl extends AbstractControl implements QueueControl {
       }
    }
 
-   public Queue getQueue() {
-      return queue;
-   }
-
    private void checkStarted() {
       if (!server.getPostOffice().isStarted()) {
          throw new IllegalStateException("Broker is not started. Queue can not be managed yet");

@@ -38,6 +38,8 @@ import org.apache.activemq.artemis.api.core.management.ConnectionRouterControl;
 import org.apache.activemq.artemis.api.core.management.DivertControl;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.activemq.artemis.api.core.management.QueueControl;
+import org.apache.activemq.artemis.api.core.management.RemoteBrokerConnectionControl;
+import org.apache.activemq.artemis.api.core.management.ResourceNames;
 import org.apache.activemq.artemis.core.config.ClusterConnectionConfiguration;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.management.impl.ActiveMQServerControlImpl;
@@ -130,9 +132,9 @@ public interface ManagementService extends NotificationService, ActiveMQComponen
 
    void registerAcceptor(Acceptor acceptor, TransportConfiguration configuration) throws Exception;
 
-   void unregisterAcceptor(String acceptorName) throws Exception;
+   void unregisterAcceptors(String acceptorName) throws Exception;
 
-   void unregisterAcceptor();
+   void unregisterAcceptors();
 
    AcceptorControl getAcceptorControl(String name);
 
@@ -174,6 +176,8 @@ public interface ManagementService extends NotificationService, ActiveMQComponen
 
    BrokerConnectionControl getBrokerConnectionControl(String name);
 
+   RemoteBrokerConnectionControl getRemoteBrokerConnectionControl(String name);
+
    void registerRemoteBrokerConnection(RemoteBrokerConnection brokerConnection) throws Exception;
 
    void unregisterRemoteBrokerConnection(String nodeId, String name) throws Exception;
@@ -182,15 +186,58 @@ public interface ManagementService extends NotificationService, ActiveMQComponen
 
    void unregisterHawtioSecurity() throws Exception;
 
+   /**
+    * Registers an untyped management control with the specified name. This method allows for associating untyped
+    * control objects with a string identifier for later retrieval or use in the management service.
+    *
+    * Use this for management controls not explicitly supported by other typed methods.
+    *
+    * @param name    the unique name used to identify the untyped control; must not be null or empty
+    * @param control the untyped control object to be registered; must not be null
+    */
    void registerUntypedControl(String name, Object control);
 
    void unregisterUntypedControl(String name);
 
    Object getUntypedControl(String name);
 
+   @Deprecated(forRemoval = true)
+   Object getResource(String resourceName);
+
    ICoreMessage handleMessage(SecurityAuth auth, Message message) throws Exception;
 
+   /**
+    * Retrieves the value of a specified attribute from a management control. The inputs to and output from this method
+    * are intentionally vague to support management messages and other use cases where types are not known ahead of
+    * time.
+    * <p>
+    * If possible, use the strongly typed methods instead as performance will be better.
+    *
+    * @param resourceName the name of the resource from which the attribute is to be retrieved; should be prefixed with
+    *                     a value from {@link ResourceNames} unless using an "untyped" control
+    * @param attribute    the name of the attribute whose value is to be retrieved
+    * @param auth         the security authorization context used to validate permissions for retrieving the attribute
+    * @return the value of the specified attribute
+    * @throws IllegalStateException if the resource cannot be found, the getter method does not exist, if there are
+    *                               security issues, or if any error occurs during method invocation
+    */
    Object getAttribute(String resourceName, String attribute, SecurityAuth auth);
 
+   /**
+    * Invokes a specified operation on a managed control identified by its name. The inputs to and output from this
+    * method are intentionally vague to support management messages and other use cases where types are not known ahead
+    * of time.
+    * <p>
+    * If possible, use the strongly typed methods instead as performance will be better.
+    *
+    * @param resourceName the name of the resource on which the operation will be invoked; should be prefixed with a
+    *                     value from {@link ResourceNames} unless using an "untyped" control
+    * @param operation    the name of the operation to invoke
+    * @param params       an array of parameters to pass to the operation being invoked
+    * @param auth         the security authentication object used to validate access permissions
+    * @return the result of the invoked operation
+    * @throws Exception if the resource is not found, the operation is invalid, or an error occurs during the invocation
+    *                   process
+    */
    Object invokeOperation(String resourceName, String operation, Object[] params, SecurityAuth auth) throws Exception;
 }

@@ -17,6 +17,7 @@
 package org.apache.activemq.artemis.core.server.management.impl;
 
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -112,8 +113,8 @@ public class ControlRegistries {
       logRegistration(name, replaced, acceptorControl);
    }
 
-   public Set<String> getAcceptorNames() {
-      return accepterControls.keySet();
+   public List<String> getAcceptorNames() {
+      return List.copyOf(accepterControls.keySet());
    }
 
    public void unregisterAcceptorControl(String name) {
@@ -287,7 +288,8 @@ public class ControlRegistries {
 
    /**
     * Retrieves the management control object associated with the provided resource name. This method determines the
-    * type of the resource based on its prefix and returns the corresponding control object if available.
+    * type of the resource based on its prefix and returns the corresponding control object if available. If possible,
+    * use the strongly typed methods instead as performance will be better.
     *
     * @param name the full name of the resource for which a control object is to be retrieved. The name may include a
     *             prefix indicating the type of the resource (e.g., "queue.", "address.", "broker", etc.).
@@ -296,25 +298,28 @@ public class ControlRegistries {
     */
    public Object getByName(String name) {
       String namePrefix = name;
+      String unprefixedName = name;
       int idx = name.indexOf(".");
       if (idx > 0) {
          namePrefix = name.substring(0, idx + 1);
+         unprefixedName = name.substring(idx + 1);
       }
 
       return switch (namePrefix) {
          case ResourceNames.BROKER -> serverControl;
-         case ResourceNames.ADDRESS -> addressControls.get(name);
-         case ResourceNames.QUEUE -> queueControls.get(name);
-         case ResourceNames.ACCEPTOR -> accepterControls.get(name);
-         case ResourceNames.BROADCAST_GROUP -> broadcastGroupControls.get(name);
-         case ResourceNames.BROKER_CONNECTION -> brokerConnectionControls.get(name);
-         case ResourceNames.REMOTE_BROKER_CONNECTION -> remoteBrokerConnectionControls.get(name);
-         case ResourceNames.BRIDGE -> bridgeControls.get(name);
-         case ResourceNames.CORE_CLUSTER_CONNECTION -> clusterConnectionControl.get(name);
-         case ResourceNames.CONNECTION_ROUTER -> connectionRouterControls.get(name);
+         case ResourceNames.ADDRESS -> addressControls.get(unprefixedName);
+         case ResourceNames.QUEUE -> queueControls.get(unprefixedName);
+         case ResourceNames.ACCEPTOR -> accepterControls.get(unprefixedName);
+         case ResourceNames.BROADCAST_GROUP -> broadcastGroupControls.get(unprefixedName);
+         case ResourceNames.BROKER_CONNECTION -> brokerConnectionControls.get(unprefixedName);
+         case ResourceNames.REMOTE_BROKER_CONNECTION -> remoteBrokerConnectionControls.get(unprefixedName);
+         case ResourceNames.BRIDGE -> bridgeControls.get(unprefixedName);
+         case ResourceNames.CORE_CLUSTER_CONNECTION -> clusterConnectionControl.get(unprefixedName);
+         case ResourceNames.CONNECTION_ROUTER -> connectionRouterControls.get(unprefixedName);
          case ResourceNames.MANAGEMENT_SECURITY -> hawtioSecurityControl;
-         case ResourceNames.DIVERT -> divertControls.get(name);
+         case ResourceNames.DIVERT -> divertControls.get(unprefixedName);
          default -> {
+            // use the full name here
             if (untypedControls.containsKey(name)) {
                yield untypedControls.get(name);
             }
@@ -351,6 +356,10 @@ public class ControlRegistries {
       return brokerConnectionControls.get(name);
    }
 
+   public RemoteBrokerConnectionControl getRemoteBrokerConnectionControl(String name) {
+      return remoteBrokerConnectionControls.get(name);
+   }
+
    public Object getUntypedControl(String name) {
       return untypedControls.get(name);
    }
@@ -359,23 +368,28 @@ public class ControlRegistries {
       Set<String> names = new HashSet<>();
       names.add(ResourceNames.BROKER);
       names.add(ResourceNames.MANAGEMENT_SECURITY);
-      names.addAll(unregisterMap(addressControls));
-      names.addAll(unregisterMap(queueControls));
-      names.addAll(unregisterMap(accepterControls));
-      names.addAll(unregisterMap(broadcastGroupControls));
-      names.addAll(unregisterMap(brokerConnectionControls));
-      names.addAll(unregisterMap(remoteBrokerConnectionControls));
-      names.addAll(unregisterMap(bridgeControls));
-      names.addAll(unregisterMap(clusterConnectionControl));
-      names.addAll(unregisterMap(connectionRouterControls));
-      names.addAll(unregisterMap(untypedControls));
+      names.addAll(unregisterMap(ResourceNames.ADDRESS, addressControls));
+      names.addAll(unregisterMap(ResourceNames.QUEUE, queueControls));
+      names.addAll(unregisterMap(ResourceNames.ACCEPTOR, accepterControls));
+      names.addAll(unregisterMap(ResourceNames.BROADCAST_GROUP, broadcastGroupControls));
+      names.addAll(unregisterMap(ResourceNames.BROKER_CONNECTION, brokerConnectionControls));
+      names.addAll(unregisterMap(ResourceNames.REMOTE_BROKER_CONNECTION, remoteBrokerConnectionControls));
+      names.addAll(unregisterMap(ResourceNames.BRIDGE, bridgeControls));
+      names.addAll(unregisterMap(ResourceNames.CORE_CLUSTER_CONNECTION, clusterConnectionControl));
+      names.addAll(unregisterMap(ResourceNames.CONNECTION_ROUTER, connectionRouterControls));
+      names.addAll(unregisterMap(null, untypedControls));
       return names;
    }
 
-   private Collection<String> unregisterMap(Map registry) {
-      Set<String> names = new HashSet<>(registry.keySet());
-      for (String name : names) {
+   private Collection<String> unregisterMap(String prefix, Map<String, ?> registry) {
+      List<String> names = new ArrayList<>();
+      for (String name : registry.keySet()) {
          logUnregistration(name, registry.remove(name));
+         if (prefix != null) {
+            names.add(prefix + name);
+         } else {
+            names.add(name);
+         }
       }
       return names;
    }

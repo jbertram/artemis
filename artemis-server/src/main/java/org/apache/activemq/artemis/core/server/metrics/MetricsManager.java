@@ -199,12 +199,12 @@ public class MetricsManager {
       if (meters.get(resource) != null) {
          throw ActiveMQMessageBundle.BUNDLE.metersAlreadyRegistered(resource);
       }
-      logger.debug("Registering meters for {}", resource);
+      logger.info("Registering meters for {}", resource);
       Set<Meter> newMeters = new HashSet<>(gaugeBuilders.size());
       for (Builder<Object> gaugeBuilder : gaugeBuilders) {
          Gauge gauge = gaugeBuilder.register(meterRegistry);
          newMeters.add(gauge);
-         logger.debug("Registered meter: {}", gauge.getId());
+         logger.info("Registered meter: {}", gauge.getId());
       }
       meters.put(resource, newMeters);
    }
@@ -212,17 +212,17 @@ public class MetricsManager {
    public void remove(String resource) {
       Collection<Meter> resourceMeters = meters.remove(resource);
       if (resourceMeters != null) {
-         logger.debug("Unregistering meters for {}", resource);
+         logger.info("Unregistering meters for {}", resource);
          for (Meter meter : resourceMeters) {
             Meter removed = meterRegistry.remove(meter);
             if (removed != null) {
-               logger.debug("Unregistered meter: {}", removed.getId());
+               logger.info("Unregistered meter: {}", removed.getId());
             } else {
-               logger.debug("Attempted to unregister meter {}, but it wasn't found in the registry", meter);
+               logger.info("Attempted to unregister meter {}, but it wasn't found in the registry", meter);
             }
          }
       } else {
-         logger.debug("Attempted to unregister meters for {}, but none were found.", resource);
+         logger.info("Attempted to unregister meters for {}, but none were found.", resource);
       }
    }
 

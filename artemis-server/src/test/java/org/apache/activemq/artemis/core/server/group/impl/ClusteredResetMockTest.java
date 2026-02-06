@@ -43,6 +43,7 @@ import org.apache.activemq.artemis.api.core.management.DivertControl;
 import org.apache.activemq.artemis.api.core.management.ManagementHelper;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.activemq.artemis.api.core.management.QueueControl;
+import org.apache.activemq.artemis.api.core.management.RemoteBrokerConnectionControl;
 import org.apache.activemq.artemis.core.config.ClusterConnectionConfiguration;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.management.impl.ActiveMQServerControlImpl;
@@ -297,7 +298,17 @@ public class ClusteredResetMockTest extends ServerTestBase {
       }
 
       @Override
+      public RemoteBrokerConnectionControl getRemoteBrokerConnectionControl(String name) {
+         return null;
+      }
+
+      @Override
       public Object getUntypedControl(String name) {
+         return null;
+      }
+
+      @Override
+      public Object getResource(String resourceName) {
          return null;
       }
 
@@ -347,12 +358,12 @@ public class ClusteredResetMockTest extends ServerTestBase {
       }
 
       @Override
-      public void unregisterAcceptor(String name) {
+      public void unregisterAcceptors(String name) {
 
       }
 
       @Override
-      public void unregisterAcceptor() {
+      public void unregisterAcceptors() {
 
       }
 

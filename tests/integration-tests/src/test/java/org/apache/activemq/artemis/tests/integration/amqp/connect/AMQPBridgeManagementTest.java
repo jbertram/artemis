@@ -16,21 +16,6 @@
  */
 package org.apache.activemq.artemis.tests.integration.amqp.connect;
 
-import static org.apache.activemq.artemis.protocol.amqp.connect.bridge.AMQPBridgeConstants.ADDRESS_RECEIVER_IDLE_TIMEOUT;
-import static org.apache.activemq.artemis.protocol.amqp.connect.bridge.AMQPBridgeConstants.QUEUE_RECEIVER_IDLE_TIMEOUT;
-import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
-import java.lang.invoke.MethodHandles;
-import java.net.URI;
-import java.util.concurrent.TimeUnit;
-
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Message;
@@ -38,12 +23,14 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import java.lang.invoke.MethodHandles;
+import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.activemq.artemis.api.core.QueueConfiguration;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.management.BrokerConnectionControl;
-import org.apache.activemq.artemis.api.core.management.ResourceNames;
 import org.apache.activemq.artemis.core.config.amqpBrokerConnectivity.AMQPBridgeAddressPolicyElement;
 import org.apache.activemq.artemis.core.config.amqpBrokerConnectivity.AMQPBridgeBrokerConnectionElement;
 import org.apache.activemq.artemis.core.config.amqpBrokerConnectivity.AMQPBridgeQueuePolicyElement;
@@ -63,6 +50,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.apache.activemq.artemis.protocol.amqp.connect.bridge.AMQPBridgeConstants.ADDRESS_RECEIVER_IDLE_TIMEOUT;
+import static org.apache.activemq.artemis.protocol.amqp.connect.bridge.AMQPBridgeConstants.QUEUE_RECEIVER_IDLE_TIMEOUT;
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Tests that the broker create management objects for AMQP bridge configurations.
@@ -533,7 +531,7 @@ public class AMQPBridgeManagementTest extends AmqpClientTestSupport {
 
             peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
-            final String brokerConnectionName = ResourceNames.BROKER_CONNECTION + getTestName();
+            final String brokerConnectionName = getTestName();
             final String bridgeResourceName = AMQPBridgeManagementSupport.getBridgeManagerResourceName(getTestName(), getTestName());
             final String policyResourceName = AMQPBridgeManagementSupport.getBridgePolicyManagerResourceName(getTestName(), getTestName(), "queue-policy");
             final String consumerResourceName = AMQPBridgeManagementSupport.getBridgeQueueReceiverResourceName(getTestName(), getTestName(), "queue-policy", getTestName() + "::" + getTestName());
@@ -622,7 +620,7 @@ public class AMQPBridgeManagementTest extends AmqpClientTestSupport {
 
             peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
-            final String brokerConnectionName = ResourceNames.BROKER_CONNECTION + getTestName();
+            final String brokerConnectionName = getTestName();
             final String bridgeResourceName = AMQPBridgeManagementSupport.getBridgeManagerResourceName(getTestName(), getTestName());
             final String policyResourceName = AMQPBridgeManagementSupport.getBridgePolicyManagerResourceName(getTestName(), getTestName(), "queue-policy");
             final String consumerResourceName = AMQPBridgeManagementSupport.getBridgeQueueReceiverResourceName(getTestName(), getTestName(), "queue-policy", getTestName() + "::" + getTestName());
@@ -1121,7 +1119,7 @@ public class AMQPBridgeManagementTest extends AmqpClientTestSupport {
 
          Wait.assertTrue(() -> server.queueQuery(SimpleString.of(getTestName())).getConsumerCount() >= 1, 10_000);
 
-         final String brokerConnectionName = ResourceNames.BROKER_CONNECTION + getTestName();
+         final String brokerConnectionName = getTestName();
          final String bridgeResourceName = AMQPBridgeManagementSupport.getBridgeManagerResourceName(getTestName(), getTestName());
          final String policyResourceName = AMQPBridgeManagementSupport.getBridgePolicyManagerResourceName(getTestName(), getTestName(), "to-queue-policy");
          final String producerResourceName = AMQPBridgeManagementSupport.getBridgeAddressSenderResourceName(getTestName(), getTestName(), "to-queue-policy", getTestName() + "::" + getTestName());
@@ -1239,7 +1237,7 @@ public class AMQPBridgeManagementTest extends AmqpClientTestSupport {
 
          Wait.assertTrue(() -> server.bindingQuery(SimpleString.of(getTestName()), false).getQueueNames().size() >= 1);
 
-         final String brokerConnectionName = ResourceNames.BROKER_CONNECTION + getTestName();
+         final String brokerConnectionName = getTestName();
          final String bridgeResourceName = AMQPBridgeManagementSupport.getBridgeManagerResourceName(getTestName(), getTestName());
          final String policyResourceName = AMQPBridgeManagementSupport.getBridgePolicyManagerResourceName(getTestName(), getTestName(), "to-address-policy");
          final String producerResourceName = AMQPBridgeManagementSupport.getBridgeAddressSenderResourceName(getTestName(), getTestName(), "to-address-policy", getTestName());
@@ -1310,7 +1308,7 @@ public class AMQPBridgeManagementTest extends AmqpClientTestSupport {
 
          Wait.assertTrue(() -> server.bindingQuery(SimpleString.of(getTestName()), false).getQueueNames().size() >= 1);
 
-         final String brokerConnectionName = ResourceNames.BROKER_CONNECTION + getTestName();
+         final String brokerConnectionName = getTestName();
          final String bridgeResourceName = AMQPBridgeManagementSupport.getBridgeManagerResourceName(getTestName(), getTestName());
          final String policyResourceName = AMQPBridgeManagementSupport.getBridgePolicyManagerResourceName(getTestName(), getTestName(), "to-address-policy");
          final String producerResourceName = AMQPBridgeManagementSupport.getBridgeAddressSenderResourceName(getTestName(), getTestName(), "to-address-policy", getTestName());
@@ -1470,7 +1468,7 @@ public class AMQPBridgeManagementTest extends AmqpClientTestSupport {
 
          Wait.assertTrue(() -> server.queueQuery(SimpleString.of(getTestName())).getConsumerCount() >= 1, 10_000);
 
-         final String brokerConnectionName = ResourceNames.BROKER_CONNECTION + getTestName();
+         final String brokerConnectionName = getTestName();
          final String bridgeResourceName = AMQPBridgeManagementSupport.getBridgeManagerResourceName(getTestName(), getTestName());
          final String policyResourceName = AMQPBridgeManagementSupport.getBridgePolicyManagerResourceName(getTestName(), getTestName(), "to-queue-policy");
          final String producerResourceName = AMQPBridgeManagementSupport.getBridgeAddressSenderResourceName(getTestName(), getTestName(), "to-queue-policy", getTestName() + "::" + getTestName());

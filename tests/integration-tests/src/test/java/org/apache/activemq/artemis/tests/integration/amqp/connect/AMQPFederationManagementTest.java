@@ -16,6 +16,56 @@
  */
 package org.apache.activemq.artemis.tests.integration.amqp.connect;
 
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+import java.lang.invoke.MethodHandles;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.activemq.artemis.api.core.QueueConfiguration;
+import org.apache.activemq.artemis.api.core.RoutingType;
+import org.apache.activemq.artemis.api.core.SimpleString;
+import org.apache.activemq.artemis.api.core.management.BrokerConnectionControl;
+import org.apache.activemq.artemis.api.core.management.RemoteBrokerConnectionControl;
+import org.apache.activemq.artemis.core.config.amqpBrokerConnectivity.AMQPBrokerConnectConfiguration;
+import org.apache.activemq.artemis.core.config.amqpBrokerConnectivity.AMQPFederatedBrokerConnectionElement;
+import org.apache.activemq.artemis.core.config.amqpBrokerConnectivity.AMQPFederationAddressPolicyElement;
+import org.apache.activemq.artemis.core.config.amqpBrokerConnectivity.AMQPFederationQueuePolicyElement;
+import org.apache.activemq.artemis.core.server.ActiveMQServer;
+import org.apache.activemq.artemis.core.server.impl.AddressInfo;
+import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationConsumerControl;
+import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationControl;
+import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationLocalPolicyControl;
+import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationLocalPolicyControlType;
+import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationManagementSupport;
+import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationProducerControl;
+import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationRemotePolicyControlType;
+import org.apache.activemq.artemis.protocol.amqp.proton.AmqpSupport;
+import org.apache.activemq.artemis.tests.integration.amqp.AmqpClientTestSupport;
+import org.apache.activemq.artemis.tests.util.CFUtil;
+import org.apache.activemq.artemis.utils.Wait;
+import org.apache.qpid.protonj2.test.driver.ProtonTestClient;
+import org.apache.qpid.protonj2.test.driver.ProtonTestServer;
+import org.apache.qpid.protonj2.test.driver.matchers.messaging.MessageAnnotationsMatcher;
+import org.apache.qpid.protonj2.test.driver.matchers.transport.TransferPayloadCompositeMatcher;
+import org.apache.qpid.protonj2.test.driver.matchers.types.EncodedAmqpValueMatcher;
+import org.hamcrest.Matchers;
+import org.jgroups.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.apache.activemq.artemis.protocol.amqp.connect.AMQPBrokerConnectionConstants.BROKER_CONNECTION_INFO;
 import static org.apache.activemq.artemis.protocol.amqp.connect.AMQPBrokerConnectionConstants.CONNECTION_NAME;
 import static org.apache.activemq.artemis.protocol.amqp.connect.AMQPBrokerConnectionConstants.NODE_ID;
@@ -54,58 +104,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-
-import java.lang.invoke.MethodHandles;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-
-import org.apache.activemq.artemis.api.core.QueueConfiguration;
-import org.apache.activemq.artemis.api.core.RoutingType;
-import org.apache.activemq.artemis.api.core.SimpleString;
-import org.apache.activemq.artemis.api.core.management.BrokerConnectionControl;
-import org.apache.activemq.artemis.api.core.management.RemoteBrokerConnectionControl;
-import org.apache.activemq.artemis.api.core.management.ResourceNames;
-import org.apache.activemq.artemis.core.config.amqpBrokerConnectivity.AMQPBrokerConnectConfiguration;
-import org.apache.activemq.artemis.core.config.amqpBrokerConnectivity.AMQPFederatedBrokerConnectionElement;
-import org.apache.activemq.artemis.core.config.amqpBrokerConnectivity.AMQPFederationAddressPolicyElement;
-import org.apache.activemq.artemis.core.config.amqpBrokerConnectivity.AMQPFederationQueuePolicyElement;
-import org.apache.activemq.artemis.core.server.ActiveMQServer;
-import org.apache.activemq.artemis.core.server.impl.AddressInfo;
-import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationConsumerControl;
-import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationControl;
-import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationLocalPolicyControl;
-import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationManagementSupport;
-import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationProducerControl;
-import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationRemotePolicyControlType;
-import org.apache.activemq.artemis.protocol.amqp.proton.AmqpSupport;
-import org.apache.activemq.artemis.protocol.amqp.connect.federation.AMQPFederationLocalPolicyControlType;
-import org.apache.activemq.artemis.tests.integration.amqp.AmqpClientTestSupport;
-import org.apache.activemq.artemis.tests.util.CFUtil;
-import org.apache.activemq.artemis.utils.Wait;
-import org.apache.qpid.protonj2.test.driver.ProtonTestClient;
-import org.apache.qpid.protonj2.test.driver.ProtonTestServer;
-import org.apache.qpid.protonj2.test.driver.matchers.messaging.MessageAnnotationsMatcher;
-import org.apache.qpid.protonj2.test.driver.matchers.transport.TransferPayloadCompositeMatcher;
-import org.apache.qpid.protonj2.test.driver.matchers.types.EncodedAmqpValueMatcher;
-import org.hamcrest.Matchers;
-import org.jgroups.util.UUID;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Tests that the broker create management objects for federation configurations.
@@ -185,7 +183,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
-         final String brokerConnectionName = ResourceNames.BROKER_CONNECTION + getTestName();
+         final String brokerConnectionName = getTestName();
 
          final BrokerConnectionControl brokerConnection =
             server.getManagementService().getBrokerConnectionControl(brokerConnectionName);
@@ -237,7 +235,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
          Wait.assertTrue(() -> server.getManagementService().getUntypedControl(policyResourceName) == null, 5_000, 100);
          Wait.assertTrue(() -> server.getManagementService().getUntypedControl(federationResourceName) == null, 5_000, 100);
-         Wait.assertTrue(() -> server.getManagementService().getUntypedControl(brokerConnectionName) == null, 5_000, 100);
+         Wait.assertTrue(() -> server.getManagementService().getBrokerConnectionControl(brokerConnectionName) == null, 5_000, 100);
 
          peer.close();
       }
@@ -498,13 +496,13 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
             peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
-            final String brokerConnectionName = ResourceNames.BROKER_CONNECTION + getTestName();
+            final String brokerConnectionName = getTestName();
             final String federationResourceName = AMQPFederationManagementSupport.getFederationSourceResourceName(getTestName(), getTestName());
             final String policyResourceName = AMQPFederationManagementSupport.getFederationSourcePolicyResourceName(getTestName(), getTestName(), "queue-policy");
             final String consumerResourceName = AMQPFederationManagementSupport.getFederationSourceAddressConsumerResourceName(getTestName(), getTestName(), "queue-policy", getTestName() + "::" + getTestName());
 
-            final BrokerConnectionControl brokerConnection = (BrokerConnectionControl)
-               server.getManagementService().getUntypedControl(brokerConnectionName);
+            final BrokerConnectionControl brokerConnection =
+               server.getManagementService().getBrokerConnectionControl(brokerConnectionName);
             final AMQPFederationControl federationControl =
                (AMQPFederationControl) server.getManagementService().getUntypedControl(federationResourceName);
 
@@ -551,7 +549,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
             Wait.assertTrue(() -> server.getManagementService().getUntypedControl(policyResourceName) == null, 5_000, 100);
             Wait.assertTrue(() -> server.getManagementService().getUntypedControl(federationResourceName) == null, 5_000, 100);
-            Wait.assertTrue(() -> server.getManagementService().getUntypedControl(brokerConnectionName) == null, 5_000, 100);
+            Wait.assertTrue(() -> server.getManagementService().getBrokerConnectionControl(brokerConnectionName) == null, 5_000, 100);
 
             peer.close();
          }
@@ -1724,7 +1722,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
       final String serverNodeId = server.getNodeID().toString();
       final String brokerConnectionName = getTestName();
-      final String remoteBrokerConnectionName = ResourceNames.REMOTE_BROKER_CONNECTION + server.getNodeID() + "." + getTestName();
+      final String remoteBrokerConnectionName = server.getNodeID() + "." + getTestName();
       final String federationResourceName =
          AMQPFederationManagementSupport.getFederationTargetResourceName(serverNodeId, brokerConnectionName, getTestName());
       final String policyResourceName = AMQPFederationManagementSupport.getFederationTargetPolicyResourceName(serverNodeId, brokerConnectionName, getTestName(), "address-policy");
@@ -1737,8 +1735,8 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
-         final RemoteBrokerConnectionControl remoteBrokerConnection = (RemoteBrokerConnectionControl)
-            server.getManagementService().getUntypedControl(remoteBrokerConnectionName);
+         final RemoteBrokerConnectionControl remoteBrokerConnection =
+            server.getManagementService().getRemoteBrokerConnectionControl(remoteBrokerConnectionName);
 
          assertNotNull(remoteBrokerConnection);
          assertEquals(getTestName(), remoteBrokerConnection.getName());
@@ -1852,7 +1850,7 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
       final String serverNodeId = server.getNodeID().toString();
       final String brokerConnectionName = getTestName();
-      final String remoteBrokerConnectionName = ResourceNames.REMOTE_BROKER_CONNECTION + server.getNodeID() + "." + getTestName();
+      final String remoteBrokerConnectionName = server.getNodeID() + "." + getTestName();
       final String federationResourceName =
          AMQPFederationManagementSupport.getFederationTargetResourceName(serverNodeId, brokerConnectionName, getTestName());
       final String policyResourceName = AMQPFederationManagementSupport.getFederationTargetPolicyResourceName(serverNodeId, brokerConnectionName, getTestName(), "queue-policy");
@@ -1865,8 +1863,8 @@ class AMQPFederationManagementTest extends AmqpClientTestSupport {
 
          peer.waitForScriptToComplete(5, TimeUnit.SECONDS);
 
-         final RemoteBrokerConnectionControl remoteBrokerConnection = (RemoteBrokerConnectionControl)
-            server.getManagementService().getUntypedControl(remoteBrokerConnectionName);
+         final RemoteBrokerConnectionControl remoteBrokerConnection =
+            server.getManagementService().getRemoteBrokerConnectionControl(remoteBrokerConnectionName);
 
          assertNotNull(remoteBrokerConnection);
          assertEquals(getTestName(), remoteBrokerConnection.getName());

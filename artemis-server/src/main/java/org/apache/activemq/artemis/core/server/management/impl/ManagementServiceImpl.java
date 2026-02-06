@@ -27,7 +27,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -448,14 +447,14 @@ public class ManagementServiceImpl implements ManagementService {
    public void registerAcceptor(final Acceptor acceptor, final TransportConfiguration configuration) throws Exception {
       AcceptorControl control = new AcceptorControlImpl(acceptor, storageManager, configuration);
       registerInJMX(objectNameBuilder.getAcceptorObjectName(configuration.getName()), control);
-      registries.registerAcceptor(ResourceNames.ACCEPTOR + configuration.getName(), control);
+      registries.registerAcceptor(configuration.getName(), control);
    }
 
    @Override
-   public void unregisterAcceptor() {
-      for (String acceptorName : new HashSet<>(registries.getAcceptorNames())) {
+   public void unregisterAcceptors() {
+      for (String acceptorName : registries.getAcceptorNames()) {
          try {
-            unregisterAcceptor(acceptorName);
+            unregisterAcceptors(acceptorName);
          } catch (Exception e) {
             ActiveMQServerLogger.LOGGER.failedToUnregisterAcceptor(acceptorName, e);
          }
@@ -463,7 +462,7 @@ public class ManagementServiceImpl implements ManagementService {
    }
 
    @Override
-   public void unregisterAcceptor(final String name) throws Exception {
+   public void unregisterAcceptors(final String name) throws Exception {
       unregisterFromJMX(objectNameBuilder.getAcceptorObjectName(name));
       registries.unregisterAcceptorControl(name);
    }
@@ -496,7 +495,7 @@ public class ManagementServiceImpl implements ManagementService {
    public void registerBrokerConnection(BrokerConnection brokerConnection) throws Exception {
       BrokerConnectionControl control = new BrokerConnectionControlImpl(brokerConnection, storageManager);
       registerInJMX(objectNameBuilder.getBrokerConnectionObjectName(brokerConnection.getName()), control);
-      registries.registerBrokerConnectionControl(ResourceNames.BROKER_CONNECTION + brokerConnection.getName(), control);
+      registries.registerBrokerConnectionControl(brokerConnection.getName(), control);
    }
 
    @Override
@@ -565,7 +564,7 @@ public class ManagementServiceImpl implements ManagementService {
    public void registerCluster(final ClusterConnection cluster, final ClusterConnectionConfiguration configuration) throws Exception {
       ClusterConnectionControl control = new ClusterConnectionControlImpl(cluster, storageManager, configuration);
       registerInJMX(objectNameBuilder.getClusterConnectionObjectName(configuration.getName()), control);
-      registries.registerClusterConnectionControl(ResourceNames.CORE_CLUSTER_CONNECTION + configuration.getName(), control);
+      registries.registerClusterConnectionControl(configuration.getName(), control);
    }
 
    @Override
@@ -701,8 +700,18 @@ public class ManagementServiceImpl implements ManagementService {
    }
 
    @Override
+   public RemoteBrokerConnectionControl getRemoteBrokerConnectionControl(String name) {
+      return registries.getRemoteBrokerConnectionControl(name);
+   }
+
+   @Override
    public Object getUntypedControl(String name) {
       return registries.getUntypedControl(name);
+   }
+
+   @Override
+   public Object getResource(String resourceName) {
+      return registries.getByName(resourceName);
    }
 
    @Override

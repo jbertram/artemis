@@ -497,7 +497,7 @@ public class RemotingServiceImpl implements RemotingService, ServerConnectionLif
       connectionCountLatch.setCount(0);
 
       if (managementService != null) {
-         managementService.unregisterAcceptor();
+         managementService.unregisterAcceptors();
       }
 
       threadPool.shutdown();
@@ -672,7 +672,7 @@ public class RemotingServiceImpl implements RemotingService, ServerConnectionLif
             storeTypeFrom(acceptorToStopParams.get(TRUSTSTORE_TYPE_PROP_NAME)));
 
          try {
-            managementService.unregisterAcceptor(acceptor.getName());
+            managementService.unregisterAcceptors(acceptor.getName());
          } catch (Throwable t) {
             ActiveMQServerLogger.LOGGER.errorStoppingAcceptor(acceptor.getName());
          }
