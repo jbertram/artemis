@@ -45,7 +45,7 @@ if (address.equals("topic")) {
    consumer = session.createConsumer(queue);
 }
 
-QueueControl addressControl = (QueueControl) server.getJMSServerManager().getActiveMQServer().getManagementService().getQueueControl(address);
+QueueControl addressControl = (QueueControl) server.getJMSServerManager().getActiveMQServer().getManagementService().getResource(ResourceNames.QUEUE + address);
 GroovyRun.assertNotNull(addressControl)
 
 GroovyRun.assertTrue(addressControl.isPaused())

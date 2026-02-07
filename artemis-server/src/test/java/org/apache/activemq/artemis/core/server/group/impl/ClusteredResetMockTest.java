@@ -258,12 +258,12 @@ public class ClusteredResetMockTest extends ServerTestBase {
       }
 
       @Override
-      public void registerUntypedControl(String name, Object control) {
+      public void registerUntypedControl(String name, Object control, ObjectName objectName) {
 
       }
 
       @Override
-      public void unregisterUntypedControl(String name) {
+      public void unregisterUntypedControl(String name, ObjectName objectName) {
 
       }
 

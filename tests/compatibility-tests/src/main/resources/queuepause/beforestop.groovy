@@ -28,7 +28,7 @@ import javax.jms.*
 
 String address = arg[0]
 
-QueueControl addressControl = (QueueControl) server.getJMSServerManager().getActiveMQServer().getManagementService().getQueueControl(address);
+QueueControl addressControl = (QueueControl) server.getJMSServerManager().getActiveMQServer().getManagementService().getResource(ResourceNames.QUEUE + address);
 GroovyRun.assertNotNull(addressControl)
 
 GroovyRun.assertFalse(addressControl.isPaused())

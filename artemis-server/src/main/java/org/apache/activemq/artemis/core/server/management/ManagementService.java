@@ -16,12 +16,11 @@
  */
 package org.apache.activemq.artemis.core.server.management;
 
+import javax.management.ObjectName;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
-
-import javax.management.ObjectName;
 
 import org.apache.activemq.artemis.api.core.BroadcastGroupConfiguration;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
@@ -80,8 +79,47 @@ public interface ManagementService extends NotificationService, ActiveMQComponen
 
    void setStorageManager(StorageManager storageManager);
 
+   /**
+    * @deprecated use one of the other register methods instead, they will register the control in JMX assuming it is
+    * enabled:
+    * <ul>
+    * <li>{@link #registerServer(PostOffice, SecurityStore, StorageManager, Configuration, HierarchicalRepository, HierarchicalRepository, ResourceManager, RemotingService, ActiveMQServer, QueueFactory, ScheduledExecutorService, PagingManager, boolean)},
+    * <li>{@link #registerAddress(AddressInfo)}
+    * <li>{@link #registerQueue(Queue, SimpleString, StorageManager)}
+    * <li>{@link #registerAcceptor(Acceptor, TransportConfiguration)}
+    * <li>{@link #registerDivert(Divert)}
+    * <li>{@link #registerBroadcastGroup(BroadcastGroup, BroadcastGroupConfiguration)}
+    * <li>{@link #registerBridge(Bridge)}
+    * <li>{@link #registerCluster(ClusterConnection, ClusterConnectionConfiguration)}
+    * <li>{@link #registerConnectionRouter(ConnectionRouter)}
+    * <li>{@link #registerBrokerConnection(BrokerConnection)}
+    * <li>{@link #registerRemoteBrokerConnection(RemoteBrokerConnection)}
+    * <li>{@link #registerHawtioSecurity(GuardInvocationHandler)}
+    * <li>{@link #registerUntypedControl(String, Object, ObjectName)}
+    * </ul>
+    */
+   @Deprecated(forRemoval = true)
    void registerInJMX(ObjectName objectName, Object managedResource) throws Exception;
 
+   /**
+    * @deprecated use one of the other unregister methods instead:
+    * <ul>
+    * <li>{@link #unregisterServer()}
+    * <li>{@link #unregisterAddress(AddressInfo)}
+    * <li>{@link #unregisterQueue(Queue, SimpleString)}
+    * <li>{@link #unregisterAcceptor(Acceptor, TransportConfiguration)}
+    * <li>{@link #unregisterDivert(Divert)}
+    * <li>{@link #unregisterBroadcastGroup(BroadcastGroup, BroadcastGroupConfiguration)}
+    * <li>{@link #unregisterBridge(Bridge)}
+    * <li>{@link #unregisterCluster(ClusterConnection, ClusterConnectionConfiguration)}
+    * <li>{@link #unregisterConnectionRouter(ConnectionRouter)}
+    * <li>{@link #unregisterBrokerConnection(BrokerConnection)}
+    * <li>{@link #unregisterRemoteBrokerConnection(RemoteBrokerConnection)}
+    * <li>{@link #unregisterHawtioSecurity()}
+    * <li>{@link #unregisterUntypedControl(String, ObjectName)}
+    * </ul>
+    */
+   @Deprecated(forRemoval = true)
    void unregisterFromJMX(ObjectName objectName) throws Exception;
 
    ActiveMQServerControlImpl registerServer(PostOffice postOffice,
@@ -187,17 +225,25 @@ public interface ManagementService extends NotificationService, ActiveMQComponen
    void unregisterHawtioSecurity() throws Exception;
 
    /**
-    * Registers an untyped management control with the specified name. This method allows for associating untyped
-    * control objects with a string identifier for later retrieval or use in the management service.
-    *
+    * Registers an untyped control with the specified name, control object, and associated ObjectName.
+    * <p>
     * Use this for management controls not explicitly supported by other typed methods.
     *
-    * @param name    the unique name used to identify the untyped control; must not be null or empty
-    * @param control the untyped control object to be registered; must not be null
+    * @param name       the unique name used to identify the untyped control; must not be null or empty
+    * @param control    the untyped control object to be registered; must not be null
+    * @param objectName the MBean object name to be associated with the control; must not be null
+    * @throws Exception if an error occurs during registration
     */
-   void registerUntypedControl(String name, Object control);
+   void registerUntypedControl(String name, Object control, ObjectName objectName) throws Exception;
 
-   void unregisterUntypedControl(String name);
+   /**
+    * Unregisters an untyped control associated with the specified name and ObjectName.
+    *
+    * @param name       the name of the control to be unregistered
+    * @param objectName the ObjectName associated with the control to be unregistered
+    * @throws Exception if an error occurs during the unregistration process
+    */
+   void unregisterUntypedControl(String name, ObjectName objectName) throws Exception;
 
    Object getUntypedControl(String name);
 
@@ -207,8 +253,8 @@ public interface ManagementService extends NotificationService, ActiveMQComponen
     * @param resourceName the name of the resource to retrieve; must not be null or empty; should be prefixed with a
     *                     value from {@link ResourceNames} unless using an "untyped" control
     * @return the resource object associated with the specified name or null if the resource is not found
-    * @deprecated for removal in a future release; use one of the strongly typed "get" methods or
-    * {@link #getUntypedControl(String)} instead if no type is desired
+    * @deprecated use one of the strongly typed "get" methods or {@link #getUntypedControl(String)} instead if no type
+    * is desired
     */
    @Deprecated(forRemoval = true)
    Object getResource(String resourceName);

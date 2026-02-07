@@ -17,12 +17,8 @@
 package org.apache.activemq.artemis.core.server.management.impl;
 
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -88,139 +84,13 @@ public class ControlRegistries {
       divertControls = new ConcurrentHashMap<>();
    }
 
-   public void unregisterQueueControl(final String name) {
-      Object removed = queueControls.remove(name);
-      logUnregistration(name, removed);
-   }
-
    public void registerQueueControl(final String name, final QueueControl queueControl) {
       Object replaced = queueControls.put(name, queueControl);
       logRegistration(name, replaced, queueControl);
    }
 
-   public void unregisterAddressControl(final String name) {
-      Object removed = addressControls.remove(name);
-      logUnregistration(name, removed);
-   }
-
-   public void registerAddressControl(final String name, final AddressControl addressControl) {
-      Object replaced = addressControls.put(name, addressControl);
-      logRegistration(name, replaced, addressControl);
-   }
-
-   public void registerAcceptor(String name, AcceptorControl acceptorControl) {
-      Object replaced = accepterControls.put(name, acceptorControl);
-      logRegistration(name, replaced, acceptorControl);
-   }
-
-   public List<String> getAcceptorNames() {
-      return List.copyOf(accepterControls.keySet());
-   }
-
-   public void unregisterAcceptorControl(String name) {
-      Object removed = accepterControls.remove(name);
-      logUnregistration(name, removed);
-   }
-
-   public void registerBroadcastGroupControl(String name, BaseBroadcastGroupControl control) {
-      Object replaced = broadcastGroupControls.put(name, control);
-      logRegistration(name, replaced, control);
-   }
-
-   public void unregisterBroadcastGroupControls(String name) {
-      Object removed = broadcastGroupControls.remove(name);
-      logUnregistration(name, removed);
-   }
-
-   public void registerBrokerConnectionControl(String name, BrokerConnectionControl control) {
-      Object replaced = brokerConnectionControls.put(name, control);
-      logRegistration(name, replaced, control);
-   }
-
-   public void unregisterBrokerConnectionControl(String name) {
-      Object removed = brokerConnectionControls.remove(name);
-      logUnregistration(name, removed);
-   }
-
-   public void registerRemoteBrokerConnectionControl(String name, RemoteBrokerConnectionControl control) {
-      Object replaced = remoteBrokerConnectionControls.put(name, control);
-      logRegistration(name, replaced, control);
-   }
-
-   public void unregisterRemoteBrokerConnectionControl(String name) {
-      Object removed = remoteBrokerConnectionControls.remove(name);
-      logUnregistration(name, removed);
-   }
-
-   public void registerBridgeControl(String name, BridgeControl control) {
-      Object replaced = bridgeControls.put(name, control);
-      logRegistration(name, replaced, control);
-   }
-
-   public void unregisterBridgeControl(String name) {
-      Object removed = bridgeControls.remove(name);
-      logUnregistration(name, removed);
-   }
-
-   public void registerClusterConnectionControl(String name, ClusterConnectionControl control) {
-      Object replaced = clusterConnectionControl.put(name, control);
-      logRegistration(name, replaced, control);
-   }
-
-   public void unregisterClusterConnectionControl(String name) {
-      Object removed = clusterConnectionControl.remove(name);
-      logUnregistration(name, removed);
-   }
-
-   public void registerConnectionRouterControl(String name, ConnectionRouterControl connectionRouterControl) {
-      Object replaced = connectionRouterControls.put(name, connectionRouterControl);
-      logRegistration(name, replaced, connectionRouterControl);
-   }
-
-   public void unregisterConnectionRouterControl(String name) {
-      Object removed = connectionRouterControls.remove(name);
-      logUnregistration(name, removed);
-   }
-
-   public void registerHawtioSecurityControl(HawtioSecurityControl hawtioSecurityControl) {
-      Object original = this.hawtioSecurityControl;
-      this.hawtioSecurityControl = hawtioSecurityControl;
-      logRegistration(ResourceNames.MANAGEMENT_SECURITY, original, hawtioSecurityControl);
-   }
-
-   public void unregisterHawtioSecurityControl() {
-      Object removed = hawtioSecurityControl;
-      hawtioSecurityControl = null;
-      logUnregistration(ResourceNames.MANAGEMENT_SECURITY, removed);
-   }
-   public void registerUntypedControl(String name, Object control) {
-      untypedControls.put(name, control);
-   }
-
-   public void unregisterUntypedControl(String name) {
-      Object removed = untypedControls.remove(name);
-      logUnregistration(name, removed);
-   }
-
-   public void registerBroker(ActiveMQServerControlImpl serverControl) {
-      Object original = this.serverControl;
-      this.serverControl = serverControl;
-      logRegistration(ResourceNames.BROKER, original, serverControl);
-   }
-
-   public void unregisterBroker() {
-      Object removed = serverControl;
-      serverControl = null;
-      logUnregistration(ResourceNames.BROKER, removed);
-   }
-
-   public void registerDivertControl(String name, DivertControl divertControl) {
-      Object replaced = divertControls.put(name, divertControl);
-      logRegistration(name, replaced, divertControl);
-   }
-
-   public void unregisterDivertControl(String name) {
-      Object removed = divertControls.remove(name);
+   public void unregisterQueueControl(final String name) {
+      Object removed = queueControls.remove(name);
       logUnregistration(name, removed);
    }
 
@@ -243,6 +113,16 @@ public class ControlRegistries {
       return List.copyOf(queueControls.keySet());
    }
 
+   public void registerAddressControl(final String name, final AddressControl addressControl) {
+      Object replaced = addressControls.put(name, addressControl);
+      logRegistration(name, replaced, addressControl);
+   }
+
+   public void unregisterAddressControl(final String name) {
+      Object removed = addressControls.remove(name);
+      logUnregistration(name, removed);
+   }
+
    public int getAddressControlCount() {
       return addressControls.size();
    }
@@ -262,12 +142,193 @@ public class ControlRegistries {
       return List.copyOf(addressControls.keySet());
    }
 
+   public void registerAcceptor(String name, AcceptorControl acceptorControl) {
+      Object replaced = accepterControls.put(name, acceptorControl);
+      logRegistration(name, replaced, acceptorControl);
+   }
+
+   public void unregisterAcceptorControl(String name) {
+      Object removed = accepterControls.remove(name);
+      logUnregistration(name, removed);
+   }
+
    public AcceptorControl getAcceptorControl(String name) {
       return accepterControls.get(name);
    }
 
+   public List<String> getAcceptorControlNames() {
+      return List.copyOf(accepterControls.keySet());
+   }
+
+   public void registerBroadcastGroupControl(String name, BaseBroadcastGroupControl control) {
+      Object replaced = broadcastGroupControls.put(name, control);
+      logRegistration(name, replaced, control);
+   }
+
+   public void unregisterBroadcastGroupControls(String name) {
+      Object removed = broadcastGroupControls.remove(name);
+      logUnregistration(name, removed);
+   }
+
+   public List<String> getBroadcastGroupControlNames() {
+      return List.copyOf(broadcastGroupControls.keySet());
+   }
+
+   public void registerBrokerConnectionControl(String name, BrokerConnectionControl control) {
+      Object replaced = brokerConnectionControls.put(name, control);
+      logRegistration(name, replaced, control);
+   }
+
+   public void unregisterBrokerConnectionControl(String name) {
+      Object removed = brokerConnectionControls.remove(name);
+      logUnregistration(name, removed);
+   }
+
+   public List<BrokerConnectionControl> getBrokerConnectionControls() {
+      return List.copyOf(brokerConnectionControls.values());
+   }
+
+   public BrokerConnectionControl getBrokerConnectionControl(String name) {
+      return brokerConnectionControls.get(name);
+   }
+
+   public List<String> getBrokerConnectionControlNames() {
+      return List.copyOf(brokerConnectionControls.keySet());
+   }
+
+   public void registerRemoteBrokerConnectionControl(String name, RemoteBrokerConnectionControl control) {
+      Object replaced = remoteBrokerConnectionControls.put(name, control);
+      logRegistration(name, replaced, control);
+   }
+
+   public void unregisterRemoteBrokerConnectionControl(String name) {
+      Object removed = remoteBrokerConnectionControls.remove(name);
+      logUnregistration(name, removed);
+   }
+
+   public RemoteBrokerConnectionControl getRemoteBrokerConnectionControl(String name) {
+      return remoteBrokerConnectionControls.get(name);
+   }
+
+   public List<String> getRemoteBrokerConnectionControlNames() {
+      return List.copyOf(remoteBrokerConnectionControls.keySet());
+   }
+
+   public void registerBridgeControl(String name, BridgeControl control) {
+      Object replaced = bridgeControls.put(name, control);
+      logRegistration(name, replaced, control);
+   }
+
+   public void unregisterBridgeControl(String name) {
+      Object removed = bridgeControls.remove(name);
+      logUnregistration(name, removed);
+   }
+
+   public List<BridgeControl> getBridgeControls() {
+      return List.copyOf(bridgeControls.values());
+   }
+
+   public List<String> getBridgeControlNames() {
+      return List.copyOf(bridgeControls.keySet());
+   }
+
+   public int getBridgeControlCount() {
+      return bridgeControls.size();
+   }
+
+   public void registerClusterConnectionControl(String name, ClusterConnectionControl control) {
+      Object replaced = clusterConnectionControl.put(name, control);
+      logRegistration(name, replaced, control);
+   }
+
+   public void unregisterClusterConnectionControl(String name) {
+      Object removed = clusterConnectionControl.remove(name);
+      logUnregistration(name, removed);
+   }
+
+   public List<String> getClusterConnectionControlNames() {
+      return List.copyOf(clusterConnectionControl.keySet());
+   }
+
+   public void registerConnectionRouterControl(String name, ConnectionRouterControl connectionRouterControl) {
+      Object replaced = connectionRouterControls.put(name, connectionRouterControl);
+      logRegistration(name, replaced, connectionRouterControl);
+   }
+
+   public void unregisterConnectionRouterControl(String name) {
+      Object removed = connectionRouterControls.remove(name);
+      logUnregistration(name, removed);
+   }
+
    public ConnectionRouterControl getConnectionRouterControl(String name) {
       return connectionRouterControls.get(name);
+   }
+
+   public List<String> getConnectionRouterControlNames() {
+      return List.copyOf(connectionRouterControls.keySet());
+   }
+
+   public void registerHawtioSecurityControl(HawtioSecurityControl hawtioSecurityControl) {
+      Object original = this.hawtioSecurityControl;
+      this.hawtioSecurityControl = hawtioSecurityControl;
+      logRegistration(ResourceNames.MANAGEMENT_SECURITY, original, hawtioSecurityControl);
+   }
+
+   public void unregisterHawtioSecurityControl() {
+      Object removed = hawtioSecurityControl;
+      hawtioSecurityControl = null;
+      logUnregistration(ResourceNames.MANAGEMENT_SECURITY, removed);
+   }
+
+   public void registerUntypedControl(String name, Object control) {
+      untypedControls.put(name, control);
+   }
+
+   public void unregisterUntypedControl(String name) {
+      Object removed = untypedControls.remove(name);
+      logUnregistration(name, removed);
+   }
+
+   public Object getUntypedControl(String name) {
+      return untypedControls.get(name);
+   }
+
+   public List<String> getUntypedControlNames() {
+      return List.copyOf(untypedControls.keySet());
+   }
+
+   public void registerServer(ActiveMQServerControlImpl serverControl) {
+      Object original = this.serverControl;
+      this.serverControl = serverControl;
+      logRegistration(ResourceNames.BROKER, original, serverControl);
+   }
+
+   public void unregisterServer() {
+      Object removed = serverControl;
+      serverControl = null;
+      logUnregistration(ResourceNames.BROKER, removed);
+   }
+
+   public ActiveMQServerControl getServerControl() {
+      return serverControl;
+   }
+
+   public void registerDivertControl(String name, DivertControl divertControl) {
+      Object replaced = divertControls.put(name, divertControl);
+      logRegistration(name, replaced, divertControl);
+   }
+
+   public void unregisterDivertControl(String name) {
+      Object removed = divertControls.remove(name);
+      logUnregistration(name, removed);
+   }
+
+   public List<DivertControl> getDivertControls() {
+      return List.copyOf(divertControls.values());
+   }
+
+   public List<String> getDivertControlNames() {
+      return List.copyOf(divertControls.keySet());
    }
 
    public void clear() {
@@ -291,7 +352,7 @@ public class ControlRegistries {
     * type of the resource based on its prefix and returns the corresponding control object if available. If possible,
     * use the strongly typed methods instead as performance will be better.
     *
-    * @param name the full name of the resource for which a control object is to be retrieved. The name may include a
+    * @param name The full name of the resource for which a control object is to be retrieved. The name may include a
     *             prefix indicating the type of the resource (e.g., "queue.", "address.", "broker", etc.).
     * @return the management control object associated with the specified resource name, or {@code null} if no control
     * object is registered for the resource.
@@ -328,72 +389,6 @@ public class ControlRegistries {
       };
    }
 
-   public List<DivertControl> getDivertControls() {
-      return List.copyOf(divertControls.values());
-   }
-
-   public List<String> getDivertControlNames() {
-      return List.copyOf(divertControls.keySet());
-   }
-
-   public List<BridgeControl> getBridgeControls() {
-      return List.copyOf(bridgeControls.values());
-   }
-
-   public List<String> getBridgeControlNames() {
-      return List.copyOf(bridgeControls.keySet());
-   }
-
-   public int getBridgeControlCount() {
-      return bridgeControls.size();
-   }
-
-   public List<BrokerConnectionControl> getBrokerConnectionControls() {
-      return List.copyOf(brokerConnectionControls.values());
-   }
-
-   public BrokerConnectionControl getBrokerConnectionControl(String name) {
-      return brokerConnectionControls.get(name);
-   }
-
-   public RemoteBrokerConnectionControl getRemoteBrokerConnectionControl(String name) {
-      return remoteBrokerConnectionControls.get(name);
-   }
-
-   public Object getUntypedControl(String name) {
-      return untypedControls.get(name);
-   }
-
-   public Set<String> unregisterAll() {
-      Set<String> names = new HashSet<>();
-      names.add(ResourceNames.BROKER);
-      names.add(ResourceNames.MANAGEMENT_SECURITY);
-      names.addAll(unregisterMap(ResourceNames.ADDRESS, addressControls));
-      names.addAll(unregisterMap(ResourceNames.QUEUE, queueControls));
-      names.addAll(unregisterMap(ResourceNames.ACCEPTOR, accepterControls));
-      names.addAll(unregisterMap(ResourceNames.BROADCAST_GROUP, broadcastGroupControls));
-      names.addAll(unregisterMap(ResourceNames.BROKER_CONNECTION, brokerConnectionControls));
-      names.addAll(unregisterMap(ResourceNames.REMOTE_BROKER_CONNECTION, remoteBrokerConnectionControls));
-      names.addAll(unregisterMap(ResourceNames.BRIDGE, bridgeControls));
-      names.addAll(unregisterMap(ResourceNames.CORE_CLUSTER_CONNECTION, clusterConnectionControl));
-      names.addAll(unregisterMap(ResourceNames.CONNECTION_ROUTER, connectionRouterControls));
-      names.addAll(unregisterMap(null, untypedControls));
-      return names;
-   }
-
-   private Collection<String> unregisterMap(String prefix, Map<String, ?> registry) {
-      List<String> names = new ArrayList<>();
-      for (String name : registry.keySet()) {
-         logUnregistration(name, registry.remove(name));
-         if (prefix != null) {
-            names.add(prefix + name);
-         } else {
-            names.add(name);
-         }
-      }
-      return names;
-   }
-
    private static void logUnregistration(String name, Object removed) {
       if (removed != null) {
          logger.debug("Unregistered from management: {} as {}", name, removed);
@@ -408,9 +403,5 @@ public class ControlRegistries {
          addendum = ". Replaced: " + replaced;
       }
       logger.debug("Registered in management: {} as {}{}", name, managedResource, addendum);
-   }
-
-   public ActiveMQServerControl getServerControl() {
-      return serverControl;
    }
 }
