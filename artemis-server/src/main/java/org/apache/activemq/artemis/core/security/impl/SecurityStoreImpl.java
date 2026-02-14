@@ -63,12 +63,16 @@ import org.apache.activemq.artemis.utils.sm.SecurityManagerShim;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.activemq.artemis.utils.CertificateUtil.CERT_SUBJECT_DN_UNAVAILABLE;
+
 /**
  * The Apache Artemis SecurityStore implementation
  */
 public class SecurityStoreImpl implements SecurityStore, HierarchicalRepositoryChangeListener {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+   private static final byte[] CACHE_KEY_SEPARATOR = new byte[]{0};
 
    private final HierarchicalRepository<Set<Role>> securityRepository;
 
@@ -95,6 +99,15 @@ public class SecurityStoreImpl implements SecurityStore, HierarchicalRepositoryC
    private static final AtomicLongFieldUpdater<SecurityStoreImpl> AUTHORIZATION_FAILURE_COUNT_UPDATER = AtomicLongFieldUpdater.newUpdater(SecurityStoreImpl.class, "authorizationFailureCount");
    private volatile long authorizationFailureCount;
 
+   private static final MessageDigest SHA256;
+
+   static {
+      try {
+         SHA256 = MessageDigest.getInstance("SHA-256");
+      } catch (NoSuchAlgorithmException e) {
+         throw new RuntimeException(e);
+      }
+   }
 
    /**
     * @param notificationService can be {@code null}
@@ -569,9 +582,26 @@ public class SecurityStoreImpl implements SecurityStore, HierarchicalRepositoryC
    }
 
    private String createAuthenticationCacheKey(String username, String password, RemotingConnection connection) {
+      MessageDigest md = getDigest();
+      if (username != null) {
+         md.update(username.getBytes(StandardCharsets.UTF_8));
+      }
+      md.update(CACHE_KEY_SEPARATOR);
+      if (password != null) {
+         md.update(password.getBytes(StandardCharsets.UTF_8));
+      }
+      md.update(CACHE_KEY_SEPARATOR);
+      String certSubjectDN = CertificateUtil.getCertSubjectDN(connection);
+      if (!CERT_SUBJECT_DN_UNAVAILABLE.equals(certSubjectDN)) {
+         md.update(certSubjectDN.getBytes(StandardCharsets.UTF_8));
+      }
+      return ByteUtil.bytesToHex(md.digest());
+   }
+
+   private static MessageDigest getDigest() {
       try {
-         return ByteUtil.bytesToHex(MessageDigest.getInstance("SHA-256").digest((username + password + CertificateUtil.getCertSubjectDN(connection)).getBytes(StandardCharsets.UTF_8)));
-      } catch (NoSuchAlgorithmException e) {
+         return (MessageDigest) SHA256.clone();
+      } catch (CloneNotSupportedException e) {
          throw new RuntimeException(e);
       }
    }
