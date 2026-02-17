@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.activemq.artemis.utils.CertificateUtil;
+
 /**
  * A LoginModule allowing for SSL certificate based authentication based on Distinguished Names (DN) stored in text
  * files. The DNs are parsed using a Properties class where each line is &lt;user_name&gt;=&lt;user_DN&gt;. This class
@@ -42,7 +44,6 @@ public class TextFileCertificateLoginModule extends CertificateLoginModule {
    private Map<String, Set<String>> rolesByUser;
    private Map<String, Pattern> regexpByUser;
    private Map<String, String> usersByDn;
-   boolean normalise = false; // leaving this off by default as it validates the input, which may blow up with preexisting config
 
    /**
     * Performs initialization of file paths. A standard JAAS override.
@@ -53,12 +54,7 @@ public class TextFileCertificateLoginModule extends CertificateLoginModule {
                           Map<String, ?> sharedState,
                           Map<String, ?> options) {
       super.initialize(subject, callbackHandler, sharedState, options);
-      normalise = booleanOption("normalise", options);
-      if (normalise) {
-         usersByDn = load(USER_FILE_PROP_NAME, "", options, (String v) -> new X500Principal(v).getName()).invertedPropertiesMap();
-      } else {
-         usersByDn = load(USER_FILE_PROP_NAME, "", options).invertedPropertiesMap();
-      }
+      usersByDn = load(USER_FILE_PROP_NAME, "", options, (String v) -> new X500Principal(v).getName()).invertedPropertiesMap();
       regexpByUser = load(USER_FILE_PROP_NAME, "", options).regexpPropertiesMap();
       rolesByUser = load(ROLE_FILE_PROP_NAME, "", options).invertedPropertiesValuesMap();
    }
@@ -75,7 +71,7 @@ public class TextFileCertificateLoginModule extends CertificateLoginModule {
       if (certs == null) {
          throw new LoginException("Client certificates not found. Cannot authenticate.");
       }
-      String dn = getDistinguishedName(certs);
+      String dn = CertificateUtil.getDistinguishedName(certs);
       return usersByDn.containsKey(dn) ? usersByDn.get(dn) : getUserByRegexp(dn);
    }
 

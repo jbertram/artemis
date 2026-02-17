@@ -16,6 +16,7 @@
  */
 package org.apache.activemq.artemis.core.security.jaas;
 
+import javax.security.auth.x500.X500Principal;
 import java.security.cert.X509Certificate;
 import java.math.BigInteger;
 import java.security.Principal;
@@ -34,6 +35,11 @@ public class StubX509Certificate extends X509Certificate {
    @Override
    public Principal getSubjectDN() {
       return this.id;
+   }
+
+   @Override
+   public X500Principal getSubjectX500Principal() {
+      return new X500Principal(this.id.getName());
    }
 
    // --- Stubbed Methods ---
@@ -130,7 +136,7 @@ public class StubX509Certificate extends X509Certificate {
 
    @Override
    public String toString() {
-      return null;
+      return this.getClass().getName();
    }
 
    @Override

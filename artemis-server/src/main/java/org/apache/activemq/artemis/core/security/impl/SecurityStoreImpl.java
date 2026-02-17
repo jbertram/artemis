@@ -63,8 +63,6 @@ import org.apache.activemq.artemis.utils.sm.SecurityManagerShim;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.apache.activemq.artemis.utils.CertificateUtil.CERT_SUBJECT_DN_UNAVAILABLE;
-
 /**
  * The Apache Artemis SecurityStore implementation
  */
@@ -444,7 +442,7 @@ public class SecurityStoreImpl implements SecurityStore, HierarchicalRepositoryC
    }
 
    private void authenticationFailed(String user, RemotingConnection connection) throws Exception {
-      String certSubjectDN = CertificateUtil.getCertSubjectDN(connection);
+      String certSubjectDN = CertificateUtil.getDistinguishedNameForPrint(connection);
 
       if (notificationService != null) {
          TypedProperties props = new TypedProperties();
@@ -591,9 +589,9 @@ public class SecurityStoreImpl implements SecurityStore, HierarchicalRepositoryC
          md.update(password.getBytes(StandardCharsets.UTF_8));
       }
       md.update(CACHE_KEY_SEPARATOR);
-      String certSubjectDN = CertificateUtil.getCertSubjectDN(connection);
-      if (!CERT_SUBJECT_DN_UNAVAILABLE.equals(certSubjectDN)) {
-         md.update(certSubjectDN.getBytes(StandardCharsets.UTF_8));
+      String dn = CertificateUtil.getDistinguishedName(connection);
+      if (dn != null) {
+         md.update(dn.getBytes(StandardCharsets.UTF_8));
       }
       return ByteUtil.bytesToHex(md.digest());
    }

@@ -42,12 +42,40 @@ public class CertificateUtil {
 
    public static final String CERT_SUBJECT_DN_UNAVAILABLE = "unavailable";
 
-   public static String getCertSubjectDN(RemotingConnection connection) {
-      X509Certificate[] certs = getCertsFromConnection(connection);
-      if (certs != null && certs.length > 0 && certs[0] != null) {
-         return certs[0].getSubjectDN().getName();
-      } else {
+   /**
+    * Inspects the input {@code RemotingConnection} and extracts the Distinguished Name (DN) from the associated SSL
+    * certificate. If this name cannot be retrieved then it returns the value of {@link #CERT_SUBJECT_DN_UNAVAILABLE}.
+    * This method is suitable when printing the DN to the logs, adding it to a notification message, etc. It will never
+    * return {@code null}.
+    *
+    * @return the Distinguished Name (DN) of the SSL certificate associated with the {@code RemotingConnection} or
+    * {@link #CERT_SUBJECT_DN_UNAVAILABLE} otherwise
+    */
+   public static String getDistinguishedNameForPrint(RemotingConnection connection) {
+      String result = getDistinguishedName(getCertsFromConnection(connection));
+      if (result == null) {
          return CERT_SUBJECT_DN_UNAVAILABLE;
+      } else {
+         return result;
+      }
+   }
+
+   /**
+    * {@return the Distinguished Name (DN) of the SSL certificate associated with the {@code RemotingConnection}
+    * otherwise {@code null}}
+    */
+   public static String getDistinguishedName(RemotingConnection connection) {
+      return getDistinguishedName(getCertsFromConnection(connection));
+   }
+
+   /**
+    * {@return the Distinguished Name (DN) from the first SSL certificate in the array otherwise null}
+    */
+   public static String getDistinguishedName(X509Certificate[] certs) {
+      if (certs != null && certs.length > 0 && certs[0] != null) {
+         return certs[0].getSubjectX500Principal().getName();
+      } else {
+         return null;
       }
    }
 

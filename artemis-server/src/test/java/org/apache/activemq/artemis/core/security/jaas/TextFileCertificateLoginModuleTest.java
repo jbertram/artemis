@@ -20,14 +20,14 @@ import javax.management.remote.JMXPrincipal;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.UnsupportedCallbackException;
-import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
-import java.security.cert.X509Certificate;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,10 +41,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.lang.invoke.MethodHandles;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TextFileCertificateLoginModuleTest {
 
@@ -98,52 +94,6 @@ public class TextFileCertificateLoginModuleTest {
    @Test
    public void testLoginWithREGEXPUsersFile() throws Exception {
       loginTest(CERT_USERS_FILE_REGEXP, CERT_GROUPS_FILE);
-   }
-
-   @Test()
-   public void testLoginNormaliseFalseSpace() throws Exception {
-
-      Map<String, String> options = new HashMap<>();
-      options.put("org.apache.activemq.jaas.textfiledn.user", CERT_USERS_FILE_SMALL);
-      options.put("org.apache.activemq.jaas.textfiledn.role", CERT_GROUPS_FILE);
-      options.put("normalise", "false");
-
-      assertThrows(FailedLoginException.class, ()-> {
-         loginOneTest(options, "CN=TEST_CS,OU=TEST,O=TEST", "COMMA_SPACE");
-      });
-   }
-
-   @Test()
-   public void testLoginNormaliseDefaultSpace() throws Exception {
-      Map<String, String> options = new HashMap<>();
-      options.put("org.apache.activemq.jaas.textfiledn.user", CERT_USERS_FILE_SMALL);
-      options.put("org.apache.activemq.jaas.textfiledn.role", CERT_GROUPS_FILE);
-      assertThrows(FailedLoginException.class, ()-> {
-         loginOneTest(options, "CN=TEST_CS,OU=TEST,O=TEST", "COMMA_SPACE");
-      });
-   }
-
-   @Test()
-   public void testLoginNormaliseTrueCommaSpace() throws Exception {
-      Map<String, String> options = new HashMap<>();
-      options.put("org.apache.activemq.jaas.textfiledn.user", CERT_USERS_FILE_SMALL);
-      options.put("org.apache.activemq.jaas.textfiledn.role", CERT_GROUPS_FILE);
-      options.put("normalise", "true");
-      loginOneTest(options, "CN=TEST_CS,OU=TEST,O=TEST", "COMMA_SPACE");
-   }
-
-   @Test
-   public void testLoginNormaliseNoSpace() throws Exception {
-      Map<String, String> options = new HashMap<>();
-      options.put("org.apache.activemq.jaas.textfiledn.user", CERT_USERS_FILE_SMALL);
-      options.put("org.apache.activemq.jaas.textfiledn.role", CERT_GROUPS_FILE);
-      options.put("normalise", "true");
-      loginOneTest(options, "CN=TEST_CNS,OU=TEST,O=TEST", "COMMA_NO_SPACE");
-   }
-
-   private void loginOneTest(Map options, String dnFromCert, String user) throws LoginException {
-      Subject subject = doAuthenticate(options, getJaasCertificateCallbackHandler(dnFromCert));
-      assertTrue(subject.getPrincipals().stream().findFirst().toString().contains(user));
    }
 
    private void loginTest(String usersFiles, String groupsFile) throws LoginException {

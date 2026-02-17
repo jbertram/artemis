@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.activemq.artemis.utils.CertificateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
@@ -69,9 +70,7 @@ public class ExternalCertificateLoginModule implements AuditLoginModule {
       }
 
       X509Certificate[] certificates = ((CertificateCallback) callbacks[0]).getCertificates();
-      if (certificates != null && certificates.length > 0 && certificates[0] != null) {
-         userName = certificates[0].getSubjectDN().getName();
-      }
+      userName = CertificateUtil.getDistinguishedName(certificates);
 
       if (logger.isDebugEnabled()) {
          logger.debug("Certificates: {}, userName: {}", Arrays.toString(certificates), userName);

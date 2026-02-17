@@ -29,6 +29,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.activemq.artemis.utils.CertificateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
@@ -81,7 +82,7 @@ public abstract class CertificateLoginModule extends PropertiesLoader implements
 
       username = getUserNameForCertificates(certificates);
       if (username == null) {
-         throw new FailedLoginException("No user for client certificate: " + getDistinguishedName(certificates));
+         throw new FailedLoginException("No user for client certificate: " + CertificateUtil.getDistinguishedName(certificates));
       }
 
       if (debug) {
@@ -165,13 +166,4 @@ public abstract class CertificateLoginModule extends PropertiesLoader implements
     * @return A Set of the names of the roles this user belongs to
     */
    protected abstract Set<String> getUserRoles(String username) throws LoginException;
-
-   protected String getDistinguishedName(final X509Certificate[] certs) {
-      if (certs != null && certs.length > 0 && certs[0] != null) {
-         return certs[0].getSubjectDN().getName();
-      } else {
-         return null;
-      }
-   }
-
 }
