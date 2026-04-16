@@ -152,6 +152,7 @@ public class SizeAwareMetric {
    }
 
    public final long addSize(final int delta, final boolean sizeOnly, boolean affectCallbacks) {
+      //logger.info("addSize: delta={}, sizeOnly={}, affectCallbacks={}", delta, sizeOnly, affectCallbacks);
       if (delta == 0) {
          if (logger.isDebugEnabled()) {
             logger.debug("SizeAwareMetric ignored with size 0", new Exception("trace"));
@@ -245,6 +246,7 @@ public class SizeAwareMetric {
    }
 
    private boolean isOverElements(long currentElements) {
+      logger.info("{} isOverElements: currentElements={}, maxElements={}", this, currentElements, maxElements);
       return isElementsEnabled() && currentElements >= 0 && currentElements >= maxElements;
    }
 
