@@ -21,6 +21,8 @@ import java.security.Principal;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
+import org.apache.activemq.artemis.api.core.ActiveMQClusterSecurityException;
 import org.apache.activemq.artemis.api.core.ActiveMQSecurityException;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.management.CoreNotificationType;
@@ -44,6 +46,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
+import static org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration.getDefaultClusterPassword;
+import static org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration.getDefaultClusterUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -53,20 +57,43 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class SecurityStoreImplTest {
 
-   final ActiveMQSecurityManager5 securityManager = new ActiveMQSecurityManager5() {
+   final ActiveMQSecurityManager5 permitAll = new ActiveMQSecurityManager5() {
       @Override
       public Subject authenticate(String user,
                                   String password,
                                   RemotingConnection remotingConnection,
                                   String securityDomain) {
-         Subject subject = new Subject();
-         subject.getPrincipals().add(new UserPrincipal(user));
-         return subject;
+         return getSubject(user);
       }
 
       @Override
       public boolean authorize(Subject subject, Set<Role> roles, CheckType checkType, String address) {
          return true;
+      }
+
+      @Override
+      public boolean validateUser(String user, String password) {
+         return true;
+      }
+
+      @Override
+      public boolean validateUserAndRole(String user, String password, Set<Role> roles, CheckType checkType) {
+         return true;
+      }
+   };
+
+   final ActiveMQSecurityManager5 denyAll = new ActiveMQSecurityManager5() {
+      @Override
+      public Subject authenticate(String user,
+                                  String password,
+                                  RemotingConnection remotingConnection,
+                                  String securityDomain) {
+         return null;
+      }
+
+      @Override
+      public boolean authorize(Subject subject, Set<Role> roles, CheckType checkType, String address) {
+         return false;
       }
 
       @Override
@@ -115,41 +142,21 @@ public class SecurityStoreImplTest {
    @Test
    public void zeroCacheSizeTest() throws Exception {
       final String user = RandomUtil.randomUUIDString();
-      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), securityManager, 999, true, "", null, null, 0, 0);
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, "", null, null, 0, 0);
       assertNull(securityStore.getAuthenticationCache());
       assertEquals(user, securityStore.authenticate(user, RandomUtil.randomUUIDString(), null));
       assertEquals(0, securityStore.getAuthenticationCacheSize());
       securityStore.invalidateAuthenticationCache(); // ensure this doesn't throw an NPE
 
       assertNull(securityStore.getAuthorizationCache());
-      securityStore.check(RandomUtil.randomUUIDSimpleString(), CheckType.SEND, new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return RandomUtil.randomUUIDString();
-         }
-
-         @Override
-         public String getPassword() {
-            return RandomUtil.randomUUIDString();
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return null;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      });
+      securityStore.check(RandomUtil.randomUUIDSimpleString(), CheckType.SEND, getSecurityAuth(RandomUtil.randomUUIDString(), RandomUtil.randomUUIDString()));
       assertEquals(0, securityStore.getAuthorizationCacheSize());
       securityStore.invalidateAuthorizationCache(); // ensure this doesn't throw an NPE
    }
 
    @Test
    public void getCaller() throws Exception {
-      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), securityManager, 999, true, "", null, null, 0, 0);
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, "", null, null, 0, 0);
 
       assertNull(securityStore.getCaller(null, null));
       assertEquals("joe", securityStore.getCaller("joe", null));
@@ -227,7 +234,7 @@ public class SecurityStoreImplTest {
    @Test
    public void testCacheAlgorithm() throws Exception {
       final String user = RandomUtil.randomUUIDString();
-      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), securityManager, 999, true, "", null, null, 0, 0);
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, "", null, null, 0, 0);
       try (AssertionLoggerHandler handler = new AssertionLoggerHandler()) {
          securityStore.createAuthenticationCacheKey(user, RandomUtil.randomUUIDString(), null);
          assertFalse(handler.findText("AMQ224163"));
@@ -236,30 +243,8 @@ public class SecurityStoreImplTest {
 
    @Test
    public void testHasPermissionSecurityDisabled() throws Exception {
-      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), securityManager, 999, false, "", null, null, 0, 0);
-
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return "user";
-         }
-
-         @Override
-         public String getPassword() {
-            return "pass";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return null;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
-
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), denyAll, 999, false, "", null, null, 0, 0);
+      SecurityAuth session = getSecurityAuth("user", "pass");
       assertTrue(securityStore.hasPermission(SimpleString.of("test.address"), null, CheckType.SEND, session));
    }
 
@@ -267,30 +252,8 @@ public class SecurityStoreImplTest {
    public void testHasPermissionClusterUser() throws Exception {
       final String clusterUser = "clusterUser";
       final String clusterPassword = "clusterPassword";
-      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), securityManager, 999, true, clusterUser, clusterPassword, null, 0, 0);
-
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return clusterUser;
-         }
-
-         @Override
-         public String getPassword() {
-            return clusterPassword;
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return null;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
-
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, clusterUser, clusterPassword, null, 0, 0);
+      SecurityAuth session = getSecurityAuth(clusterUser, clusterPassword);
       assertTrue(securityStore.hasPermission(SimpleString.of("test.address"), null, CheckType.SEND, session));
    }
 
@@ -320,27 +283,7 @@ public class SecurityStoreImplTest {
 
       SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), nullSubjectManager, 999, true, "", null, null, 0, 0);
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return "user";
-         }
-
-         @Override
-         public String getPassword() {
-            return "pass";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return Mockito.mock(RemotingConnection.class);
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth("user", "pass");
 
       try {
          securityStore.hasPermission(SimpleString.of("test.address"), null, CheckType.SEND, session);
@@ -353,32 +296,13 @@ public class SecurityStoreImplTest {
 
    @Test
    public void testHasPermissionAuthorized() throws Exception {
-      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), securityManager, 999, true, "", null, null, 10, 10);
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, "", null, null, 10, 10);
 
       final String user = "authorizedUser";
-      securityStore.authenticate(user, "password", Mockito.mock(RemotingConnection.class));
+      final String password = "password";
+      securityStore.authenticate(user, password, Mockito.mock(RemotingConnection.class));
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return Mockito.mock(RemotingConnection.class);
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(user, password);
 
       assertTrue(securityStore.hasPermission(SimpleString.of("test.address"), null, CheckType.SEND, session));
    }
@@ -388,9 +312,7 @@ public class SecurityStoreImplTest {
       ActiveMQSecurityManager5 denyingManager = new ActiveMQSecurityManager5() {
          @Override
          public Subject authenticate(String user, String password, RemotingConnection remotingConnection, String securityDomain) {
-            Subject subject = new Subject();
-            subject.getPrincipals().add(new UserPrincipal(user));
-            return subject;
+            return getSubject(user);
          }
 
          @Override
@@ -412,62 +334,23 @@ public class SecurityStoreImplTest {
       SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), denyingManager, 999, true, "", null, null, 10, 10);
 
       final String user = "unauthorizedUser";
-      securityStore.authenticate(user, "password", Mockito.mock(RemotingConnection.class));
+      final String password = "password";
+      securityStore.authenticate(user, password, Mockito.mock(RemotingConnection.class));
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return Mockito.mock(RemotingConnection.class);
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(user, password);
 
       assertFalse(securityStore.hasPermission(SimpleString.of("test.address"), null, CheckType.SEND, session));
    }
 
    @Test
    public void testHasPermissionUsesCache() throws Exception {
-      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), securityManager, 999, true, "", null, null, 10, 10);
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, "", null, null, 10, 10);
 
       final String user = "cachedUser";
-      RemotingConnection connection = Mockito.mock(RemotingConnection.class);
-      securityStore.authenticate(user, "password", connection);
+      final String password = "password";
+      securityStore.authenticate(user, password, Mockito.mock(RemotingConnection.class));
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return connection;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(user, password);
 
       SimpleString address = SimpleString.of("test.address");
 
@@ -485,9 +368,7 @@ public class SecurityStoreImplTest {
       ActiveMQSecurityManager5 denyingManager = new ActiveMQSecurityManager5() {
          @Override
          public Subject authenticate(String user, String password, RemotingConnection remotingConnection, String securityDomain) {
-            Subject subject = new Subject();
-            subject.getPrincipals().add(new UserPrincipal(user));
-            return subject;
+            return getSubject(user);
          }
 
          @Override
@@ -511,27 +392,7 @@ public class SecurityStoreImplTest {
       final String user = "deniedUser";
       securityStore.authenticate(user, "password", Mockito.mock(RemotingConnection.class));
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return Mockito.mock(RemotingConnection.class);
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth("user", "password");
 
       // hasPermission should return false without incrementing failure counter
       long initialFailureCount = securityStore.getAuthorizationFailureCount();
@@ -541,29 +402,9 @@ public class SecurityStoreImplTest {
 
    @Test
    public void testCheckSecurityDisabled() throws Exception {
-      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), securityManager, 999, false, "", null, null, 0, 0);
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, false, "", null, null, 0, 0);
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return "user";
-         }
-
-         @Override
-         public String getPassword() {
-            return "pass";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return null;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth("user", "password");
 
       // Should not throw exception when security is disabled
       securityStore.check(SimpleString.of("test.address"), null, CheckType.SEND, session);
@@ -573,33 +414,13 @@ public class SecurityStoreImplTest {
 
    @Test
    public void testCheckAuthorizedIncrementsSuccessCounter() throws Exception {
-      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), securityManager, 999, true, "", null, null, 10, 10);
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, "", null, null, 10, 10);
 
       final String user = "authorizedUser";
-      RemotingConnection connection = Mockito.mock(RemotingConnection.class);
-      securityStore.authenticate(user, "password", connection);
+      final String password = "password";
+      securityStore.authenticate(user, password, Mockito.mock(RemotingConnection.class));
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return connection;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(user, password);
 
       long initialSuccessCount = securityStore.getAuthorizationSuccessCount();
       securityStore.check(SimpleString.of("test.address"), null, CheckType.SEND, session);
@@ -612,9 +433,7 @@ public class SecurityStoreImplTest {
       ActiveMQSecurityManager5 denyingManager = new ActiveMQSecurityManager5() {
          @Override
          public Subject authenticate(String user, String password, RemotingConnection remotingConnection, String securityDomain) {
-            Subject subject = new Subject();
-            subject.getPrincipals().add(new UserPrincipal(user));
-            return subject;
+            return getSubject(user);
          }
 
          @Override
@@ -636,30 +455,11 @@ public class SecurityStoreImplTest {
       SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), denyingManager, 999, true, "", null, null, 10, 10);
 
       final String user = "deniedUser";
+      final String password = "password";
       RemotingConnection connection = Mockito.mock(RemotingConnection.class);
-      securityStore.authenticate(user, "password", connection);
+      securityStore.authenticate(user, password, connection);
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return connection;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(user, password);
 
       SimpleString address = SimpleString.of("test.address");
       long initialFailureCount = securityStore.getAuthorizationFailureCount();
@@ -681,9 +481,7 @@ public class SecurityStoreImplTest {
       ActiveMQSecurityManager5 denyingManager = new ActiveMQSecurityManager5() {
          @Override
          public Subject authenticate(String user, String password, RemotingConnection remotingConnection, String securityDomain) {
-            Subject subject = new Subject();
-            subject.getPrincipals().add(new UserPrincipal(user));
-            return subject;
+            return getSubject(user);
          }
 
          @Override
@@ -705,30 +503,10 @@ public class SecurityStoreImplTest {
       SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), denyingManager, 999, true, "", null, null, 10, 10);
 
       final String user = "deniedUser";
-      RemotingConnection connection = Mockito.mock(RemotingConnection.class);
-      securityStore.authenticate(user, "password", connection);
+      final String password = "password";
+      securityStore.authenticate(user, password, Mockito.mock(RemotingConnection.class));
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return connection;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(user, password);
 
       SimpleString address = SimpleString.of("test.address");
       SimpleString queue = SimpleString.of("test.queue");
@@ -749,29 +527,9 @@ public class SecurityStoreImplTest {
    public void testCheckDelegatesClusterUserBypass() throws Exception {
       final String clusterUser = "clusterUser";
       final String clusterPassword = "clusterPassword";
-      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), securityManager, 999, true, clusterUser, clusterPassword, null, 0, 0);
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, clusterUser, clusterPassword, null, 0, 0);
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return clusterUser;
-         }
-
-         @Override
-         public String getPassword() {
-            return clusterPassword;
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return null;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(clusterUser, clusterPassword);
 
       long initialSuccessCount = securityStore.getAuthorizationSuccessCount();
       securityStore.check(SimpleString.of("test.address"), null, CheckType.SEND, session);
@@ -780,33 +538,13 @@ public class SecurityStoreImplTest {
 
    @Test
    public void testCheckCachesSuccessfulAuthorization() throws Exception {
-      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), securityManager, 999, true, "", null, null, 10, 10);
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, "", null, null, 10, 10);
 
       final String user = "cachedUser";
-      RemotingConnection connection = Mockito.mock(RemotingConnection.class);
-      securityStore.authenticate(user, "password", connection);
+      final String password = "password";
+      securityStore.authenticate(user, password, Mockito.mock(RemotingConnection.class));
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return connection;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(user, password);
 
       SimpleString address = SimpleString.of("test.address");
 
@@ -824,9 +562,7 @@ public class SecurityStoreImplTest {
       ActiveMQSecurityManager5 denyingManager = new ActiveMQSecurityManager5() {
          @Override
          public Subject authenticate(String user, String password, RemotingConnection remotingConnection, String securityDomain) {
-            Subject subject = new Subject();
-            subject.getPrincipals().add(new UserPrincipal(user));
-            return subject;
+            return getSubject(user);
          }
 
          @Override
@@ -849,31 +585,10 @@ public class SecurityStoreImplTest {
       SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), denyingManager, 999, true, "", null, notificationService, 10, 10);
 
       final String user = "deniedUser";
-      RemotingConnection connection = Mockito.mock(RemotingConnection.class);
-      Mockito.when(connection.getSubject()).thenReturn(new Subject());
-      securityStore.authenticate(user, "password", connection);
+      final String password = "password";
+      securityStore.authenticate(user, password, Mockito.mock(RemotingConnection.class));
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return connection;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(user, password);
 
       SimpleString address = SimpleString.of("test.address");
 
@@ -900,9 +615,7 @@ public class SecurityStoreImplTest {
       ActiveMQSecurityManager5 denyingManager = new ActiveMQSecurityManager5() {
          @Override
          public Subject authenticate(String user, String password, RemotingConnection remotingConnection, String securityDomain) {
-            Subject subject = new Subject();
-            subject.getPrincipals().add(new UserPrincipal(user));
-            return subject;
+            return getSubject(user);
          }
 
          @Override
@@ -925,31 +638,10 @@ public class SecurityStoreImplTest {
       SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), denyingManager, 999, true, "", null, notificationService, 10, 10);
 
       final String user = "deniedUser";
-      RemotingConnection connection = Mockito.mock(RemotingConnection.class);
-      Mockito.when(connection.getSubject()).thenReturn(new Subject());
-      securityStore.authenticate(user, "password", connection);
+      final String password = "password";
+      securityStore.authenticate(user, password, Mockito.mock(RemotingConnection.class));
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return connection;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(user, password);
 
       SimpleString address = SimpleString.of("test.address");
 
@@ -974,9 +666,7 @@ public class SecurityStoreImplTest {
       ActiveMQSecurityManager5 denyingManager = new ActiveMQSecurityManager5() {
          @Override
          public Subject authenticate(String user, String password, RemotingConnection remotingConnection, String securityDomain) {
-            Subject subject = new Subject();
-            subject.getPrincipals().add(new UserPrincipal(user));
-            return subject;
+            return getSubject(user);
          }
 
          @Override
@@ -999,31 +689,10 @@ public class SecurityStoreImplTest {
       SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), denyingManager, 999, true, "", null, null, 10, 10);
 
       final String user = "deniedUser";
-      RemotingConnection connection = Mockito.mock(RemotingConnection.class);
-      Mockito.when(connection.getSubject()).thenReturn(new Subject());
-      securityStore.authenticate(user, "password", connection);
+      final String password = "password";
+      securityStore.authenticate(user, password, Mockito.mock(RemotingConnection.class));
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return connection;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(user, password);
 
       try {
          securityStore.check(SimpleString.of("test.address"), null, CheckType.SEND, session);
@@ -1034,14 +703,18 @@ public class SecurityStoreImplTest {
       }
    }
 
+   private static Subject getSubject(String user) {
+      Subject subject = new Subject();
+      subject.getPrincipals().add(new UserPrincipal(user));
+      return subject;
+   }
+
    @Test
    public void testHasPermissionDoesNotSendNotification() throws Exception {
       ActiveMQSecurityManager5 denyingManager = new ActiveMQSecurityManager5() {
          @Override
          public Subject authenticate(String user, String password, RemotingConnection remotingConnection, String securityDomain) {
-            Subject subject = new Subject();
-            subject.getPrincipals().add(new UserPrincipal(user));
-            return subject;
+            return getSubject(user);
          }
 
          @Override
@@ -1064,30 +737,10 @@ public class SecurityStoreImplTest {
       SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), denyingManager, 999, true, "", null, notificationService, 10, 10);
 
       final String user = "deniedUser";
-      RemotingConnection connection = Mockito.mock(RemotingConnection.class);
-      securityStore.authenticate(user, "password", connection);
+      final String password = "password";
+      securityStore.authenticate(user, password, Mockito.mock(RemotingConnection.class));
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return connection;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(user, password);
 
       // Call hasPermission - should return false
       assertFalse(securityStore.hasPermission(SimpleString.of("test.address"), null, CheckType.SEND, session));
@@ -1099,38 +752,135 @@ public class SecurityStoreImplTest {
    @Test
    public void testCheckNoNotificationOnSuccess() throws Exception {
       NotificationService notificationService = Mockito.mock(NotificationService.class);
-      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), securityManager, 999, true, "", null, notificationService, 10, 10);
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, "", null, notificationService, 10, 10);
 
       final String user = "authorizedUser";
-      RemotingConnection connection = Mockito.mock(RemotingConnection.class);
-      securityStore.authenticate(user, "password", connection);
+      final String password = "password";
+      securityStore.authenticate(user, password, Mockito.mock(RemotingConnection.class));
 
-      SecurityAuth session = new SecurityAuth() {
-         @Override
-         public String getUsername() {
-            return user;
-         }
-
-         @Override
-         public String getPassword() {
-            return "password";
-         }
-
-         @Override
-         public RemotingConnection getRemotingConnection() {
-            return connection;
-         }
-
-         @Override
-         public String getSecurityDomain() {
-            return null;
-         }
-      };
+      SecurityAuth session = getSecurityAuth(user, password);
 
       // Successful check
       securityStore.check(SimpleString.of("test.address"), null, CheckType.SEND, session);
 
       // Verify NO notification was sent on success
       Mockito.verify(notificationService, Mockito.never()).sendNotification(ArgumentMatchers.any());
+   }
+
+   @Test
+   public void testAuthenticateWithDefaultClusterCredentialsFails() throws Exception {
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, getDefaultClusterUser(), getDefaultClusterPassword(), null, 10, 10);
+
+      try {
+         securityStore.authenticate(getDefaultClusterUser(), getDefaultClusterPassword(), Mockito.mock(RemotingConnection.class), null);
+         fail("Should throw ActiveMQClusterSecurityException for default credentials");
+      } catch (ActiveMQClusterSecurityException e) {
+         assertEquals(1, securityStore.getAuthenticationFailureCount());
+      }
+   }
+
+   @Test
+   public void testAuthenticateWithCorrectClusterCredentialsSucceeds() throws Exception {
+      final String clusterUser = "customClusterUser";
+      final String clusterPassword = "customClusterPassword";
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, clusterUser, clusterPassword, null, 10, 10);
+
+      String result = securityStore.authenticate(clusterUser, clusterPassword, Mockito.mock(RemotingConnection.class), null);
+      assertEquals(clusterUser, result);
+      assertEquals(1, securityStore.getAuthenticationSuccessCount());
+   }
+
+   @Test
+   public void testAuthenticateWithCorrectClusterUserButWrongPasswordFails() throws Exception {
+      final String clusterUser = "customClusterUser";
+      final String clusterPassword = "customClusterPassword";
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, clusterUser, clusterPassword, null, 10, 10);
+
+      try {
+         securityStore.authenticate(clusterUser, "wrongPassword", Mockito.mock(RemotingConnection.class), null);
+         fail("Should throw ActiveMQClusterSecurityException for wrong password");
+      } catch (ActiveMQClusterSecurityException e) {
+         assertEquals(1, securityStore.getAuthenticationFailureCount());
+      }
+   }
+
+   @Test
+   public void testAuthenticateNonClusterUserFallsThrough() throws Exception {
+      final String clusterUser = "customClusterUser";
+      final String clusterPassword = "customClusterPassword";
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, clusterUser, clusterPassword, null, 10, 10);
+
+      String normalUser = "normalUser";
+      String normalPassword = "normalPassword";
+      String result = securityStore.authenticate(normalUser, normalPassword, Mockito.mock(RemotingConnection.class), null);
+      assertEquals(normalUser, result);
+      assertEquals(1, securityStore.getAuthenticationSuccessCount());
+   }
+
+   @Test
+   public void testClusterUserWithWrongPasswordDenied() throws Exception {
+      final String clusterUser = "customClusterUser";
+      final String clusterPassword = "customClusterPassword";
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, clusterUser, clusterPassword, null, 10, 10);
+
+      SecurityAuth session = getSecurityAuth(clusterUser, "wrongPassword");
+
+      // Wrong password should deny access
+      for (CheckType checkType : CheckType.values()) {
+         assertFalse(securityStore.hasPermission(RandomUtil.randomUUIDSimpleString(), null, checkType, session));
+      }
+   }
+
+   @Test
+   public void testClusterUserWithDefaultCredentialsDenied() throws Exception {
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, getDefaultClusterUser(), getDefaultClusterPassword(), null, 10, 10);
+
+      SecurityAuth session = getSecurityAuth(ActiveMQDefaultConfiguration.getDefaultClusterUser(),
+                                             ActiveMQDefaultConfiguration.getDefaultClusterPassword());
+
+      // Default credentials should be denied
+      for (CheckType checkType : CheckType.values()) {
+         assertFalse(securityStore.hasPermission(RandomUtil.randomUUIDSimpleString(), null, checkType, session));
+      }
+   }
+
+   @Test
+   public void testCheckWithClusterUserAllowedPermission() throws Exception {
+      final String clusterUser = "customClusterUser";
+      final String clusterPassword = "customClusterPassword";
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, clusterUser, clusterPassword, null, 10, 10);
+
+      SecurityAuth session = getSecurityAuth(clusterUser, clusterPassword);
+
+      int checkCount = 0;
+      long initialSuccessCount = securityStore.getAuthorizationSuccessCount();
+      for (CheckType checkType : CheckType.values()) {
+         securityStore.check(RandomUtil.randomUUIDSimpleString(), null, checkType, session);
+         checkCount++;
+      }
+      assertEquals(initialSuccessCount + checkCount, securityStore.getAuthorizationSuccessCount());
+   }
+
+   @Test
+   public void testCheckWithDefaultClusterCredentialsThrowsException() throws Exception {
+      SecurityStoreImpl securityStore = new SecurityStoreImpl(new HierarchicalObjectRepository<>(), permitAll, 999, true, getDefaultClusterUser(), getDefaultClusterPassword(), null, 10, 10);
+
+      SecurityAuth session = getSecurityAuth(ActiveMQDefaultConfiguration.getDefaultClusterUser(),
+                                             ActiveMQDefaultConfiguration.getDefaultClusterPassword());
+
+      try {
+         securityStore.check(RandomUtil.randomUUIDSimpleString(), null, CheckType.SEND, session);
+         fail("Should throw ActiveMQSecurityException for default cluster credentials");
+      } catch (ActiveMQSecurityException e) {
+         assertTrue(e.getMessage().contains(getDefaultClusterUser()));
+      }
+   }
+
+   private static SecurityAuth getSecurityAuth(String user, String password) {
+      SecurityAuth session = Mockito.mock(SecurityAuth.class);
+      Mockito.when(session.getUsername()).thenReturn(user);
+      Mockito.when(session.getPassword()).thenReturn(password);
+      Mockito.when(session.getRemotingConnection()).thenReturn(Mockito.mock(RemotingConnection.class));
+      return session;
    }
 }
