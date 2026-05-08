@@ -82,7 +82,7 @@ public class ControlPacketFormatTests extends MQTT5TestSupport {
       for (int i = 0; i < MESSAGE_COUNT; i++) {
          producer.publish(TOPIC, ("foo" + i).getBytes(), 0, false);
       }
-      Wait.assertEquals(MESSAGE_COUNT, () -> getSubscriptionQueue(TOPIC, CONSUMER_CLIENT_ID).getMessagesAdded());
+      Wait.assertEquals(MESSAGE_COUNT, () -> getSubscriptionQueue(TOPIC, CONSUMER_CLIENT_ID).getMessagesAdded(), 2000, 20);
       producer.disconnect();
       producer.close();
 
