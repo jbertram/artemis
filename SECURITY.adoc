@@ -1,0 +1,30 @@
+= Apache Artemis Security Policy
+
+Artemis is a project of the https://apache.org[Apache Software Foundation] and follows the ASF https://apache.org/security/#vulnerability-handling[vulnerability handling process].
+
+== Reporting a Vulnerability
+
+To report a new vulnerability you have discovered please follow the https://security.apache.org/report/[ASF vulnerability reporting process].
+
+Be sure to check https://artemis.apache.org/security-advisories[Artemis' existing security advisories] to ensure you're not reporting something that's already been resolved.
+
+== Supported Versions
+
+Security updates are provided for the following versions:
+
+[cols="1,1"]
+|===
+|Version |Supported
+
+|2.x
+|✅
+
+|1.x
+|❌
+|===
+
+We recommend always using the latest stable release to ensure you have the most recent security fixes.
+
+== Security Severity Rating system
+
+Apache Artemis uses https://security.apache.org/blog/severityrating/[Apache's vulnerability severity rating system].
