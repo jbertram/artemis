@@ -295,6 +295,7 @@ public class FullQualifiedQueueTest extends ActiveMQTestBase {
       testFilteredQueue(false);
    }
 
+   @SuppressWarnings("deprecation")
    private void testFilteredQueue(boolean useProperty) throws Exception {
       final String key = "myKey";
       final String value = RandomUtil.randomUUIDString();
