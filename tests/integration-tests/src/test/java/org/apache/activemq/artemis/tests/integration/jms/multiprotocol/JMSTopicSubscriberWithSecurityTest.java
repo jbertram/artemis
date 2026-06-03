@@ -81,7 +81,9 @@ public class JMSTopicSubscriberWithSecurityTest extends MultiprotocolJMSClientTe
       securityManager.getConfiguration().addRole(USER, ROLE);
       HierarchicalRepository<Set<Role>> securityRepository = server.getSecurityRepository();
       Set<Role> value = securityRepository.getMatch(getTopicName());
-      value.add(new Role(ROLE, false, true, false, false, true, false, false, false, false, false));
+      @SuppressWarnings("deprecation")
+      Role role = new Role(ROLE, false, true, false, false, true, false, false, false, false, false);
+      value.add(role);
    }
 
    @TestTemplate

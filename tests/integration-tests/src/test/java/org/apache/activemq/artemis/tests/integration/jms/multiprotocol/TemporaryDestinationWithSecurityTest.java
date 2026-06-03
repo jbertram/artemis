@@ -85,7 +85,9 @@ public class TemporaryDestinationWithSecurityTest extends MultiprotocolJMSClient
       securityManager.getConfiguration().addRole(createOnlyUser, "createonly");
       HierarchicalRepository<Set<Role>> securityRepository = server.getSecurityRepository();
       Set<Role> value = securityRepository.getMatch(UUID_NAMESPACE + ".#");
-      value.add(new Role("createonly", false, false, true, false, true, false, false, false, true, false));
+      @SuppressWarnings("deprecation")
+      Role role = new Role("createonly", false, false, true, false, true, false, false, false, true, false);
+      value.add(role);
    }
 
    @Override
