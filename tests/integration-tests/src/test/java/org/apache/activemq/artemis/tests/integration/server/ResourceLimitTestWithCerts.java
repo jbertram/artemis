@@ -47,6 +47,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.fail;
 
+@SuppressWarnings("deprecation")
 public class ResourceLimitTestWithCerts extends ActiveMQTestBase {
 
    static {

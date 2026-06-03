@@ -59,6 +59,7 @@ import java.lang.invoke.MethodHandles;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 
+@SuppressWarnings("deprecation")
 public class ActiveMQMessageHandler implements MessageHandler, FailoverEventListener {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
