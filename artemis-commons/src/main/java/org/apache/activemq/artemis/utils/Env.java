@@ -27,6 +27,7 @@ public final class Env {
 
    private static final int OS_PAGE_SIZE;
 
+   @SuppressWarnings("sunapi")
    static {
       //most common OS page size value
       int osPageSize = 4096;
