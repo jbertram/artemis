@@ -122,6 +122,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.apache.activemq.artemis.api.core.FilterConstants.NATIVE_MESSAGE_ID;
 
+@SuppressWarnings("deprecation")
 public class ManagementServiceImpl implements ManagementService {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

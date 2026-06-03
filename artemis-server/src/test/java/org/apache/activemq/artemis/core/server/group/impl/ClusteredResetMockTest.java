@@ -86,6 +86,7 @@ import org.junit.jupiter.api.Test;
  * this is testing the case for resending notifications from RemotingGroupHandler There is a small window where you
  * could receive notifications wrongly this test will make sure the component would play well with that notification
  */
+@SuppressWarnings("deprecation")
 public class ClusteredResetMockTest extends ServerTestBase {
 
    public static final SimpleString ANYCLUSTER = SimpleString.of("anycluster");
