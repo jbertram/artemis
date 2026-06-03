@@ -54,6 +54,7 @@ import org.apache.activemq.artemis.tests.util.ArtemisTestCase;
 import org.apache.activemq.artemis.utils.ObjectInputStreamWithClassLoader;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("deprecation")
 public class ObjectInputStreamWithClassLoaderTest extends ActiveMQTestBase {
 
    public static ClassLoader newClassLoader(final Class... userClasses) throws Exception {

@@ -68,6 +68,7 @@ import org.apache.activemq.artemis.utils.uri.URISupport;
  * <p>
  * This connection factory will use defaults defined by {@link DefaultConnectionProperties}.
  */
+@SuppressWarnings("deprecation")
 public class ActiveMQConnectionFactory extends JNDIStorable implements ConnectionFactoryOptions, Externalizable, ConnectionFactory, XAConnectionFactory, AutoCloseable {
 
    private static final long serialVersionUID = 6730844785641767519L;

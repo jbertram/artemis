@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 import java.util.Objects;
 
+@SuppressWarnings("deprecation")
 public class ConnectionFactoryProperties implements ConnectionFactoryOptions {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

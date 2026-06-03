@@ -67,6 +67,7 @@ import org.slf4j.LoggerFactory;
 /**
  * The resource adapter for ActiveMQ
  */
+@SuppressWarnings("deprecation")
 public class ActiveMQResourceAdapter implements ResourceAdapter, Serializable {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

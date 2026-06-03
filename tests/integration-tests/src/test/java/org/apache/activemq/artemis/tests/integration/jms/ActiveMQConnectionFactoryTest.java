@@ -60,6 +60,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
+@SuppressWarnings("deprecation")
 public class ActiveMQConnectionFactoryTest extends ActiveMQTestBase {
 
    private final String groupAddress = getUDPDiscoveryAddress();

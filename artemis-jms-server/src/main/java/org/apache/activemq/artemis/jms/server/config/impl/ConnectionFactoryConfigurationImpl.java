@@ -38,6 +38,7 @@ import org.apache.activemq.artemis.utils.DataConstants;
  * Every property on this class has to be also set through encoders through EncodingSupport implementation at this
  * class.
  */
+@SuppressWarnings("deprecation")
 public class ConnectionFactoryConfigurationImpl implements ConnectionFactoryConfiguration {
 
 
