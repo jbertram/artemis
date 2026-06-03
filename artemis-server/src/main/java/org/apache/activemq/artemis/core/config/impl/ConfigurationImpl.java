@@ -166,6 +166,7 @@ import javax.security.auth.login.AppConfigurationEntry;
 
 import static org.apache.activemq.artemis.utils.PasswordMaskingUtil.isEncMasked;
 
+@SuppressWarnings("deprecation")
 public class ConfigurationImpl extends javax.security.auth.login.Configuration implements Configuration, Serializable {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

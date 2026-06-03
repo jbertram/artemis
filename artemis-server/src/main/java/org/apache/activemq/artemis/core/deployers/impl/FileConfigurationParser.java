@@ -170,6 +170,7 @@ import static org.apache.activemq.artemis.core.security.Role.VIEW_PERMISSION;
 /**
  * Parses an XML document according to the {@literal artemis-configuration.xsd} schema.
  */
+@SuppressWarnings("deprecation")
 public final class FileConfigurationParser extends XMLConfigurationUtil {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

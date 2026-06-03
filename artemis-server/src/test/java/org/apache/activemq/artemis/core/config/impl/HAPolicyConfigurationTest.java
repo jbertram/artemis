@@ -63,6 +63,7 @@ import org.apache.activemq.artemis.tests.util.ServerTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("deprecation")
 public class HAPolicyConfigurationTest extends ServerTestBase {
 
    @Override

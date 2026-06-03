@@ -99,6 +99,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ExtendWith(ParameterizedTestExtension.class)
+@SuppressWarnings("deprecation")
 public class FileConfigurationTest extends AbstractConfigurationTestBase {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

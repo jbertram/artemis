@@ -71,6 +71,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+@SuppressWarnings("deprecation")
 public class SimpleJNDIClientTest extends ActiveMQTestBase {
 
    private final String groupAddress = getUDPDiscoveryAddress();

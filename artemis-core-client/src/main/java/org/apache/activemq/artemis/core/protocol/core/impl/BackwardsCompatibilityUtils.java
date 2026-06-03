@@ -29,6 +29,7 @@ import java.util.Map;
  * There are a few properties that were changed between HornetQ and Artemis. When sending topology updates to clients,
  * if these properties are used we need to convert them properly
  */
+@SuppressWarnings("deprecation")
 public class BackwardsCompatibilityUtils {
 
    private static int INITIAL_ACTIVEMQ_INCREMENTING_VERSION = 126;
