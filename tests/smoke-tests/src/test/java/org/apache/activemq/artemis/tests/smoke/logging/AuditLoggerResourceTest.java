@@ -47,6 +47,7 @@ import org.fusesource.mqtt.client.BlockingConnection;
 import org.fusesource.mqtt.client.MQTT;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("deprecation")
 public class AuditLoggerResourceTest extends AuditLoggerTestBase {
 
    @Override

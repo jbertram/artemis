@@ -29,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 // Parameters set by super class
 @ExtendWith(ParameterizedTestExtension.class)
+@SuppressWarnings("deprecation")
 public class ActiveMQServerControlUsingCoreTest extends ActiveMQServerControlTest {
 
 

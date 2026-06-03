@@ -167,6 +167,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 @ExtendWith(ParameterizedTestExtension.class)
+@SuppressWarnings("deprecation")
 public class ActiveMQServerControlTest extends ManagementTestBase {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
