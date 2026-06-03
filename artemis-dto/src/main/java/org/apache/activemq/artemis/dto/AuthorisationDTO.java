@@ -24,6 +24,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "authorisation")
 @XmlAccessorType(XmlAccessType.FIELD)
+@SuppressWarnings("deprecation")
 public class AuthorisationDTO {
 
    @XmlElementRef(required = false)

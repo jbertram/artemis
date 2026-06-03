@@ -36,6 +36,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.ServiceLoader;
 
+@SuppressWarnings("deprecation")
 public class ManagementFactory {
 
    private static ManagementContextDTO createJmxAclConfiguration(URI configURI,
