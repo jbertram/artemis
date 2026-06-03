@@ -18,6 +18,7 @@ package org.apache.activemq.artemis.tests.util;
 
 import org.apache.activemq.artemis.api.core.SimpleString;
 
+@SuppressWarnings("deprecation")
 public class DeprecatedApiSimpleStringTest extends SimpleStringTest {
 
    @Override
