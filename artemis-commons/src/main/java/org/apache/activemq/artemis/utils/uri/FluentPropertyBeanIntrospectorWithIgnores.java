@@ -76,7 +76,7 @@ public class FluentPropertyBeanIntrospectorWithIgnores extends FluentPropertyBea
          try {
             if (writeMethod != null && writeMethod.getParameterTypes().length == 1 && writeMethod.getParameterTypes()[0].equals(Boolean.class)) {
                // is methods with Boolean return are not valid bean accessors but our fluent classes use them
-               readMethod = icontext.getTargetClass().getMethod("is" + capitalise(propertyName), null);
+               readMethod = icontext.getTargetClass().getMethod("is" + capitalise(propertyName));
             }
          } catch (NoSuchMethodException ignored) {
          }

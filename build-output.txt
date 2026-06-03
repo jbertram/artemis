@@ -1,0 +1,2155 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] Apache Artemis                                                     [pom]
+[INFO] Apache Artemis Bill of Materials                                   [pom]
+[INFO] Apache Artemis Log Annotation Processor                            [jar]
+[INFO] Apache Artemis POM                                                 [pom]
+[INFO] Apache Artemis Unit Test Support                                   [jar]
+[INFO] Apache Artemis Log Annotation Processor Tests                      [jar]
+[INFO] Apache Artemis Commons                                             [jar]
+[INFO] Apache Artemis Selector Implementation                             [jar]
+[INFO] Apache Artemis Core Client                                         [jar]
+[INFO] Apache Artemis Journal                                             [jar]
+[INFO] Apache Artemis JDBC Store                                          [jar]
+[INFO] Apache Artemis Lock Manager                                        [pom]
+[INFO] Apache Artemis Lock Manager API                                 [bundle]
+[INFO] Apache Artemis Server                                              [jar]
+[INFO] Apache Artemis Protocols                                           [pom]
+[INFO] Apache Artemis AMQP Protocol                                       [jar]
+[INFO] Apache Artemis STOMP Protocol                                      [jar]
+[INFO] Apache Artemis JMS Client                                          [jar]
+[INFO] Apache Artemis OpenWire Protocol                                [bundle]
+[INFO] Apache Artemis Jakarta Messaging Client                            [jar]
+[INFO] Apache Artemis Jakarta Service Extensions                          [jar]
+[INFO] Apache Artemis Jakarta Messaging Server                            [jar]
+[INFO] Apache Artemis Jakarta OpenWire Protocol                        [bundle]
+[INFO] Apache Artemis HQClient Protocol                                [bundle]
+[INFO] Apache Artemis HornetQ Protocol                                 [bundle]
+[INFO] Apache Artemis MQTT Protocol                                       [jar]
+[INFO] Apache Artemis DTO                                                 [jar]
+[INFO] Apache Artemis CDI Integration                                     [jar]
+[INFO] Apache Artemis Jakarta CDI Integration                             [jar]
+[INFO] Apache Artemis Boot                                                [jar]
+[INFO] Apache Artemis Service Extensions                                  [jar]
+[INFO] Apache Artemis JMS Server                                          [jar]
+[INFO] Apache Artemis CLI                                                 [jar]
+[INFO] Apache Artemis Core Client All                                     [jar]
+[INFO] Apache Artemis Client OSGi                                      [bundle]
+[INFO] Apache Artemis Web                                                 [jar]
+[INFO] Apache Artemis JUnit                                               [pom]
+[INFO] Apache Artemis JUnit Commons                                       [jar]
+[INFO] Apache Artemis JUnit 4 Rules                                       [jar]
+[INFO] Apache Artemis JUnit 5 Extensions                                  [jar]
+[INFO] Apache Artemis JMS Client All                                      [jar]
+[INFO] Apache Artemis JMS Client OSGi                                  [bundle]
+[INFO] Apache Artemis Jakarta Messaging Client All                        [jar]
+[INFO] Apache Artemis Jakarta Messaging Client OSGi                    [bundle]
+[INFO] Apache Artemis RAR POM                                             [jar]
+[INFO] Apache Artemis Jakarta RAR                                         [jar]
+[INFO] Apache Artemis Maven Plugin                               [maven-plugin]
+[INFO] Apache Artemis Server OSGi                                      [bundle]
+[INFO] Apache Artemis Console                                             [war]
+[INFO] Apache Artemis Lock Manager RI                                     [jar]
+[INFO] Apache Artemis Distribution                                        [pom]
+[INFO] Apache Artemis Tests POM                                           [pom]
+[INFO] Apache Artemis System Test Support                                 [jar]
+[INFO] Apache Artemis Unit Tests                                          [jar]
+[INFO] Apache Artemis Joram Tests                                         [jar]
+[INFO] Apache Artemis timing Tests                                        [jar]
+[INFO] Apache Artemis JMS Tests                                           [jar]
+[INFO] Apache Artemis Integration Tests                                   [jar]
+[INFO] Apache Artemis Isolated Integration Tests                          [jar]
+[INFO] Apache Artemis Features                                            [pom]
+[INFO] Apache Artemis Karaf Client Integration Tests                      [jar]
+[INFO] Apache Artemis Karaf Jakarta Client Int Tests                      [jar]
+[INFO] Apache Artemis Karaf Server Integration Tests                      [jar]
+[INFO] Apache Artemis Compatibility Tests                                 [jar]
+[INFO] Apache Artemis soak Tests                                          [jar]
+[INFO] Apache Artemis stress Tests                                        [jar]
+[INFO] Apache Artemis performance Tests                                   [jar]
+[INFO] Apache Artemis Smoke Tests                                         [jar]
+[INFO] Apache Artemis End-to-End Tests                                    [jar]
+[INFO] Apache Artemis Leak Tests                                          [jar]
+[INFO] Apache Artemis Database Tests                                      [jar]
+[INFO] Apache Artemis Image                                               [jar]
+[INFO] Apache Artemis Image Examples                                      [pom]
+[INFO] 
+[INFO] -----------------< org.apache.artemis:artemis-project >-----------------
+[INFO] Building Apache Artemis 2.55.0-SNAPSHOT                           [1/73]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-project ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-project ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-project ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] 
+[INFO] --- dependency:3.8.1:unpack (copy) @ artemis-project ---
+[INFO] Configured Artifact: org.apache.activemq:activemq-artemis-native:2.0.0:jar
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-project ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] -------------------< org.apache.artemis:artemis-bom >-------------------
+[INFO] Building Apache Artemis Bill of Materials 2.55.0-SNAPSHOT         [2/73]
+[INFO]   from artemis-bom/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-bom ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-bom/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-bom ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-bom ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-bom ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --------< org.apache.artemis:artemis-log-annotation-processor >---------
+[INFO] Building Apache Artemis Log Annotation Processor 2.55.0-SNAPSHOT  [3/73]
+[INFO]   from artemis-log-annotation-processor/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-log-annotation-processor ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-log-annotation-processor/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-log-annotation-processor ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-log-annotation-processor ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-log-annotation-processor ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-log-annotation-processor ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-log-annotation-processor ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 5 source files with javac [debug release 17] to target/classes
+[INFO] 
+[INFO] -------------------< org.apache.artemis:artemis-pom >-------------------
+[INFO] Building Apache Artemis POM 2.55.0-SNAPSHOT                       [4/73]
+[INFO]   from artemis-pom/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-pom ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-pom/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-pom ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-pom ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-pom ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] ------------< org.apache.artemis:artemis-unit-test-support >------------
+[INFO] Building Apache Artemis Unit Test Support 2.55.0-SNAPSHOT         [5/73]
+[INFO]   from artemis-unit-test-support/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-unit-test-support ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-unit-test-support/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-unit-test-support ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-unit-test-support ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-unit-test-support ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-unit-test-support ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-unit-test-support ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 18 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-unit-test-support/src/main/java/org/apache/activemq/artemis/tests/extensions/ThreadLeakCheckDelegate.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-unit-test-support/src/main/java/org/apache/activemq/artemis/tests/extensions/ThreadLeakCheckDelegate.java uses or overrides a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-unit-test-support/src/main/java/org/apache/activemq/artemis/tests/extensions/ThreadLeakCheckDelegate.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-unit-test-support/src/main/java/org/apache/activemq/artemis/utils/Wait.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-unit-test-support/src/main/java/org/apache/activemq/artemis/utils/Wait.java uses unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-unit-test-support/src/main/java/org/apache/activemq/artemis/utils/Wait.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] -----< org.apache.artemis:artemis-log-annotation-processor-tests >------
+[INFO] Building Apache Artemis Log Annotation Processor Tests 2.55.0-SNAPSHOT [6/73]
+[INFO]   from artemis-log-annotation-processor/tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-log-annotation-processor-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-log-annotation-processor/tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-log-annotation-processor-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-log-annotation-processor-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-log-annotation-processor-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-log-annotation-processor-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-log-annotation-processor/tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-log-annotation-processor-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -----------------< org.apache.artemis:artemis-commons >-----------------
+[INFO] Building Apache Artemis Commons 2.55.0-SNAPSHOT                   [7/73]
+[INFO]   from artemis-commons/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-commons ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-commons/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-commons ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-commons ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-commons ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-commons ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-commons/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-commons ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 208 source files with javac [debug release 17] to target/classes
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-commons/src/main/java/org/apache/activemq/artemis/utils/Env.java:[33,15] sun.misc.Unsafe is internal proprietary API and may be removed in a future release
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-commons/src/main/java/org/apache/activemq/artemis/utils/Env.java:[35,32] sun.misc.Unsafe is internal proprietary API and may be removed in a future release
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-commons/src/main/java/org/apache/activemq/artemis/utils/Env.java:[37,30] sun.misc.Unsafe is internal proprietary API and may be removed in a future release
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-commons/src/main/java/org/apache/activemq/artemis/utils/Env.java:[40,33] sun.misc.Unsafe is internal proprietary API and may be removed in a future release
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-commons/src/main/java/org/apache/activemq/artemis/utils/Env.java:[40,54] sun.misc.Unsafe is internal proprietary API and may be removed in a future release
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-commons/src/main/java/org/apache/activemq/artemis/utils/uri/FluentPropertyBeanIntrospectorWithIgnores.java:[79,98] non-varargs call of varargs method with inexact argument type for last parameter;
+  cast to java.lang.Class<?> for a varargs call
+  cast to java.lang.Class<?>[] for a non-varargs call and to suppress this warning
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-commons/src/main/java/org/apache/activemq/artemis/utils/AbstractByteBufPool.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-commons/src/main/java/org/apache/activemq/artemis/utils/AbstractByteBufPool.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] ----------------< org.apache.artemis:artemis-selector >-----------------
+[INFO] Building Apache Artemis Selector Implementation 2.55.0-SNAPSHOT   [8/73]
+[INFO]   from artemis-selector/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-selector ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-selector/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-selector ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-selector ---
+[INFO] 
+[INFO] --- javacc:3.2.0:javacc (javacc) @ artemis-selector ---
+Java Compiler Compiler Version 7.0.13 (Parser Generator)
+(type "javacc" with no arguments for help)
+Reading from file /home/jbertram/jboss/src/artemis-buildWarnings/artemis-selector/src/main/javacc/HyphenatedParser.jj . . .
+Note: UNICODE_INPUT option is specified. Please make sure you create the parser/lexer using a Reader with the correct character encoding.
+File "TokenMgrError.java" does not exist.  Will create one.
+File "ParseException.java" does not exist.  Will create one.
+File "Token.java" does not exist.  Will create one.
+File "SimpleCharStream.java" does not exist.  Will create one.
+Parser generated successfully.
+Java Compiler Compiler Version 7.0.13 (Parser Generator)
+(type "javacc" with no arguments for help)
+Reading from file /home/jbertram/jboss/src/artemis-buildWarnings/artemis-selector/src/main/javacc/StrictParser.jj . . .
+Note: UNICODE_INPUT option is specified. Please make sure you create the parser/lexer using a Reader with the correct character encoding.
+File "TokenMgrError.java" does not exist.  Will create one.
+File "ParseException.java" does not exist.  Will create one.
+File "Token.java" does not exist.  Will create one.
+File "SimpleCharStream.java" does not exist.  Will create one.
+Parser generated successfully.
+[INFO] Processed 2 grammars
+[INFO] 
+[INFO] --- javacc:3.2.0:javacc (default) @ artemis-selector ---
+[INFO] Skipping - all parsers are up to date
+[INFO] 
+[INFO] --- build-helper:3.6.1:add-source (add-source) @ artemis-selector ---
+[INFO] Source directory: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-selector/target/generated-sources/javacc added.
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-selector ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-selector ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-selector/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-selector ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 30 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-selector/src/main/java/org/apache/activemq/artemis/selector/filter/ComparisonExpression.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-selector/src/main/java/org/apache/activemq/artemis/selector/filter/ComparisonExpression.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- checkstyle:3.6.0:check (default) @ artemis-selector ---
+[INFO] Starting audit...
+Audit done.
+[INFO] You have 0 Checkstyle violations.
+[INFO] 
+[INFO] ---------------< org.apache.artemis:artemis-core-client >---------------
+[INFO] Building Apache Artemis Core Client 2.55.0-SNAPSHOT               [9/73]
+[INFO]   from artemis-core-client/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-core-client ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-core-client ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-core-client ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-core-client ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-core-client ---
+[INFO] Copying 3 resources from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] The encoding used to copy filtered properties files has not been set. This means that the same encoding will be used to copy filtered properties files as when copying other filtered resources. This might not be what you want! Run your build with --debug to see which files might be affected. Read more at https://maven.apache.org/plugins/maven-resources-plugin/examples/filtering-properties-files.html
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-core-client ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 340 source files with javac [debug release 17] to target/classes
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client/src/main/java/org/apache/activemq/artemis/core/client/impl/TopologyMemberImpl.java:[61,34] getLive() in org.apache.activemq.artemis.api.core.client.TopologyMember has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client/src/main/java/org/apache/activemq/artemis/core/protocol/core/impl/BackwardsCompatibilityUtils.java:[112,48] HTTP_CLIENT_IDLE_PROP_NAME in org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client/src/main/java/org/apache/activemq/artemis/core/protocol/core/impl/BackwardsCompatibilityUtils.java:[113,48] HTTP_CLIENT_IDLE_SCAN_PERIOD in org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client/src/main/java/org/apache/activemq/artemis/core/protocol/core/impl/BackwardsCompatibilityUtils.java:[114,48] HTTP_RESPONSE_TIME_PROP_NAME in org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client/src/main/java/org/apache/activemq/artemis/core/protocol/core/impl/BackwardsCompatibilityUtils.java:[115,48] HTTP_SERVER_SCAN_PERIOD_PROP_NAME in org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants has been deprecated and marked for removal
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client/src/main/java/org/apache/activemq/artemis/api/core/ICoreMessage.java: Some input files use or override a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client/src/main/java/org/apache/activemq/artemis/api/core/ICoreMessage.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client/src/main/java/org/apache/activemq/artemis/api/core/ICoreMessage.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client/src/main/java/org/apache/activemq/artemis/api/core/ICoreMessage.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] -----------------< org.apache.artemis:artemis-journal >-----------------
+[INFO] Building Apache Artemis Journal 2.55.0-SNAPSHOT                  [10/73]
+[INFO]   from artemis-journal/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-journal ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-journal/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-journal ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-journal ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-journal ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-journal ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-journal/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-journal ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 67 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-journal/src/main/java/org/apache/activemq/artemis/core/io/aio/AIOSequentialFile.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-journal/src/main/java/org/apache/activemq/artemis/core/io/aio/AIOSequentialFile.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] ---------------< org.apache.artemis:artemis-jdbc-store >----------------
+[INFO] Building Apache Artemis JDBC Store 2.55.0-SNAPSHOT               [11/73]
+[INFO]   from artemis-jdbc-store/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jdbc-store ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jdbc-store/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jdbc-store ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jdbc-store ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jdbc-store ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jdbc-store ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jdbc-store ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 25 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jdbc-store/src/main/java/org/apache/activemq/artemis/jdbc/store/logging/LoggingPreparedStatement.java: Some input files use or override a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jdbc-store/src/main/java/org/apache/activemq/artemis/jdbc/store/logging/LoggingPreparedStatement.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jdbc-store/src/main/java/org/apache/activemq/artemis/jdbc/store/journal/JDBCJournalRecord.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jdbc-store/src/main/java/org/apache/activemq/artemis/jdbc/store/journal/JDBCJournalRecord.java uses unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jdbc-store/src/main/java/org/apache/activemq/artemis/jdbc/store/journal/JDBCJournalRecord.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] ---------------< org.apache.artemis:artemis-lockmanager >---------------
+[INFO] Building Apache Artemis Lock Manager 2.55.0-SNAPSHOT             [12/73]
+[INFO]   from artemis-lockmanager/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-lockmanager ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-lockmanager/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-lockmanager ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-lockmanager ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-lockmanager ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] -------------< org.apache.artemis:artemis-lockmanager-api >-------------
+[INFO] Building Apache Artemis Lock Manager API 2.55.0-SNAPSHOT         [13/73]
+[INFO]   from artemis-lockmanager/artemis-lockmanager-api/pom.xml
+[INFO] -------------------------------[ bundle ]-------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-lockmanager-api ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-lockmanager/artemis-lockmanager-api/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-lockmanager-api ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-lockmanager-api ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-lockmanager-api ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-lockmanager-api ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-lockmanager/artemis-lockmanager-api/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-lockmanager-api ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug release 17] to target/classes
+[INFO] 
+[INFO] -----------------< org.apache.artemis:artemis-server >------------------
+[INFO] Building Apache Artemis Server 2.55.0-SNAPSHOT                   [14/73]
+[INFO]   from artemis-server/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-server ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-server ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-server ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-security-resources) @ artemis-server ---
+[INFO] Copying 52 resources from ../tests/security-resources to target/test-classes
+[INFO] 
+[INFO] --- dependency:3.8.1:properties (default) @ artemis-server ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-server ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-server ---
+[INFO] Copying 3 resources from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-server ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 669 source files with javac [debug release 17] to target/classes
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java:[3386,16] getMqttSessionStatePersistenceTimeout() in org.apache.activemq.artemis.core.config.Configuration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java:[3391,25] setMqttSessionStatePersistenceTimeout(long) in org.apache.activemq.artemis.core.config.Configuration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java:[3348,29] setTemporaryQueueNamespace(java.lang.String) in org.apache.activemq.artemis.core.config.Configuration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java:[3343,18] getTemporaryQueueNamespace() in org.apache.activemq.artemis.core.config.Configuration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java:[989,45] org.apache.activemq.artemis.core.config.ha.LiveOnlyPolicyConfiguration in org.apache.activemq.artemis.core.config.ha has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java:[989,41] LiveOnlyPolicyConfiguration() in org.apache.activemq.artemis.core.config.ha.LiveOnlyPolicyConfiguration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java:[1188,82] non-varargs call of varargs method with inexact argument type for last parameter;
+  cast to java.lang.Object for a varargs call
+  cast to java.lang.Object[] for a non-varargs call and to suppress this warning
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java:[1255,55] non-varargs call of varargs method with inexact argument type for last parameter;
+  cast to java.lang.Class<?> for a varargs call
+  cast to java.lang.Class<?>[] for a non-varargs call and to suppress this warning
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java:[1257,42] non-varargs call of varargs method with inexact argument type for last parameter;
+  cast to java.lang.Object for a varargs call
+  cast to java.lang.Object[] for a non-varargs call and to suppress this warning
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3903,16] createBridge(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,long,double,int,int,boolean,int,long,java.lang.String,boolean,boolean,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3815,16] createBridge(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,long,double,int,int,boolean,int,int,long,java.lang.String,boolean,boolean,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3856,16] createBridge(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.String>,long,double,int,int,boolean,int,int,long,java.lang.String,boolean,boolean,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3775,16] createBridge(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,long,double,int,int,boolean,int,int,long,java.lang.String,boolean,boolean,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3702,16] updateDivert(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.String>,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3655,16] createDivert(java.lang.String,java.lang.String,java.lang.String,java.lang.String,boolean,java.lang.String,java.lang.String,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3668,16] createDivert(java.lang.String,java.lang.String,java.lang.String,java.lang.String,boolean,java.lang.String,java.lang.String,java.util.Map<java.lang.String,java.lang.String>,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3643,16] createDivert(java.lang.String,java.lang.String,java.lang.String,java.lang.String,boolean,java.lang.String,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3632,16] createDivert(java.lang.String,java.lang.String,java.lang.String,java.lang.String,boolean,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3405,16] addAddressSettings(java.lang.String,java.lang.String,java.lang.String,long,boolean,int,long,int,int,long,double,long,long,boolean,java.lang.String,long,long,java.lang.String,boolean,boolean,boolean,boolean,boolean,boolean,boolean,boolean,java.lang.String,java.lang.String,long,java.lang.String,boolean,boolean,boolean,int,java.lang.String,int,boolean,int,long,java.lang.String,java.lang.String,int,long,boolean,long,long,long,double,long,boolean,java.lang.String,java.lang.String,boolean,java.lang.String,java.lang.String,long,long,boolean) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3288,16] addAddressSettings(java.lang.String,java.lang.String,java.lang.String,long,boolean,int,long,int,int,long,double,long,long,boolean,java.lang.String,long,long,java.lang.String,boolean,boolean,boolean,boolean,boolean,boolean,boolean,boolean,java.lang.String,java.lang.String,long,java.lang.String,boolean,boolean,boolean,int,java.lang.String,int,boolean,int,long,java.lang.String,java.lang.String,int,long,boolean,long,long,long,double,long,boolean,java.lang.String,java.lang.String,boolean,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3180,16] addAddressSettings(java.lang.String,java.lang.String,java.lang.String,long,boolean,int,long,int,int,long,double,long,long,boolean,java.lang.String,long,long,java.lang.String,boolean,boolean,boolean,boolean,boolean,boolean,boolean,boolean,java.lang.String,java.lang.String,long,java.lang.String,boolean,boolean,boolean,int,java.lang.String,int,boolean,int,long,java.lang.String,java.lang.String,int,long,boolean,long,long,long,double,long) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3101,16] addAddressSettings(java.lang.String,java.lang.String,java.lang.String,long,boolean,int,long,int,int,long,double,long,long,boolean,java.lang.String,long,long,java.lang.String,boolean,boolean,boolean,boolean,boolean,boolean,boolean,boolean) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[3049,16] addAddressSettings(java.lang.String,java.lang.String,java.lang.String,long,boolean,int,long,int,int,long,double,long,long,boolean,java.lang.String,long,long,java.lang.String,boolean,boolean,boolean,boolean) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[2941,16] addSecuritySettings(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[2926,16] addSecuritySettings(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[2913,16] addSecuritySettings(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[2901,16] addSecuritySettings(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[2035,18] listPreparedTransactionDetailsAsHTML() in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[1117,18] createQueue(java.lang.String,java.lang.String,java.lang.String,java.lang.String,boolean,int,boolean,boolean,boolean,int,boolean,java.lang.String,boolean,int,long,boolean) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[1078,16] createQueue(java.lang.String,java.lang.String,java.lang.String,boolean,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[1072,16] createQueue(java.lang.String,java.lang.String,java.lang.String,boolean) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[1067,16] createQueue(java.lang.String,java.lang.String,boolean,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[1062,16] createQueue(java.lang.String,java.lang.String,boolean) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[1057,16] createQueue(java.lang.String,java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[1052,16] createQueue(java.lang.String,java.lang.String) in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/management/impl/ActiveMQServerControlImpl.java:[4386,16] getMessageExpiryThreadPriority() in org.apache.activemq.artemis.api.core.management.ActiveMQServerControl has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/deployers/impl/FileConfigurationParser.java:[509,89] getTemporaryQueueNamespace() in org.apache.activemq.artemis.core.config.Configuration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/deployers/impl/FileConfigurationParser.java:[509,13] setTemporaryQueueNamespace(java.lang.String) in org.apache.activemq.artemis.core.config.Configuration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/deployers/impl/FileConfigurationParser.java:[515,111] getMqttSessionStatePersistenceTimeout() in org.apache.activemq.artemis.core.config.Configuration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/deployers/impl/FileConfigurationParser.java:[515,13] setMqttSessionStatePersistenceTimeout(long) in org.apache.activemq.artemis.core.config.Configuration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/deployers/impl/FileConfigurationParser.java:[1549,34] setMaxConnections(int) in org.apache.activemq.artemis.core.settings.impl.ResourceLimitSettings has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/server/management/impl/ManagementServiceImpl.java:[771,20] getResources(java.lang.Class<?>) in org.apache.activemq.artemis.core.server.management.ManagementService has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/server/management/impl/ManagementServiceImpl.java:[766,18] getResource(java.lang.String) in org.apache.activemq.artemis.core.server.management.ManagementService has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/server/management/impl/ManagementServiceImpl.java:[820,16] unregisterFromJMX(javax.management.ObjectName) in org.apache.activemq.artemis.core.server.management.ManagementService has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/server/management/impl/ManagementServiceImpl.java:[803,16] registerInJMX(javax.management.ObjectName,java.lang.Object) in org.apache.activemq.artemis.core.server.management.ManagementService has been deprecated and marked for removal
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java: Some input files use or override a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server/src/main/java/org/apache/activemq/artemis/core/config/impl/ConfigurationImpl.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] ----------------< org.apache.artemis:artemis-protocols >----------------
+[INFO] Building Apache Artemis Protocols 2.55.0-SNAPSHOT                [15/73]
+[INFO]   from artemis-protocols/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-protocols ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-protocols ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-protocols ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-protocols ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --------------< org.apache.artemis:artemis-amqp-protocol >--------------
+[INFO] Building Apache Artemis AMQP Protocol 2.55.0-SNAPSHOT            [16/73]
+[INFO]   from artemis-protocols/artemis-amqp-protocol/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-amqp-protocol ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-amqp-protocol/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-amqp-protocol ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-amqp-protocol ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-amqp-protocol ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-amqp-protocol ---
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-amqp-protocol ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 231 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-amqp-protocol/src/main/java/org/apache/activemq/artemis/protocol/amqp/broker/ProtonProtocolManager.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-amqp-protocol/src/main/java/org/apache/activemq/artemis/protocol/amqp/broker/ProtonProtocolManager.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] -------------< org.apache.artemis:artemis-stomp-protocol >--------------
+[INFO] Building Apache Artemis STOMP Protocol 2.55.0-SNAPSHOT           [17/73]
+[INFO]   from artemis-protocols/artemis-stomp-protocol/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-stomp-protocol ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-stomp-protocol/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-stomp-protocol ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-stomp-protocol ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-stomp-protocol ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-stomp-protocol ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-stomp-protocol ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 24 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-stomp-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/stomp/VersionedStompFrameHandler.java: Some input files use or override a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-stomp-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/stomp/VersionedStompFrameHandler.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-stomp-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/stomp/StompConnection.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-stomp-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/stomp/StompConnection.java uses unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-stomp-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/stomp/StompConnection.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] ---------------< org.apache.artemis:artemis-jms-client >----------------
+[INFO] Building Apache Artemis JMS Client 2.55.0-SNAPSHOT               [18/73]
+[INFO]   from artemis-jms-client/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jms-client ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jms-client ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jms-client ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jms-client ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jms-client ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jms-client ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 63 source files with javac [debug release 17] to target/classes
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client/src/main/java/org/apache/activemq/artemis/jms/client/ActiveMQConnectionFactory.java:[189,16] setDeserializationWhiteList(java.lang.String) in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client/src/main/java/org/apache/activemq/artemis/jms/client/ActiveMQConnectionFactory.java:[183,18] getDeserializationWhiteList() in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client/src/main/java/org/apache/activemq/artemis/jms/client/ActiveMQConnectionFactory.java:[177,16] setDeserializationBlackList(java.lang.String) in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client/src/main/java/org/apache/activemq/artemis/jms/client/ActiveMQConnectionFactory.java:[171,18] getDeserializationBlackList() in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client/src/main/java/org/apache/activemq/artemis/jms/client/ActiveMQSession.java: Some input files use or override a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client/src/main/java/org/apache/activemq/artemis/jms/client/ActiveMQSession.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client/src/main/java/org/apache/activemq/artemis/jms/client/ActiveMQMessage.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client/src/main/java/org/apache/activemq/artemis/jms/client/ActiveMQMessage.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] ------------< org.apache.artemis:artemis-openwire-protocol >------------
+[INFO] Building Apache Artemis OpenWire Protocol 2.55.0-SNAPSHOT        [19/73]
+[INFO]   from artemis-protocols/artemis-openwire-protocol/pom.xml
+[INFO] -------------------------------[ bundle ]-------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-openwire-protocol ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-openwire-protocol/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-openwire-protocol ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-openwire-protocol ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-openwire-protocol ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-openwire-protocol ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-openwire-protocol ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 17 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-openwire-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/openwire/amq/AMQConsumer.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-openwire-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/openwire/amq/AMQConsumer.java uses or overrides a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-openwire-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/openwire/amq/AMQConsumer.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-openwire-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/openwire/OpenWireProtocolManager.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-openwire-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/openwire/OpenWireProtocolManager.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] -------------< org.apache.artemis:artemis-jakarta-client >--------------
+[INFO] Building Apache Artemis Jakarta Messaging Client 2.55.0-SNAPSHOT [20/73]
+[INFO]   from artemis-jakarta-client/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jakarta-client ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jakarta-client ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jakarta-client ---
+[INFO] 
+[INFO] --- transformer-tools-mvn:1.0.15.Final:transform-sources (transform-sources) @ artemis-jakarta-client ---
+[INFO] Transforming contents of project /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/../artemis-jms-client
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/../artemis-jms-client/src/main/java to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/target/generated-sources/transformed
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/../artemis-jms-client/src/test/java to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/target/generated-test-sources/transformed
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/../artemis-jms-client/src/main/resources to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/target/generated-resources/transformed
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jakarta-client ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jakarta-client ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 0 resource from target/generated-resources/transformed to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jakarta-client ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 63 source files with javac [debug release 17] to target/classes
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/target/generated-sources/transformed/org/apache/activemq/artemis/jms/client/ActiveMQConnectionFactory.java:[189,16] setDeserializationWhiteList(java.lang.String) in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/target/generated-sources/transformed/org/apache/activemq/artemis/jms/client/ActiveMQConnectionFactory.java:[183,18] getDeserializationWhiteList() in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/target/generated-sources/transformed/org/apache/activemq/artemis/jms/client/ActiveMQConnectionFactory.java:[177,16] setDeserializationBlackList(java.lang.String) in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/target/generated-sources/transformed/org/apache/activemq/artemis/jms/client/ActiveMQConnectionFactory.java:[171,18] getDeserializationBlackList() in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/target/generated-sources/transformed/org/apache/activemq/artemis/jms/client/ActiveMQSession.java: Some input files use or override a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/target/generated-sources/transformed/org/apache/activemq/artemis/jms/client/ActiveMQSession.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/target/generated-sources/transformed/org/apache/activemq/artemis/jms/client/ActiveMQMessage.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client/target/generated-sources/transformed/org/apache/activemq/artemis/jms/client/ActiveMQMessage.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] -------< org.apache.artemis:artemis-jakarta-service-extensions >--------
+[INFO] Building Apache Artemis Jakarta Service Extensions 2.55.0-SNAPSHOT [21/73]
+[INFO]   from artemis-jakarta-service-extensions/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jakarta-service-extensions ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-service-extensions/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jakarta-service-extensions ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jakarta-service-extensions ---
+[INFO] 
+[INFO] --- transformer-tools-mvn:1.0.15.Final:transform-sources (transform-sources) @ artemis-jakarta-service-extensions ---
+[INFO] Transforming contents of project /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-service-extensions/../artemis-service-extensions
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-service-extensions/../artemis-service-extensions/src/main/java to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-service-extensions/target/generated-sources/transformed
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-service-extensions/../artemis-service-extensions/src/test/java to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-service-extensions/target/generated-test-sources/transformed
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-service-extensions/../artemis-service-extensions/src/test/resources to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-service-extensions/target/generated-test-resources/transformed
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jakarta-service-extensions ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jakarta-service-extensions ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-service-extensions/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jakarta-service-extensions ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 13 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-service-extensions/target/generated-sources/transformed/org/apache/activemq/artemis/service/extensions/xa/recovery/ActiveMQXARecoveryLogger.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-service-extensions/target/generated-sources/transformed/org/apache/activemq/artemis/service/extensions/xa/recovery/ActiveMQXARecoveryLogger.java uses or overrides a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-service-extensions/target/generated-sources/transformed/org/apache/activemq/artemis/service/extensions/xa/recovery/ActiveMQXARecoveryLogger.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] -------------< org.apache.artemis:artemis-jakarta-server >--------------
+[INFO] Building Apache Artemis Jakarta Messaging Server 2.55.0-SNAPSHOT [22/73]
+[INFO]   from artemis-jakarta-server/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jakarta-server ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jakarta-server ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jakarta-server ---
+[INFO] 
+[INFO] --- transformer-tools-mvn:1.0.15.Final:transform-sources (transform-sources) @ artemis-jakarta-server ---
+[INFO] Transforming contents of project /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/../artemis-jms-server
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/../artemis-jms-server/src/main/java to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/target/generated-sources/transformed
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/../artemis-jms-server/src/test/java to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/target/generated-test-sources/transformed
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/../artemis-jms-server/src/main/resources to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/target/generated-resources/transformed
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jakarta-server ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jakarta-server ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/src/main/resources
+[INFO] Copying 1 resource from target/generated-resources/transformed to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jakarta-server ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 36 source files with javac [debug release 17] to target/classes
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/target/generated-sources/transformed/org/apache/activemq/artemis/jms/server/config/impl/ConnectionFactoryConfigurationImpl.java:[909,16] setDeserializationWhiteList(java.lang.String) in org.apache.activemq.artemis.jms.server.config.ConnectionFactoryConfiguration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/target/generated-sources/transformed/org/apache/activemq/artemis/jms/server/config/impl/ConnectionFactoryConfigurationImpl.java:[904,18] getDeserializationWhiteList() in org.apache.activemq.artemis.jms.server.config.ConnectionFactoryConfiguration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/target/generated-sources/transformed/org/apache/activemq/artemis/jms/server/config/impl/ConnectionFactoryConfigurationImpl.java:[899,16] setDeserializationBlackList(java.lang.String) in org.apache.activemq.artemis.jms.server.config.ConnectionFactoryConfiguration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/target/generated-sources/transformed/org/apache/activemq/artemis/jms/server/config/impl/ConnectionFactoryConfigurationImpl.java:[894,18] getDeserializationBlackList() in org.apache.activemq.artemis.jms.server.config.ConnectionFactoryConfiguration has been deprecated and marked for removal
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/target/generated-sources/transformed/org/apache/activemq/artemis/jms/server/ActiveMQJMSServerLogger.java: Some input files use or override a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/target/generated-sources/transformed/org/apache/activemq/artemis/jms/server/ActiveMQJMSServerLogger.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/target/generated-sources/transformed/org/apache/activemq/artemis/jms/bridge/impl/JMSBridgeImpl.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-server/target/generated-sources/transformed/org/apache/activemq/artemis/jms/bridge/impl/JMSBridgeImpl.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --------< org.apache.artemis:artemis-jakarta-openwire-protocol >--------
+[INFO] Building Apache Artemis Jakarta OpenWire Protocol 2.55.0-SNAPSHOT [23/73]
+[INFO]   from artemis-protocols/artemis-jakarta-openwire-protocol/pom.xml
+[INFO] -------------------------------[ bundle ]-------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jakarta-openwire-protocol ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jakarta-openwire-protocol ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jakarta-openwire-protocol ---
+[INFO] 
+[INFO] --- transformer-tools-mvn:1.0.15.Final:transform-sources (transform-sources) @ artemis-jakarta-openwire-protocol ---
+[INFO] Transforming contents of project /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/../artemis-openwire-protocol
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/../artemis-openwire-protocol/src/main/java to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/target/generated-sources/transformed
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/../artemis-openwire-protocol/src/test/java to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/target/generated-test-sources/transformed
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/../artemis-openwire-protocol/src/main/resources to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/target/generated-resources/transformed
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jakarta-openwire-protocol ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jakarta-openwire-protocol ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/src/main/resources
+[INFO] Copying 1 resource from target/generated-resources/transformed to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jakarta-openwire-protocol ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 17 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/target/generated-sources/transformed/org/apache/activemq/artemis/core/protocol/openwire/amq/AMQConsumer.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/target/generated-sources/transformed/org/apache/activemq/artemis/core/protocol/openwire/amq/AMQConsumer.java uses or overrides a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/target/generated-sources/transformed/org/apache/activemq/artemis/core/protocol/openwire/amq/AMQConsumer.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/target/generated-sources/transformed/org/apache/activemq/artemis/core/protocol/openwire/OpenWireProtocolManager.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-jakarta-openwire-protocol/target/generated-sources/transformed/org/apache/activemq/artemis/core/protocol/openwire/OpenWireProtocolManager.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] ------------< org.apache.artemis:artemis-hqclient-protocol >------------
+[INFO] Building Apache Artemis HQClient Protocol 2.55.0-SNAPSHOT        [24/73]
+[INFO]   from artemis-protocols/artemis-hqclient-protocol/pom.xml
+[INFO] -------------------------------[ bundle ]-------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-hqclient-protocol ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-hqclient-protocol/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-hqclient-protocol ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-hqclient-protocol ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-hqclient-protocol ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-hqclient-protocol ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-hqclient-protocol/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-hqclient-protocol ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 6 source files with javac [debug release 17] to target/classes
+[INFO] 
+[INFO] ------------< org.apache.artemis:artemis-hornetq-protocol >-------------
+[INFO] Building Apache Artemis HornetQ Protocol 2.55.0-SNAPSHOT         [25/73]
+[INFO]   from artemis-protocols/artemis-hornetq-protocol/pom.xml
+[INFO] -------------------------------[ bundle ]-------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-hornetq-protocol ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-hornetq-protocol/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-hornetq-protocol ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-hornetq-protocol ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-hornetq-protocol ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-hornetq-protocol ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-hornetq-protocol ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 2 source files with javac [debug release 17] to target/classes
+[INFO] 
+[INFO] --------------< org.apache.artemis:artemis-mqtt-protocol >--------------
+[INFO] Building Apache Artemis MQTT Protocol 2.55.0-SNAPSHOT            [26/73]
+[INFO]   from artemis-protocols/artemis-mqtt-protocol/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-mqtt-protocol ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-mqtt-protocol/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-mqtt-protocol ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-mqtt-protocol ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-mqtt-protocol ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-mqtt-protocol ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-mqtt-protocol ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 24 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-mqtt-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/mqtt/MQTTUtil.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-mqtt-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/mqtt/MQTTUtil.java uses or overrides a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-mqtt-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/mqtt/MQTTUtil.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-mqtt-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/mqtt/MQTTConnection.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-protocols/artemis-mqtt-protocol/src/main/java/org/apache/activemq/artemis/core/protocol/mqtt/MQTTConnection.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] -------------------< org.apache.artemis:artemis-dto >-------------------
+[INFO] Building Apache Artemis DTO 2.55.0-SNAPSHOT                      [27/73]
+[INFO]   from artemis-dto/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-dto ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-dto/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-dto ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-dto ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-dto ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- antrun:3.2.0:run (default) @ artemis-dto ---
+[INFO] Executing tasks
+[INFO]     [mkdir] Created dir: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-dto/target/schema/org.apache.activemq/dto
+[WARNING]      [echo] Generating XSD to: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-dto/target/schema/org.apache.activemq/dto
+[INFO] [schemagen] Generating schema from 22 source files
+[INFO]      [copy] Copying 1 file to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-dto/target/classes
+[INFO] Executed tasks
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-dto ---
+[INFO] Copying 1 resource from target/schema to target/classes
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-dto ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 23 source files with javac [debug release 17] to target/classes
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-dto/src/main/java/org/apache/activemq/artemis/dto/AuthorisationDTO.java:[31,4] org.apache.activemq.artemis.dto.WhiteListDTO in org.apache.activemq.artemis.dto has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-dto/src/main/java/org/apache/activemq/artemis/dto/AuthorisationDTO.java:[43,11] org.apache.activemq.artemis.dto.WhiteListDTO in org.apache.activemq.artemis.dto has been deprecated and marked for removal
+[INFO] 
+[INFO] ---------------< org.apache.artemis:artemis-cdi-client >----------------
+[INFO] Building Apache Artemis CDI Integration 2.55.0-SNAPSHOT          [28/73]
+[INFO]   from artemis-cdi-client/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-cdi-client ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-cdi-client/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-cdi-client ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-cdi-client ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-cdi-client ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-cdi-client ---
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-cdi-client ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 9 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-cdi-client/src/main/java/org/apache/artemis/client/cdi/logger/ActiveMQCDILogger.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-cdi-client/src/main/java/org/apache/artemis/client/cdi/logger/ActiveMQCDILogger.java uses or overrides a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-cdi-client/src/main/java/org/apache/artemis/client/cdi/logger/ActiveMQCDILogger.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] -----------< org.apache.artemis:artemis-jakarta-cdi-client >------------
+[INFO] Building Apache Artemis Jakarta CDI Integration 2.55.0-SNAPSHOT  [29/73]
+[INFO]   from artemis-jakarta-cdi-client/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jakarta-cdi-client ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-cdi-client/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jakarta-cdi-client ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jakarta-cdi-client ---
+[INFO] 
+[INFO] --- transformer-tools-mvn:1.0.15.Final:transform-sources (transform-sources) @ artemis-jakarta-cdi-client ---
+[INFO] Transforming contents of project /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-cdi-client/../artemis-cdi-client
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-cdi-client/../artemis-cdi-client/src/main/java to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-cdi-client/target/generated-sources/transformed
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-cdi-client/../artemis-cdi-client/src/test/java to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-cdi-client/target/generated-test-sources/transformed
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-cdi-client/../artemis-cdi-client/src/main/resources to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-cdi-client/target/generated-resources/transformed
+[INFO] 
+[INFO] --- clean:3.5.0:clean (remove-old-services-file) @ artemis-jakarta-cdi-client ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-cdi-client/target/generated-resources/transformed/META-INF/services
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jakarta-cdi-client ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jakarta-cdi-client ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 1 resource from target/generated-resources/transformed to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jakarta-cdi-client ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 9 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-cdi-client/target/generated-sources/transformed/org/apache/artemis/client/cdi/logger/ActiveMQCDILogger.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-cdi-client/target/generated-sources/transformed/org/apache/artemis/client/cdi/logger/ActiveMQCDILogger.java uses or overrides a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-cdi-client/target/generated-sources/transformed/org/apache/artemis/client/cdi/logger/ActiveMQCDILogger.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] ------------------< org.apache.artemis:artemis-boot >-------------------
+[INFO] Building Apache Artemis Boot 2.55.0-SNAPSHOT                     [30/73]
+[INFO]   from artemis-boot/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-boot ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-boot/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-boot ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-boot ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-boot ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-boot ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-boot/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-boot ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 1 source file with javac [debug release 17] to target/classes
+[INFO] 
+[INFO] -----------< org.apache.artemis:artemis-service-extensions >------------
+[INFO] Building Apache Artemis Service Extensions 2.55.0-SNAPSHOT       [31/73]
+[INFO]   from artemis-service-extensions/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-service-extensions ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-service-extensions/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-service-extensions ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-service-extensions ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-service-extensions ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-service-extensions ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-service-extensions/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-service-extensions ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 13 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-service-extensions/src/main/java/org/apache/activemq/artemis/service/extensions/xa/recovery/ActiveMQXARecoveryLogger.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-service-extensions/src/main/java/org/apache/activemq/artemis/service/extensions/xa/recovery/ActiveMQXARecoveryLogger.java uses or overrides a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-service-extensions/src/main/java/org/apache/activemq/artemis/service/extensions/xa/recovery/ActiveMQXARecoveryLogger.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] ---------------< org.apache.artemis:artemis-jms-server >----------------
+[INFO] Building Apache Artemis JMS Server 2.55.0-SNAPSHOT               [32/73]
+[INFO]   from artemis-jms-server/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jms-server ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-server/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jms-server ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jms-server ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jms-server ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jms-server ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jms-server ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 36 source files with javac [debug release 17] to target/classes
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-server/src/main/java/org/apache/activemq/artemis/jms/server/config/impl/ConnectionFactoryConfigurationImpl.java:[909,16] setDeserializationWhiteList(java.lang.String) in org.apache.activemq.artemis.jms.server.config.ConnectionFactoryConfiguration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-server/src/main/java/org/apache/activemq/artemis/jms/server/config/impl/ConnectionFactoryConfigurationImpl.java:[904,18] getDeserializationWhiteList() in org.apache.activemq.artemis.jms.server.config.ConnectionFactoryConfiguration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-server/src/main/java/org/apache/activemq/artemis/jms/server/config/impl/ConnectionFactoryConfigurationImpl.java:[899,16] setDeserializationBlackList(java.lang.String) in org.apache.activemq.artemis.jms.server.config.ConnectionFactoryConfiguration has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-server/src/main/java/org/apache/activemq/artemis/jms/server/config/impl/ConnectionFactoryConfigurationImpl.java:[894,18] getDeserializationBlackList() in org.apache.activemq.artemis.jms.server.config.ConnectionFactoryConfiguration has been deprecated and marked for removal
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-server/src/main/java/org/apache/activemq/artemis/jms/server/ActiveMQJMSServerLogger.java: Some input files use or override a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-server/src/main/java/org/apache/activemq/artemis/jms/server/ActiveMQJMSServerLogger.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-server/src/main/java/org/apache/activemq/artemis/jms/bridge/impl/JMSBridgeImpl.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-server/src/main/java/org/apache/activemq/artemis/jms/bridge/impl/JMSBridgeImpl.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] -------------------< org.apache.artemis:artemis-cli >-------------------
+[INFO] Building Apache Artemis CLI 2.55.0-SNAPSHOT                      [33/73]
+[INFO]   from artemis-cli/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-cli ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-cli/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-cli ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-cli ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-cli ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-cli ---
+[INFO] Copying 46 resources from src/main/resources to target/classes
+[INFO] Copying 1 resource from src/main/filtered-resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- dependency:3.8.1:copy (unpack) @ artemis-cli ---
+[INFO] Configured Artifact: com.sun.winsw:winsw:bin:2.9.0:exe
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-cli ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 139 source files with javac [debug release 17] to target/classes
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-cli/src/main/java/org/apache/activemq/artemis/cli/factory/jmx/ManagementFactory.java:[77,10] org.apache.activemq.artemis.dto.WhiteListDTO in org.apache.activemq.artemis.dto has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-cli/src/main/java/org/apache/activemq/artemis/cli/factory/jmx/ManagementFactory.java:[77,48] getWhiteList() in org.apache.activemq.artemis.dto.AuthorisationDTO has been deprecated and marked for removal
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-cli/src/main/java/org/apache/activemq/artemis/cli/Shell.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-cli/src/main/java/org/apache/activemq/artemis/cli/Shell.java uses or overrides a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-cli/src/main/java/org/apache/activemq/artemis/cli/Shell.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-cli/src/main/java/org/apache/activemq/artemis/cli/commands/check/QueueCheck.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-cli/src/main/java/org/apache/activemq/artemis/cli/commands/check/QueueCheck.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] -------------< org.apache.artemis:artemis-core-client-all >-------------
+[INFO] Building Apache Artemis Core Client All 2.55.0-SNAPSHOT          [34/73]
+[INFO]   from artemis-core-client-all/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-core-client-all ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client-all/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-core-client-all ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-core-client-all ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-core-client-all ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-core-client-all ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client-all/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-core-client-all ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] ------------< org.apache.artemis:artemis-core-client-osgi >-------------
+[INFO] Building Apache Artemis Client OSGi 2.55.0-SNAPSHOT              [35/73]
+[INFO]   from artemis-core-client-osgi/pom.xml
+[INFO] -------------------------------[ bundle ]-------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-core-client-osgi ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client-osgi/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-core-client-osgi ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-core-client-osgi ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-core-client-osgi ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-core-client-osgi ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-core-client-osgi/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-core-client-osgi ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -------------------< org.apache.artemis:artemis-web >-------------------
+[INFO] Building Apache Artemis Web 2.55.0-SNAPSHOT                      [36/73]
+[INFO]   from artemis-web/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-web ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-web/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-web ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-web ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-security-resources) @ artemis-web ---
+[INFO] Copying 7 resources from ../tests/security-resources to target/test-classes
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-web ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-web ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-web/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-web ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 5 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-web/src/main/java/org/apache/activemq/artemis/component/WebServerComponent.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-web/src/main/java/org/apache/activemq/artemis/component/WebServerComponent.java uses unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-web/src/main/java/org/apache/activemq/artemis/component/WebServerComponent.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --------------< org.apache.artemis:artemis-junit-parent >---------------
+[INFO] Building Apache Artemis JUnit 2.55.0-SNAPSHOT                    [37/73]
+[INFO]   from artemis-junit/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-junit-parent ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-junit/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-junit-parent ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-junit-parent ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-junit-parent ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --------------< org.apache.artemis:artemis-junit-commons >--------------
+[INFO] Building Apache Artemis JUnit Commons 2.55.0-SNAPSHOT            [38/73]
+[INFO]   from artemis-junit/artemis-junit-commons/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-junit-commons ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-junit/artemis-junit-commons/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-junit-commons ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-junit-commons ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-junit-commons ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-junit-commons ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-junit/artemis-junit-commons/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-junit-commons ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 11 source files with javac [debug release 17] to target/classes
+[INFO] 
+[INFO] ------------------< org.apache.artemis:artemis-junit >------------------
+[INFO] Building Apache Artemis JUnit 4 Rules 2.55.0-SNAPSHOT            [39/73]
+[INFO]   from artemis-junit/artemis-junit-4/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-junit ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-junit/artemis-junit-4/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-junit ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-junit ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-junit ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-junit ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-junit/artemis-junit-4/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-junit ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 5 source files with javac [debug release 17] to target/classes
+[INFO] 
+[INFO] -----------------< org.apache.artemis:artemis-junit-5 >-----------------
+[INFO] Building Apache Artemis JUnit 5 Extensions 2.55.0-SNAPSHOT       [40/73]
+[INFO]   from artemis-junit/artemis-junit-5/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-junit-5 ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-junit/artemis-junit-5/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-junit-5 ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-junit-5 ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-junit-5 ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-junit-5 ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-junit/artemis-junit-5/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-junit-5 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug release 17] to target/classes
+[INFO] 
+[INFO] -------------< org.apache.artemis:artemis-jms-client-all >--------------
+[INFO] Building Apache Artemis JMS Client All 2.55.0-SNAPSHOT           [41/73]
+[INFO]   from artemis-jms-client-all/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jms-client-all ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client-all/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jms-client-all ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jms-client-all ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jms-client-all ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jms-client-all ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client-all/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jms-client-all ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -------------< org.apache.artemis:artemis-jms-client-osgi >-------------
+[INFO] Building Apache Artemis JMS Client OSGi 2.55.0-SNAPSHOT          [42/73]
+[INFO]   from artemis-jms-client-osgi/pom.xml
+[INFO] -------------------------------[ bundle ]-------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jms-client-osgi ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client-osgi/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jms-client-osgi ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jms-client-osgi ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jms-client-osgi ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jms-client-osgi ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jms-client-osgi/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jms-client-osgi ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -----------< org.apache.artemis:artemis-jakarta-client-all >------------
+[INFO] Building Apache Artemis Jakarta Messaging Client All 2.55.0-SNAPSHOT [43/73]
+[INFO]   from artemis-jakarta-client-all/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jakarta-client-all ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client-all/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jakarta-client-all ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jakarta-client-all ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jakarta-client-all ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jakarta-client-all ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client-all/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jakarta-client-all ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -----------< org.apache.artemis:artemis-jakarta-client-osgi >-----------
+[INFO] Building Apache Artemis Jakarta Messaging Client OSGi 2.55.0-SNAPSHOT [44/73]
+[INFO]   from artemis-jakarta-client-osgi/pom.xml
+[INFO] -------------------------------[ bundle ]-------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jakarta-client-osgi ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client-osgi/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jakarta-client-osgi ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jakarta-client-osgi ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jakarta-client-osgi ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jakarta-client-osgi ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-client-osgi/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jakarta-client-osgi ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -------------------< org.apache.artemis:artemis-ra >--------------------
+[INFO] Building Apache Artemis RAR POM 2.55.0-SNAPSHOT                  [45/73]
+[INFO]   from artemis-ra/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-ra ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-ra ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-ra ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-ra ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-ra ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-ra ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 46 source files with javac [debug release 17] to target/classes
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ConnectionFactoryProperties.java:[698,16] setDeserializationWhiteList(java.lang.String) in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ConnectionFactoryProperties.java:[692,18] getDeserializationWhiteList() in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ConnectionFactoryProperties.java:[685,16] setDeserializationBlackList(java.lang.String) in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ConnectionFactoryProperties.java:[679,18] getDeserializationBlackList() in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[645,26] getDeserializationBlackList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[678,19] setDeserializationBlackList(java.lang.String) in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1464,37] getDeserializationBlackList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1464,96] getDeserializationBlackList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1464,141] getDeserializationBlackList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1466,12] setDeserializationBlackList(java.lang.String) in org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1468,37] getDeserializationWhiteList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1468,96] getDeserializationWhiteList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1468,141] getDeserializationWhiteList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1470,12] setDeserializationWhiteList(java.lang.String) in org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/inflow/ActiveMQActivation.java:[432,232] getTransactionTimeout() in org.apache.activemq.artemis.ra.inflow.ActiveMQActivationSpec has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/inflow/ActiveMQMessageHandler.java:[294,44] getTransactionTimeout() in org.apache.activemq.artemis.ra.inflow.ActiveMQActivationSpec has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/inflow/ActiveMQMessageHandler.java:[297,71] getTransactionTimeout() in org.apache.activemq.artemis.ra.inflow.ActiveMQActivationSpec has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/inflow/ActiveMQMessageHandler.java:[374,47] getTransactionTimeout() in org.apache.activemq.artemis.ra.inflow.ActiveMQActivationSpec has been deprecated and marked for removal
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQRALogger.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQRALogger.java uses or overrides a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-ra/src/main/java/org/apache/activemq/artemis/ra/ActiveMQRALogger.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] ---------------< org.apache.artemis:artemis-jakarta-ra >----------------
+[INFO] Building Apache Artemis Jakarta RAR 2.55.0-SNAPSHOT              [46/73]
+[INFO]   from artemis-jakarta-ra/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-jakarta-ra ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-jakarta-ra ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-jakarta-ra ---
+[INFO] 
+[INFO] --- transformer-tools-mvn:1.0.15.Final:transform-sources (transform-sources) @ artemis-jakarta-ra ---
+[INFO] Transforming contents of project /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/../artemis-ra
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/../artemis-ra/src/main/java to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/../artemis-ra/src/test/java to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-test-sources/transformed
+[INFO] Transforming contents of folder /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/../artemis-ra/src/main/resources to /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-resources/transformed
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-jakarta-ra ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-jakarta-ra ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 0 resource from target/generated-resources/transformed to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-jakarta-ra ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 46 source files with javac [debug release 17] to target/classes
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ConnectionFactoryProperties.java:[698,16] setDeserializationWhiteList(java.lang.String) in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ConnectionFactoryProperties.java:[692,18] getDeserializationWhiteList() in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ConnectionFactoryProperties.java:[685,16] setDeserializationBlackList(java.lang.String) in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ConnectionFactoryProperties.java:[679,18] getDeserializationBlackList() in org.apache.activemq.artemis.jms.client.ConnectionFactoryOptions has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[645,26] getDeserializationBlackList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[678,19] setDeserializationBlackList(java.lang.String) in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1464,37] getDeserializationBlackList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1464,96] getDeserializationBlackList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1464,141] getDeserializationBlackList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1466,12] setDeserializationBlackList(java.lang.String) in org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1468,37] getDeserializationWhiteList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1468,96] getDeserializationWhiteList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1468,141] getDeserializationWhiteList() in org.apache.activemq.artemis.ra.ConnectionFactoryProperties has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQResourceAdapter.java:[1470,12] setDeserializationWhiteList(java.lang.String) in org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/inflow/ActiveMQActivation.java:[432,232] getTransactionTimeout() in org.apache.activemq.artemis.ra.inflow.ActiveMQActivationSpec has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/inflow/ActiveMQMessageHandler.java:[294,44] getTransactionTimeout() in org.apache.activemq.artemis.ra.inflow.ActiveMQActivationSpec has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/inflow/ActiveMQMessageHandler.java:[297,71] getTransactionTimeout() in org.apache.activemq.artemis.ra.inflow.ActiveMQActivationSpec has been deprecated and marked for removal
+[WARNING] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/inflow/ActiveMQMessageHandler.java:[374,47] getTransactionTimeout() in org.apache.activemq.artemis.ra.inflow.ActiveMQActivationSpec has been deprecated and marked for removal
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQRALogger.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQRALogger.java uses or overrides a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-jakarta-ra/target/generated-sources/transformed/org/apache/activemq/artemis/ra/ActiveMQRALogger.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --------------< org.apache.artemis:artemis-maven-plugin >---------------
+[INFO] Building Apache Artemis Maven Plugin 2.55.0-SNAPSHOT             [47/73]
+[INFO]   from artemis-maven-plugin/pom.xml
+[INFO] ----------------------------[ maven-plugin ]----------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-maven-plugin ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-maven-plugin/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-maven-plugin ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-maven-plugin ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-maven-plugin ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-maven-plugin ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-maven-plugin/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-maven-plugin ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 8 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-maven-plugin/src/main/java/org/apache/activemq/artemis/maven/ArtemisAbstractPlugin.java: Some input files use or override a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-maven-plugin/src/main/java/org/apache/activemq/artemis/maven/ArtemisAbstractPlugin.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-maven-plugin/src/main/java/org/apache/activemq/artemis/maven/ArtemisClientPlugin.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-maven-plugin/src/main/java/org/apache/activemq/artemis/maven/ArtemisClientPlugin.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] ---------------< org.apache.artemis:artemis-server-osgi >---------------
+[INFO] Building Apache Artemis Server OSGi 2.55.0-SNAPSHOT              [48/73]
+[INFO]   from artemis-server-osgi/pom.xml
+[INFO] -------------------------------[ bundle ]-------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-server-osgi ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server-osgi/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-server-osgi ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-server-osgi ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-server-osgi ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-server-osgi ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server-osgi/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-server-osgi ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 5 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server-osgi/src/main/java/org/apache/activemq/artemis/osgi/ProtocolTracker.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server-osgi/src/main/java/org/apache/activemq/artemis/osgi/ProtocolTracker.java uses unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-server-osgi/src/main/java/org/apache/activemq/artemis/osgi/ProtocolTracker.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] -----------------< org.apache.artemis:artemis-console >-----------------
+[INFO] Building Apache Artemis Console 2.55.0-SNAPSHOT                  [49/73]
+[INFO]   from artemis-console/pom.xml
+[INFO] --------------------------------[ war ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-console ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-console/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-console ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-console ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-console ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-console ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-console/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-console ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -------------< org.apache.artemis:artemis-lockmanager-ri >--------------
+[INFO] Building Apache Artemis Lock Manager RI 2.55.0-SNAPSHOT          [50/73]
+[INFO]   from artemis-lockmanager/artemis-lockmanager-ri/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-lockmanager-ri ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-lockmanager/artemis-lockmanager-ri/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-lockmanager-ri ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-lockmanager-ri ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-lockmanager-ri ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-lockmanager-ri ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/artemis-lockmanager/artemis-lockmanager-ri/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-lockmanager-ri ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 7 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-lockmanager/artemis-lockmanager-ri/src/main/java/org/apache/activemq/artemis/lockmanager/zookeeper/CuratorDistributedLockManager.java: /home/jbertram/jboss/src/artemis-buildWarnings/artemis-lockmanager/artemis-lockmanager-ri/src/main/java/org/apache/activemq/artemis/lockmanager/zookeeper/CuratorDistributedLockManager.java uses unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/artemis-lockmanager/artemis-lockmanager-ri/src/main/java/org/apache/activemq/artemis/lockmanager/zookeeper/CuratorDistributedLockManager.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] -----------------< org.apache.artemis:apache-artemis >------------------
+[INFO] Building Apache Artemis Distribution 2.55.0-SNAPSHOT             [51/73]
+[INFO]   from artemis-distribution/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ apache-artemis ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-distribution/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ apache-artemis ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ apache-artemis ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ apache-artemis ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- dependency:3.8.1:unpack (unpack) @ apache-artemis ---
+[INFO] Configured Artifact: org.apache.artemis:apache-artemis-console:bin:?:zip
+[INFO] 
+[INFO] -------------< org.apache.artemis.tests:artemis-tests-pom >-------------
+[INFO] Building Apache Artemis Tests POM 2.55.0-SNAPSHOT                [52/73]
+[INFO]   from tests/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-tests-pom ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-tests-pom ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-tests-pom ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-tests-pom ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] -----------< org.apache.artemis.tests:artemis-test-support >------------
+[INFO] Building Apache Artemis System Test Support 2.55.0-SNAPSHOT      [53/73]
+[INFO]   from tests/artemis-test-support/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-test-support ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/artemis-test-support/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-test-support ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-test-support ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-test-support ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-test-support ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/artemis-test-support/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-test-support ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 111 source files with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/tests/artemis-test-support/src/main/java/org/apache/activemq/artemis/tests/integration/stomp/util/StompClientConnectionV10.java: Some input files use or override a deprecated API.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/tests/artemis-test-support/src/main/java/org/apache/activemq/artemis/tests/integration/stomp/util/StompClientConnectionV10.java: Recompile with -Xlint:deprecation for details.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/tests/artemis-test-support/src/main/java/org/apache/activemq/artemis/tests/util/ActiveMQTestBase.java: Some input files use unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/tests/artemis-test-support/src/main/java/org/apache/activemq/artemis/tests/util/ActiveMQTestBase.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] ----------------< org.apache.artemis.tests:unit-tests >-----------------
+[INFO] Building Apache Artemis Unit Tests 2.55.0-SNAPSHOT               [54/73]
+[INFO]   from tests/unit-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ unit-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/unit-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ unit-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ unit-tests ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-security-resources) @ unit-tests ---
+[INFO] Copying 52 resources from ../security-resources to target/test-classes
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ unit-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ unit-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/unit-tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ unit-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] ----------------< org.apache.artemis.tests:joram-tests >----------------
+[INFO] Building Apache Artemis Joram Tests 2.55.0-SNAPSHOT              [55/73]
+[INFO]   from tests/joram-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ joram-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/joram-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ joram-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ joram-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ joram-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ joram-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/joram-tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ joram-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] ---------------< org.apache.artemis.tests:timing-tests >----------------
+[INFO] Building Apache Artemis timing Tests 2.55.0-SNAPSHOT             [56/73]
+[INFO]   from tests/timing-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ timing-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/timing-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ timing-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ timing-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ timing-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ timing-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/timing-tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ timing-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -----------------< org.apache.artemis.tests:jms-tests >-----------------
+[INFO] Building Apache Artemis JMS Tests 2.55.0-SNAPSHOT                [57/73]
+[INFO]   from tests/jms-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ jms-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/jms-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ jms-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ jms-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ jms-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ jms-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/jms-tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ jms-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -------------< org.apache.artemis.tests:integration-tests >-------------
+[INFO] Building Apache Artemis Integration Tests 2.55.0-SNAPSHOT        [58/73]
+[INFO]   from tests/integration-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ integration-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/integration-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ integration-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ integration-tests ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-security-resources) @ integration-tests ---
+[INFO] Copying 52 resources from ../security-resources to target/test-classes
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ integration-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ integration-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/integration-tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ integration-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --------< org.apache.artemis.tests:integration-tests-isolated >---------
+[INFO] Building Apache Artemis Isolated Integration Tests 2.55.0-SNAPSHOT [59/73]
+[INFO]   from tests/integration-tests-isolated/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ integration-tests-isolated ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/integration-tests-isolated/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ integration-tests-isolated ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ integration-tests-isolated ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-security-resources) @ integration-tests-isolated ---
+[INFO] Copying 52 resources from ../security-resources to target/test-classes
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ integration-tests-isolated ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ integration-tests-isolated ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/integration-tests-isolated/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ integration-tests-isolated ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] ----------------< org.apache.artemis:artemis-features >-----------------
+[INFO] Building Apache Artemis Features 2.55.0-SNAPSHOT                 [60/73]
+[INFO]   from artemis-features/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-features ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-features/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-features ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-features ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-features ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (filter) @ artemis-features ---
+[INFO] Copying 3 resources from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] ------< org.apache.artemis.tests:karaf-client-integration-tests >-------
+[INFO] Building Apache Artemis Karaf Client Integration Tests 2.55.0-SNAPSHOT [61/73]
+[INFO]   from tests/karaf-client-integration-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ karaf-client-integration-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/karaf-client-integration-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ karaf-client-integration-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ karaf-client-integration-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ karaf-client-integration-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- depends:1.5.0:generate-depends-file (generate-depends-file) @ karaf-client-integration-tests ---
+[INFO] Created: /home/jbertram/jboss/src/artemis-buildWarnings/tests/karaf-client-integration-tests/target/classes/META-INF/maven/dependencies.properties
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ karaf-client-integration-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/karaf-client-integration-tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ karaf-client-integration-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --< org.apache.artemis.tests:karaf-jakarta-client-integration-tests >---
+[INFO] Building Apache Artemis Karaf Jakarta Client Int Tests 2.55.0-SNAPSHOT [62/73]
+[INFO]   from tests/karaf-jakarta-client-integration-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ karaf-jakarta-client-integration-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/karaf-jakarta-client-integration-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ karaf-jakarta-client-integration-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ karaf-jakarta-client-integration-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ karaf-jakarta-client-integration-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- depends:1.5.0:generate-depends-file (generate-depends-file) @ karaf-jakarta-client-integration-tests ---
+[INFO] Created: /home/jbertram/jboss/src/artemis-buildWarnings/tests/karaf-jakarta-client-integration-tests/target/classes/META-INF/maven/dependencies.properties
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ karaf-jakarta-client-integration-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/karaf-jakarta-client-integration-tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ karaf-jakarta-client-integration-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] ------< org.apache.artemis.tests:karaf-server-integration-tests >-------
+[INFO] Building Apache Artemis Karaf Server Integration Tests 2.55.0-SNAPSHOT [63/73]
+[INFO]   from tests/karaf-server-integration-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ karaf-server-integration-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/karaf-server-integration-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ karaf-server-integration-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ karaf-server-integration-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ karaf-server-integration-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- depends:1.5.0:generate-depends-file (generate-depends-file) @ karaf-server-integration-tests ---
+[INFO] Created: /home/jbertram/jboss/src/artemis-buildWarnings/tests/karaf-server-integration-tests/target/classes/META-INF/maven/dependencies.properties
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ karaf-server-integration-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/karaf-server-integration-tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ karaf-server-integration-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] ------------< org.apache.artemis.tests:compatibility-tests >------------
+[INFO] Building Apache Artemis Compatibility Tests 2.55.0-SNAPSHOT      [64/73]
+[INFO]   from tests/compatibility-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ compatibility-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/compatibility-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ compatibility-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ compatibility-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ compatibility-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- depends:1.5.0:generate-depends-file (generate-depends-file) @ compatibility-tests ---
+[INFO] Created: /home/jbertram/jboss/src/artemis-buildWarnings/tests/compatibility-tests/target/classes/META-INF/maven/dependencies.properties
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ compatibility-tests ---
+[INFO] Copying 92 resources from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ compatibility-tests ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 1 source file with javac [debug release 17] to target/classes
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/tests/compatibility-tests/src/main/java/org/apache/activemq/artemis/tests/compatibility/GroovyRun.java: /home/jbertram/jboss/src/artemis-buildWarnings/tests/compatibility-tests/src/main/java/org/apache/activemq/artemis/tests/compatibility/GroovyRun.java uses unchecked or unsafe operations.
+[INFO] /home/jbertram/jboss/src/artemis-buildWarnings/tests/compatibility-tests/src/main/java/org/apache/activemq/artemis/tests/compatibility/GroovyRun.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] ----------------< org.apache.artemis.tests:soak-tests >-----------------
+[INFO] Building Apache Artemis soak Tests 2.55.0-SNAPSHOT               [65/73]
+[INFO]   from tests/soak-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ soak-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/soak-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ soak-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ soak-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ soak-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ soak-tests ---
+[INFO] Copying 25 resources from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ soak-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] ---------------< org.apache.artemis.tests:stress-tests >----------------
+[INFO] Building Apache Artemis stress Tests 2.55.0-SNAPSHOT             [66/73]
+[INFO]   from tests/stress-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ stress-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/stress-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ stress-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ stress-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ stress-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ stress-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/stress-tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ stress-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -------------< org.apache.artemis.tests:performance-tests >-------------
+[INFO] Building Apache Artemis performance Tests 2.55.0-SNAPSHOT        [67/73]
+[INFO]   from tests/performance-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ performance-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/performance-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ performance-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ performance-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ performance-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ performance-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/performance-tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ performance-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] ----------------< org.apache.artemis.tests:smoke-tests >----------------
+[INFO] Building Apache Artemis Smoke Tests 2.55.0-SNAPSHOT              [68/73]
+[INFO]   from tests/smoke-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ smoke-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/smoke-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ smoke-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ smoke-tests ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-security-resources) @ smoke-tests ---
+[INFO] Copying 52 resources from ../security-resources to target/test-classes
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ smoke-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ smoke-tests ---
+[INFO] Copying 90 resources from src/main/resources to target/classes
+[INFO] Copying 24 resources from src/main/filtered-resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] The encoding used to copy filtered properties files has not been set. This means that the same encoding will be used to copy filtered properties files as when copying other filtered resources. This might not be what you want! Run your build with --debug to see which files might be affected. Read more at https://maven.apache.org/plugins/maven-resources-plugin/examples/filtering-properties-files.html
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ smoke-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -----------------< org.apache.artemis.tests:e2e-tests >-----------------
+[INFO] Building Apache Artemis End-to-End Tests 2.55.0-SNAPSHOT         [69/73]
+[INFO]   from tests/e2e-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ e2e-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/e2e-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ e2e-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ e2e-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ e2e-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ e2e-tests ---
+[INFO] Copying 27 resources from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ e2e-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] ----------------< org.apache.artemis.tests:leak-tests >-----------------
+[INFO] Building Apache Artemis Leak Tests 2.55.0-SNAPSHOT               [70/73]
+[INFO]   from tests/leak-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ leak-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/leak-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ leak-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ leak-tests ---
+[INFO] 
+[INFO] --- resources:3.5.0:copy-resources (copy-security-resources) @ leak-tests ---
+[INFO] Copying 52 resources from ../security-resources to target/test-classes
+[INFO] 
+[INFO] --- checkleak:0.11:install (find-native) @ leak-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ leak-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ leak-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/leak-tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ leak-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -----------------< org.apache.artemis.tests:db-tests >------------------
+[INFO] Building Apache Artemis Database Tests 2.55.0-SNAPSHOT           [71/73]
+[INFO]   from tests/db-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ db-tests ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/tests/db-tests/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ db-tests ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ db-tests ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ db-tests ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ db-tests ---
+[INFO] skip non existing resourceDirectory /home/jbertram/jboss/src/artemis-buildWarnings/tests/db-tests/src/main/resources
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ db-tests ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] ------------------< org.apache.artemis:artemis-image >------------------
+[INFO] Building Apache Artemis Image 2.55.0-SNAPSHOT                    [72/73]
+[INFO]   from artemis-image/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-image ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-image/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-image ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-image ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-image ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ artemis-image ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 3 resources from target/maven-shared-archive-resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ artemis-image ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] -------------< org.apache.artemis:artemis-image-examples >--------------
+[INFO] Building Apache Artemis Image Examples 2.55.0-SNAPSHOT           [73/73]
+[INFO]   from artemis-image/examples/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ artemis-image-examples ---
+[INFO] Deleting /home/jbertram/jboss/src/artemis-buildWarnings/artemis-image/examples/target
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-maven-version) @ artemis-image-examples ---
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (enforce-java-version) @ artemis-image-examples ---
+[INFO] 
+[INFO] --- remote-resources:3.3.0:process (process-resource-bundles) @ artemis-image-examples ---
+[INFO] Preparing remote bundle org.apache.apache.resources:apache-jar-resource-bundle:1.8
+[INFO] Copying 3 resources from 1 bundle.
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for Apache Artemis 2.55.0-SNAPSHOT:
+[INFO] 
+[INFO] Apache Artemis ..................................... SUCCESS [  0.758 s]
+[INFO] Apache Artemis Bill of Materials ................... SUCCESS [  0.018 s]
+[INFO] Apache Artemis Log Annotation Processor ............ SUCCESS [  0.586 s]
+[INFO] Apache Artemis POM ................................. SUCCESS [  0.014 s]
+[INFO] Apache Artemis Unit Test Support ................... SUCCESS [  0.397 s]
+[INFO] Apache Artemis Log Annotation Processor Tests ...... SUCCESS [  0.023 s]
+[INFO] Apache Artemis Commons ............................. SUCCESS [  1.645 s]
+[INFO] Apache Artemis Selector Implementation ............. SUCCESS [  1.681 s]
+[INFO] Apache Artemis Core Client ......................... SUCCESS [  1.787 s]
+[INFO] Apache Artemis Journal ............................. SUCCESS [  0.465 s]
+[INFO] Apache Artemis JDBC Store .......................... SUCCESS [  0.333 s]
+[INFO] Apache Artemis Lock Manager ........................ SUCCESS [  0.008 s]
+[INFO] Apache Artemis Lock Manager API .................... SUCCESS [  0.098 s]
+[INFO] Apache Artemis Server .............................. SUCCESS [  3.516 s]
+[INFO] Apache Artemis Protocols ........................... SUCCESS [  0.006 s]
+[INFO] Apache Artemis AMQP Protocol ....................... SUCCESS [  1.124 s]
+[INFO] Apache Artemis STOMP Protocol ...................... SUCCESS [  0.318 s]
+[INFO] Apache Artemis JMS Client .......................... SUCCESS [  0.303 s]
+[INFO] Apache Artemis OpenWire Protocol ................... SUCCESS [  0.254 s]
+[INFO] Apache Artemis Jakarta Messaging Client ............ SUCCESS [  0.491 s]
+[INFO] Apache Artemis Jakarta Service Extensions .......... SUCCESS [  0.173 s]
+[INFO] Apache Artemis Jakarta Messaging Server ............ SUCCESS [  0.349 s]
+[INFO] Apache Artemis Jakarta OpenWire Protocol ........... SUCCESS [  0.283 s]
+[INFO] Apache Artemis HQClient Protocol ................... SUCCESS [  0.104 s]
+[INFO] Apache Artemis HornetQ Protocol .................... SUCCESS [  0.138 s]
+[INFO] Apache Artemis MQTT Protocol ....................... SUCCESS [  0.269 s]
+[INFO] Apache Artemis DTO ................................. SUCCESS [  0.553 s]
+[INFO] Apache Artemis CDI Integration ..................... SUCCESS [  0.310 s]
+[INFO] Apache Artemis Jakarta CDI Integration ............. SUCCESS [  0.315 s]
+[INFO] Apache Artemis Boot ................................ SUCCESS [  0.046 s]
+[INFO] Apache Artemis Service Extensions .................. SUCCESS [  0.176 s]
+[INFO] Apache Artemis JMS Server .......................... SUCCESS [  0.405 s]
+[INFO] Apache Artemis CLI ................................. SUCCESS [  0.791 s]
+[INFO] Apache Artemis Core Client All ..................... SUCCESS [  0.073 s]
+[INFO] Apache Artemis Client OSGi ......................... SUCCESS [  0.060 s]
+[INFO] Apache Artemis Web ................................. SUCCESS [  0.350 s]
+[INFO] Apache Artemis JUnit ............................... SUCCESS [  0.007 s]
+[INFO] Apache Artemis JUnit Commons ....................... SUCCESS [  0.180 s]
+[INFO] Apache Artemis JUnit 4 Rules ....................... SUCCESS [  0.143 s]
+[INFO] Apache Artemis JUnit 5 Extensions .................. SUCCESS [  0.156 s]
+[INFO] Apache Artemis JMS Client All ...................... SUCCESS [  0.055 s]
+[INFO] Apache Artemis JMS Client OSGi ..................... SUCCESS [  0.052 s]
+[INFO] Apache Artemis Jakarta Messaging Client All ........ SUCCESS [  0.057 s]
+[INFO] Apache Artemis Jakarta Messaging Client OSGi ....... SUCCESS [  0.064 s]
+[INFO] Apache Artemis RAR POM ............................. SUCCESS [  0.243 s]
+[INFO] Apache Artemis Jakarta RAR ......................... SUCCESS [  0.389 s]
+[INFO] Apache Artemis Maven Plugin ........................ SUCCESS [  0.283 s]
+[INFO] Apache Artemis Server OSGi ......................... SUCCESS [  0.217 s]
+[INFO] Apache Artemis Console ............................. SUCCESS [  0.022 s]
+[INFO] Apache Artemis Lock Manager RI ..................... SUCCESS [  0.129 s]
+[INFO] Apache Artemis Distribution ........................ SUCCESS [  0.301 s]
+[INFO] Apache Artemis Tests POM ........................... SUCCESS [  0.006 s]
+[INFO] Apache Artemis System Test Support ................. SUCCESS [  0.585 s]
+[INFO] Apache Artemis Unit Tests .......................... SUCCESS [  0.022 s]
+[INFO] Apache Artemis Joram Tests ......................... SUCCESS [  0.088 s]
+[INFO] Apache Artemis timing Tests ........................ SUCCESS [  0.015 s]
+[INFO] Apache Artemis JMS Tests ........................... SUCCESS [  0.084 s]
+[INFO] Apache Artemis Integration Tests ................... SUCCESS [  0.045 s]
+[INFO] Apache Artemis Isolated Integration Tests .......... SUCCESS [  0.030 s]
+[INFO] Apache Artemis Features ............................ SUCCESS [  0.081 s]
+[INFO] Apache Artemis Karaf Client Integration Tests ...... SUCCESS [  0.058 s]
+[INFO] Apache Artemis Karaf Jakarta Client Int Tests ...... SUCCESS [  0.020 s]
+[INFO] Apache Artemis Karaf Server Integration Tests ...... SUCCESS [  0.022 s]
+[INFO] Apache Artemis Compatibility Tests ................. SUCCESS [  0.278 s]
+[INFO] Apache Artemis soak Tests .......................... SUCCESS [  0.022 s]
+[INFO] Apache Artemis stress Tests ........................ SUCCESS [  0.013 s]
+[INFO] Apache Artemis performance Tests ................... SUCCESS [  0.084 s]
+[INFO] Apache Artemis Smoke Tests ......................... SUCCESS [  0.197 s]
+[INFO] Apache Artemis End-to-End Tests .................... SUCCESS [  0.219 s]
+[INFO] Apache Artemis Leak Tests .......................... SUCCESS [  0.035 s]
+[INFO] Apache Artemis Database Tests ...................... SUCCESS [  0.151 s]
+[INFO] Apache Artemis Image ............................... SUCCESS [  0.195 s]
+[INFO] Apache Artemis Image Examples ...................... SUCCESS [  0.066 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  23.612 s
+[INFO] Finished at: 2026-06-03T13:49:01-05:00
+[INFO] ------------------------------------------------------------------------

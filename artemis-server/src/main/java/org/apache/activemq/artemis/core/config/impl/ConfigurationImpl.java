@@ -1185,7 +1185,7 @@ public class ConfigurationImpl extends javax.security.auth.login.Configuration i
          }).sorted((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.getName(), b.getName())).forEach(propertyDescriptor -> {
             Object attributeValue = null;
             try {
-               attributeValue = propertyDescriptor.getReadMethod().invoke(value, null);
+               attributeValue = propertyDescriptor.getReadMethod().invoke(value);
             } catch (Exception e) {
                throw new RuntimeException("accessing: " + propertyDescriptor.getName() + "@" + nested, e);
             }
@@ -1252,9 +1252,9 @@ public class ConfigurationImpl extends javax.security.auth.login.Configuration i
          return s;
       }
       try {
-         Method m = o.getClass().getMethod("getName", null);
+         Method m = o.getClass().getMethod("getName");
          if (m != null) {
-            Object nameVal = m.invoke(o, null);
+            Object nameVal = m.invoke(o);
             if (nameVal == null) {
                return "name-attribute-must-be-set-for-properties-key-export";
             }

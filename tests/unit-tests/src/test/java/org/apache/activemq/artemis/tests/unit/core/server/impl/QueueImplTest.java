@@ -236,9 +236,9 @@ public class QueueImplTest extends ActiveMQTestBase {
 
       Thread.sleep(1000);
 
-      Method getRate = QueueImpl.class.getDeclaredMethod("getRate", null);
+      Method getRate = QueueImpl.class.getDeclaredMethod("getRate");
       getRate.setAccessible(true);
-      float rate = (float) getRate.invoke(queue, null);
+      float rate = (float) getRate.invoke(queue);
 
       assertTrue(rate <= 10.0f);
       logger.debug("Rate: {}", rate);

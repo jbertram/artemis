@@ -72,16 +72,16 @@ public class BindingDTOTest {
    public void testNullValues() {
       BindingDTO binding = new BindingDTO();
 
-      binding.setIncludedTLSProtocols(null);
+      binding.setIncludedTLSProtocols((String[]) null);
       assertNull(binding.getIncludedTLSProtocols());
 
-      binding.setExcludedTLSProtocols(null);
+      binding.setExcludedTLSProtocols((String[]) null);
       assertNull(binding.getExcludedTLSProtocols());
 
-      binding.setIncludedCipherSuites(null);
+      binding.setIncludedCipherSuites((String[]) null);
       assertNull(binding.getIncludedCipherSuites());
 
-      binding.setExcludedCipherSuites(null);
+      binding.setExcludedCipherSuites((String[]) null);
       assertNull(binding.getExcludedCipherSuites());
    }
 }
