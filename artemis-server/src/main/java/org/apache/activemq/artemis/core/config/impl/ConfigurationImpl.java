@@ -986,6 +986,7 @@ public class ConfigurationImpl extends javax.security.auth.login.Configuration i
             HAPolicyConfiguration.TYPE haPolicyType =
                HAPolicyConfiguration.TYPE.valueOf(String.valueOf(value));
 
+            @SuppressWarnings("deprecation")
             return switch (haPolicyType) {
                case PRIMARY_ONLY -> (T) new LiveOnlyPolicyConfiguration();
                case REPLICATION_PRIMARY_QUORUM_VOTING -> (T) new ReplicatedPolicyConfiguration();
@@ -3341,11 +3342,13 @@ public class ConfigurationImpl extends javax.security.auth.login.Configuration i
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public String getTemporaryQueueNamespace() {
       return getUuidNamespace();
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public ConfigurationImpl setTemporaryQueueNamespace(final String temporaryQueueNamespace) {
       return setUuidNamespace(temporaryQueueNamespace);
    }
@@ -3384,11 +3387,13 @@ public class ConfigurationImpl extends javax.security.auth.login.Configuration i
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public long getMqttSessionStatePersistenceTimeout() {
       return mqttSessionStatePersistenceTimeout;
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public Configuration setMqttSessionStatePersistenceTimeout(long mqttSessionStatePersistenceTimeout) {
       this.mqttSessionStatePersistenceTimeout = mqttSessionStatePersistenceTimeout;
       return this;

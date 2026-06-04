@@ -23,12 +23,12 @@ import java.lang.reflect.Field;
  * Utility that detects various properties specific to the current runtime environment, such as JVM bitness and OS
  * type.
  */
-@SuppressWarnings("sunapi")
 public final class Env {
 
    private static final int OS_PAGE_SIZE;
 
-   static {
+   @SuppressWarnings("all")
+   private static int getOsPageSize() {
       //most common OS page size value
       int osPageSize = 4096;
       sun.misc.Unsafe instance;
@@ -48,7 +48,11 @@ public final class Env {
       if (instance != null) {
          osPageSize = instance.pageSize();
       }
-      OS_PAGE_SIZE = osPageSize;
+      return osPageSize;
+   }
+
+   static {
+      OS_PAGE_SIZE = getOsPageSize();
    }
 
    /**

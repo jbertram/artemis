@@ -1050,32 +1050,38 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public void createQueue(final String address, final String name) throws Exception {
       createQueue(address, name, true);
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public void createQueue(final String address, final String name, final String routingType) throws Exception {
       createQueue(address, name, true, routingType);
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public void createQueue(final String address, final String name, final boolean durable) throws Exception {
       createQueue(address, name, null, durable);
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public void createQueue(final String address, final String name, final boolean durable, final String routingType) throws Exception {
       createQueue(address, name, null, durable, routingType);
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public void createQueue(final String address, final String name, final String filterStr, final boolean durable) throws Exception {
       createQueue(address, name, filterStr, durable, server.getAddressSettingsRepository().getMatch(address == null ? name : address).getDefaultQueueRoutingType().toString());
    }
 
 
    @Override
+   @SuppressWarnings("deprecation")
    public void createQueue(final String address, final String name, final String filterStr, final boolean durable, final String routingType) throws Exception {
       AddressSettings addressSettings = server.getAddressSettingsRepository().getMatch(address == null ? name : address);
       createQueue(address, routingType, name, filterStr, durable, addressSettings.getDefaultMaxConsumers(), addressSettings.isDefaultPurgeOnNoConsumers(), addressSettings.isAutoCreateAddresses());
@@ -2033,6 +2039,7 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
 
    @Deprecated
    @Override
+   @SuppressWarnings("deprecation")
    public String listPreparedTransactionDetailsAsHTML() throws Exception {
       return listPreparedTransactionDetailsAsHTML((xid, tx, creation) -> new CoreTransactionDetail(xid, tx, creation));
    }
@@ -2888,6 +2895,7 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
       try {
          JsonArrayBuilder array = JsonLoader.createArrayBuilder();
 
+         @SuppressWarnings("deprecation")
          for (TransportConfiguration config : configs) {
             array.add(config.toJson());
          }
@@ -3036,6 +3044,7 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
 
    @Override
    public String getAddressSettingsAsJSON(final String address) throws Exception {
+      @SuppressWarnings("deprecation")
       if (AuditLogger.isBaseLoggingEnabled()) {
          AuditLogger.getAddressSettingsAsJSON(this.server, address);
       }
@@ -3615,6 +3624,7 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
 
    @Override
    public String[] getDivertNames() {
+      @SuppressWarnings("deprecation")
       if (AuditLogger.isBaseLoggingEnabled()) {
          AuditLogger.getDivertNames(this.server);
       }
@@ -3686,6 +3696,7 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
 
 
    private void createDivert(final DivertConfiguration config) throws Exception {
+      @SuppressWarnings("deprecation")
       if (AuditLogger.isBaseLoggingEnabled()) {
          AuditLogger.createDivert(this.server, config);
       }
@@ -3758,6 +3769,7 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
 
    @Override
    public String[] getBridgeNames() {
+      @SuppressWarnings("deprecation")
       if (AuditLogger.isBaseLoggingEnabled()) {
          AuditLogger.getBridgeNames(this.server);
       }
@@ -3888,6 +3900,7 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
          TransformerConfiguration transformerConfiguration = transformerClassName == null || transformerClassName.isEmpty() ? null : new TransformerConfiguration(transformerClassName).setProperties(transformerProperties);
          BridgeConfiguration config = new BridgeConfiguration().setName(name).setQueueName(queueName).setForwardingAddress(forwardingAddress).setFilterString(filterString).setTransformerConfiguration(transformerConfiguration).setClientFailureCheckPeriod(clientFailureCheckPeriod).setRetryInterval(retryInterval).setRetryIntervalMultiplier(retryIntervalMultiplier).setInitialConnectAttempts(initialConnectAttempts).setReconnectAttempts(reconnectAttempts).setUseDuplicateDetection(useDuplicateDetection).setConfirmationWindowSize(confirmationWindowSize).setProducerWindowSize(producerWindowSize).setHA(ha).setUser(user).setPassword(password).setConfigurationManaged(false);
 
+         @SuppressWarnings("deprecation")
          if (useDiscoveryGroup) {
             config.setDiscoveryGroupName(staticConnectorsOrDiscoveryGroup);
          } else {
@@ -4384,6 +4397,7 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
 
    @Override
    @Deprecated
+   @SuppressWarnings("deprecation")
    public long getMessageExpiryThreadPriority() {
       if (AuditLogger.isBaseLoggingEnabled()) {
          AuditLogger.getMessageExpiryThreadPriority(this.server);

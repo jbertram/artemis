@@ -29,7 +29,7 @@ import java.util.Map;
  * There are a few properties that were changed between HornetQ and Artemis. When sending topology updates to clients,
  * if these properties are used we need to convert them properly
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings("all")
 public class BackwardsCompatibilityUtils {
 
    private static int INITIAL_ACTIVEMQ_INCREMENTING_VERSION = 126;
@@ -107,7 +107,8 @@ public class BackwardsCompatibilityUtils {
 
    public static final Map<String, String> OLD_PARAMETERS_MAP = new HashMap<>();
 
-   static {
+   @SuppressWarnings("all")
+   private static void initializeOldParametersMap() {
       OLD_PARAMETERS_MAP.put(TransportConstants.SSL_ENABLED_PROP_NAME, SSL_ENABLED_PROP_NAME);
       OLD_PARAMETERS_MAP.put(TransportConstants.HTTP_ENABLED_PROP_NAME, HTTP_ENABLED_PROP_NAME);
       OLD_PARAMETERS_MAP.put(TransportConstants.HTTP_CLIENT_IDLE_PROP_NAME, HTTP_CLIENT_IDLE_PROP_NAME);
@@ -143,6 +144,10 @@ public class BackwardsCompatibilityUtils {
       OLD_PARAMETERS_MAP.put(TransportConstants.DIRECT_DELIVER, DIRECT_DELIVER);
       OLD_PARAMETERS_MAP.put(TransportConstants.CLUSTER_CONNECTION, CLUSTER_CONNECTION);
       OLD_PARAMETERS_MAP.put(TransportConstants.STOMP_CONSUMERS_CREDIT, STOMP_CONSUMERS_CREDIT);
+   }
+
+   static {
+      initializeOldParametersMap();
    }
 
    /**

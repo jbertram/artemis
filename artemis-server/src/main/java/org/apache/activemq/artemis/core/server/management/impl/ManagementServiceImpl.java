@@ -764,11 +764,13 @@ public class ManagementServiceImpl implements ManagementService {
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public Object getResource(String resourceName) {
       return registries.getByName(resourceName);
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public Object[] getResources(final Class<?> resourceType) {
       List<Object> resources = new ArrayList<>();
       if (resourceType.isAssignableFrom(getServerControl().getClass())) {
@@ -801,6 +803,7 @@ public class ManagementServiceImpl implements ManagementService {
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public void registerInJMX(final ObjectName objectName, final Object managedResource) throws Exception {
       if (!jmxManagementEnabled) {
          return;
@@ -818,6 +821,7 @@ public class ManagementServiceImpl implements ManagementService {
    // unregister the same resource (e.g. a queue) at the same time since unregisterMBean()
    // will throw an exception if the MBean has already been unregistered
    @Override
+   @SuppressWarnings("deprecation")
    public void unregisterFromJMX(final ObjectName objectName) throws MBeanRegistrationException, InstanceNotFoundException {
       if (!jmxManagementEnabled) {
          return;

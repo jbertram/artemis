@@ -439,6 +439,7 @@ public final class FileConfigurationParser extends XMLConfigurationUtil {
       }
 
       //if we aren already set then set to default
+      @SuppressWarnings("deprecation")
       if (config.getHAPolicyConfiguration() == null) {
          config.setHAPolicyConfiguration(new PrimaryOnlyPolicyConfiguration());
       }
@@ -1546,6 +1547,7 @@ public final class FileConfigurationParser extends XMLConfigurationUtil {
       for (int i = 0; i < children.getLength(); i++) {
          final Node child = children.item(i);
          final String name = child.getNodeName();
+         @SuppressWarnings("deprecation")
          if (MAX_CONNECTIONS_NODE_NAME.equalsIgnoreCase(name)) {
             resourceLimitSettings.setMaxConnections(XMLUtil.parseInt(child));
          } else if (MAX_QUEUES_NODE_NAME.equalsIgnoreCase(name)) {
