@@ -72,6 +72,7 @@ public class JMSTopicSubscriberWithSecurityTest extends MultiprotocolJMSClientTe
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    protected void enableSecurity(ActiveMQServer server, String... securityMatches) {
       super.enableSecurity(server);
 

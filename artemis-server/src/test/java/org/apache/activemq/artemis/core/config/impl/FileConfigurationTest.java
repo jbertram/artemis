@@ -189,6 +189,7 @@ public class FileConfigurationTest extends AbstractConfigurationTestBase {
       validateFullConfig(configInstance, false);
    }
 
+   @SuppressWarnings("deprecation")
    private void validateFullConfig(Configuration configInstance, boolean fromProperties) {
       // Check they match the values from the test file
       assertEquals("SomeNameForUseOnTheApplicationServer", configInstance.getName());
@@ -468,6 +469,7 @@ public class FileConfigurationTest extends AbstractConfigurationTestBase {
       assertEquals(33, lopc.getScaleDownConfiguration().getCommitInterval());
 
       for (ClusterConnectionConfiguration ccc : configInstance.getClusterConfigurations()) {
+         @SuppressWarnings("deprecation")
          if (ccc.getName().equals("cluster-connection3")) {
             assertEquals(MessageLoadBalancingType.OFF_WITH_REDISTRIBUTION, ccc.getMessageLoadBalancingType());
             assertEquals(ActiveMQDefaultConfiguration.getDefaultClusterCallTimeout(), ccc.getCallTimeout());

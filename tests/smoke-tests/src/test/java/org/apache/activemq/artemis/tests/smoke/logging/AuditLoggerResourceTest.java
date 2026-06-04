@@ -56,6 +56,7 @@ public class AuditLoggerResourceTest extends AuditLoggerTestBase {
    }
 
    @Test
+   @SuppressWarnings("deprecation")
    public void testAuditResourceLog() throws Exception {
       JMXConnector jmxConnector = getJmxConnector();
 

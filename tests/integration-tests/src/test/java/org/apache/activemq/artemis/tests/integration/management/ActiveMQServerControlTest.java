@@ -524,6 +524,7 @@ public class ActiveMQServerControlTest extends ManagementTestBase {
       ActiveMQServerControl serverControl = createManagementControl();
 
       checkNoResource(ObjectNameBuilder.DEFAULT.getQueueObjectName(address, name, RoutingType.ANYCAST));
+      @SuppressWarnings("deprecation")
       if (legacyCreateQueue) {
          serverControl.createQueue(null, name.toString(), "ANYCAST");
       } else {
@@ -775,6 +776,7 @@ public class ActiveMQServerControlTest extends ManagementTestBase {
       ActiveMQServerControl serverControl = createManagementControl();
       serverControl.createAddress(address, "MULTICAST");
 
+      @SuppressWarnings("deprecation")
       if (legacyCreateQueue) {
          serverControl.createQueue(address, queue1.getName().toString(), queue1.getFilterString().toString(), queue1.isDurable());
          serverControl.createQueue(address, queue2.getName().toString(), queue2.getFilterString().toString(), queue2.isDurable());
@@ -1214,6 +1216,7 @@ public class ActiveMQServerControlTest extends ManagementTestBase {
       final String viewRoles = "";
       final String editRoles = "";
 
+      @SuppressWarnings("deprecation")
       if (json) {
          serverControl.addSecuritySettings(addressMatch,
                                            SecurityFormatter.toJSON(sendRoles,
@@ -1846,6 +1849,7 @@ public class ActiveMQServerControlTest extends ManagementTestBase {
       checkNoResource(ObjectNameBuilder.DEFAULT.getDivertObjectName(name, address));
       assertEquals(0, serverControl.getDivertNames().length);
 
+      @SuppressWarnings("deprecation")
       if (json) {
          serverControl.createDivert(new DivertConfiguration().setName(name).setAddress(address).setForwardingAddress(forwardingAddress).toJSON());
       } else {
@@ -1876,6 +1880,7 @@ public class ActiveMQServerControlTest extends ManagementTestBase {
       checkNoResource(ObjectNameBuilder.DEFAULT.getDivertObjectName(name, address));
       assertEquals(0, serverControl.getDivertNames().length);
 
+      @SuppressWarnings("deprecation")
       if (json) {
          serverControl.createDivert(new DivertConfiguration().setName(name).setRoutingName(routingName).setAddress(address).setForwardingAddress(forwardingAddress).setExclusive(true).toJSON());
       } else {
@@ -1972,6 +1977,7 @@ public class ActiveMQServerControlTest extends ManagementTestBase {
       checkNoResource(ObjectNameBuilder.DEFAULT.getDivertObjectName(name, address));
       assertEquals(0, serverControl.getDivertNames().length);
 
+      @SuppressWarnings("deprecation")
       if (json) {
          serverControl.createDivert(new DivertConfiguration().setName(name).setRoutingName(RandomUtil.randomUUIDString()).setAddress(address).setForwardingAddress(RandomUtil.randomUUIDString()).setExclusive(true).toJSON());
       } else {
@@ -2016,6 +2022,7 @@ public class ActiveMQServerControlTest extends ManagementTestBase {
       checkNoResource(ObjectNameBuilder.DEFAULT.getDivertObjectName(name, address));
       assertEquals(0, serverControl.getDivertNames().length);
 
+      @SuppressWarnings("deprecation")
       if (json) {
          serverControl.createDivert(new DivertConfiguration().setName(name).setRoutingName(routingName).setAddress(address).setForwardingAddress(forwardingAddress).setExclusive(true).toJSON());
       } else {
@@ -2072,6 +2079,7 @@ public class ActiveMQServerControlTest extends ManagementTestBase {
       assertEquals(text, message.getStringProperty("prop"));
       assertNull(updatedDivertedConsumer.receiveImmediate());
 
+      @SuppressWarnings("deprecation")
       if (json) {
          serverControl.updateDivert(new DivertConfiguration().setName(name).setForwardingAddress(updatedForwardingAddress).toJSON());
       } else {
@@ -2135,6 +2143,7 @@ public class ActiveMQServerControlTest extends ManagementTestBase {
       ClientSessionFactory csf = createSessionFactory(locator);
       ClientSession session = csf.createSession();
 
+      @SuppressWarnings("deprecation")
       if (legacyCreateQueue) {
          session.createQueue(sourceAddress, RoutingType.ANYCAST, sourceQueue);
          session.createQueue(targetAddress, RoutingType.ANYCAST, targetQueue);
@@ -2455,6 +2464,7 @@ public class ActiveMQServerControlTest extends ManagementTestBase {
       ServerLocator locator = createInVMNonHALocator();
       ClientSessionFactory csf = createSessionFactory(locator);
       ClientSession clientSession = csf.createSession(true, false, false);
+      @SuppressWarnings("deprecation")
       if (legacyCreateQueue) {
          clientSession.createQueue(atestq, atestq, null, true);
       } else {

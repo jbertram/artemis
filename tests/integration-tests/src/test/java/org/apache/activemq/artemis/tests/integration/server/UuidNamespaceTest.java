@@ -59,6 +59,7 @@ public class UuidNamespaceTest extends SingleServerTestBase {
       final SimpleString EA = RandomUtil.randomUUIDSimpleString();
       final int RING_SIZE = 10;
 
+      @SuppressWarnings("deprecation")
       if (legacy) {
          server.getConfiguration().setTemporaryQueueNamespace(UUID_NAMESPACE);
       } else {

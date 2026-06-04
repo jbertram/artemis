@@ -427,6 +427,7 @@ public class ObjectInputStreamWithClassLoaderTest extends ActiveMQTestBase {
    }
 
    @Test
+   @SuppressWarnings("deprecation")
    public void testDeprecatedWhiteBlackListSystemProperty() throws Exception {
 
       File serailizeFile = new File(temporaryFolder, "testclass.bin");

@@ -140,6 +140,7 @@ public class ConfigurationImplTest extends AbstractConfigurationTestBase {
    }
 
    @Test
+   @SuppressWarnings("deprecation")
    public void testDefaults() {
       assertEquals(ActiveMQDefaultConfiguration.getPurgePageFolders(), conf.isPurgePageFolders());
       assertEquals(ActiveMQDefaultConfiguration.getDefaultScheduledThreadPoolMaxSize(), conf.getScheduledThreadPoolMaxSize());
@@ -1008,6 +1009,7 @@ public class ConfigurationImplTest extends AbstractConfigurationTestBase {
    }
 
    @Test
+   @SuppressWarnings("deprecation")
    public void testLiveOnlyPolicyConfiguration() throws Throwable {
       Properties properties = new ConfigurationImpl.InsertionOrderedProperties();
       properties.put("HAPolicyConfiguration", "PRIMARY_ONLY");
@@ -1503,6 +1505,7 @@ public class ConfigurationImplTest extends AbstractConfigurationTestBase {
 
       assertEquals(2, configuration.getAMQPConnection().size());
       for (AMQPBrokerConnectConfiguration amqpBrokerConnectConfiguration : configuration.getAMQPConnection()) {
+         @SuppressWarnings("deprecation")
          if ("brokerB".equals(amqpBrokerConnectConfiguration.getName())) {
             assertEquals(AMQPBrokerConnectionAddressType.MIRROR.toString(), amqpBrokerConnectConfiguration.getConnectionElements().get(0).getType().toString());
             assertEquals("mirrorSNFQueue", ((AMQPMirrorBrokerConnectionElement)amqpBrokerConnectConfiguration.getConnectionElements().get(0)).getMirrorSNF().toString());

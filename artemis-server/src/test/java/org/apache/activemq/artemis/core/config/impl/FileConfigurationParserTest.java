@@ -283,6 +283,7 @@ public class FileConfigurationParserTest extends ServerTestBase {
    }
 
    @Test
+   @SuppressWarnings("deprecation")
    public void testLegacyTemporaryQueueNamespace() throws Exception {
       final String TEMP_Q_NAMESPACE = "TEMP";
       FileConfigurationParser parser = new FileConfigurationParser();

@@ -836,6 +836,7 @@ public class ArtemisTest extends CliTestBase {
       testProperReloadWhenAddingUserViaManagement(true);
    }
 
+   @SuppressWarnings("deprecation")
    private void testProperReloadWhenAddingUserViaManagement(boolean basic) throws Exception {
       Run.setEmbedded(true);
       File instance1 = new File(temporaryFolder, "instance_user");

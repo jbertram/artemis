@@ -48,6 +48,7 @@ public class ResourceLimitTest extends ActiveMQTestBase {
 
    @Override
    @BeforeEach
+   @SuppressWarnings("deprecation")
    public void setUp() throws Exception {
       super.setUp();
 

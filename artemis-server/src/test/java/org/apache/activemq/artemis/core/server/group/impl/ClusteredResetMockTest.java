@@ -317,11 +317,13 @@ public class ClusteredResetMockTest extends ServerTestBase {
       }
 
       @Override
+      @SuppressWarnings("deprecation")
       public Object getResource(String resourceName) {
          return null;
       }
 
       @Override
+      @SuppressWarnings("deprecation")
       public Object[] getResources(Class<?> resourceType) {
          return new Object[0];
       }
@@ -337,11 +339,13 @@ public class ClusteredResetMockTest extends ServerTestBase {
       }
 
       @Override
+      @SuppressWarnings("deprecation")
       public void registerInJMX(ObjectName objectName, Object managedResource) throws Exception {
 
       }
 
       @Override
+      @SuppressWarnings("deprecation")
       public void unregisterFromJMX(ObjectName objectName) throws Exception {
 
       }

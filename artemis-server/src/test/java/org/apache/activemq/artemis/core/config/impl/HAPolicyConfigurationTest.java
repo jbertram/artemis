@@ -153,6 +153,7 @@ public class HAPolicyConfigurationTest extends ServerTestBase {
    }
 
    @Test
+   @SuppressWarnings("deprecation")
    public void liveOnlyTest() throws Exception {
       ActiveMQServerImpl server = new ActiveMQServerImpl(createDefaultConfig(0, true));
       server.getConfiguration().setHAPolicyConfiguration(new LiveOnlyPolicyConfiguration());

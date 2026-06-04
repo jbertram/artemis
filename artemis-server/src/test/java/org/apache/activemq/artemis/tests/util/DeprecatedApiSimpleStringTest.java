@@ -22,11 +22,13 @@ import org.apache.activemq.artemis.api.core.SimpleString;
 public class DeprecatedApiSimpleStringTest extends SimpleStringTest {
 
    @Override
+   @SuppressWarnings("deprecation")
    protected SimpleString createSimpleString(String string) {
       return new SimpleString(string);
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    protected SimpleString createSimpleString(byte[] bytes) {
       return new SimpleString(bytes);
    }

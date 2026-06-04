@@ -322,6 +322,7 @@ public class SimpleJNDIClientTest extends ActiveMQTestBase {
    }
 
    @Test
+   @SuppressWarnings("deprecation")
    public void testRemoteCFWithTransportConfig() throws Exception {
       Hashtable<String, String> props = new Hashtable<>();
       props.put(Context.INITIAL_CONTEXT_FACTORY, "org.apache.activemq.artemis.jndi.ActiveMQInitialContextFactory");

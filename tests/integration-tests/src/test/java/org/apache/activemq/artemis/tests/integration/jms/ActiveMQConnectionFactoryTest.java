@@ -308,6 +308,7 @@ public class ActiveMQConnectionFactoryTest extends ActiveMQTestBase {
    }
 
    @Test
+   @SuppressWarnings("deprecation")
    public void testDeprecatedSystemPropertyBlackWhiteListDefault() throws Exception {
       System.setProperty(ObjectInputStreamWithClassLoader.BLACKLIST_PROPERTY, "*");
       System.setProperty(ObjectInputStreamWithClassLoader.WHITELIST_PROPERTY, "some.other.package");

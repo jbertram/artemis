@@ -535,6 +535,7 @@ public class ResourceAdapterTest extends ActiveMQTestBase {
    }
 
    @Test
+   @SuppressWarnings("deprecation")
    public void testDeprecatedActivationDeserializationParameters() throws Exception {
       ActiveMQServer server = createServer(false);
 

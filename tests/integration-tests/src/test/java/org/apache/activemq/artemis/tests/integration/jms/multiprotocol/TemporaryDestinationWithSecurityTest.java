@@ -76,6 +76,7 @@ public class TemporaryDestinationWithSecurityTest extends MultiprotocolJMSClient
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    protected void enableSecurity(ActiveMQServer server, String... securityMatches) {
       super.enableSecurity(server, UUID_NAMESPACE + ".#");
 

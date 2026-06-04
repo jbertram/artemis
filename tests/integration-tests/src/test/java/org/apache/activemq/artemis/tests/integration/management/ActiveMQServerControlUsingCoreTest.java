@@ -207,6 +207,7 @@ public class ActiveMQServerControlUsingCoreTest extends ActiveMQServerControlTes
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public void createQueue(final String address, final String name) throws Exception {
             proxy.invokeOperation("createQueue", address, name);
          }
@@ -304,6 +305,7 @@ public class ActiveMQServerControlUsingCoreTest extends ActiveMQServerControlTes
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public void deleteAddress(@Parameter(name = "name", desc = "The name of the address") String name, @Parameter(name = "force", desc = "Force everything out!") boolean force) throws Exception {
             proxy.invokeOperation("deleteAddress", name, force);
          }
@@ -317,21 +319,25 @@ public class ActiveMQServerControlUsingCoreTest extends ActiveMQServerControlTes
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public void createQueue(String address, String name, String routingType) throws Exception {
             proxy.invokeOperation("createQueue", address, name, routingType);
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public void createQueue(String address, String name, boolean durable, String routingType) throws Exception {
             proxy.invokeOperation("createQueue", address, name, durable, routingType);
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public void createQueue(String address, String name, String filter, boolean durable, String routingType) throws Exception {
             proxy.invokeOperation("createQueue", address, name, filter, durable, routingType);
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public String createQueue(String address, String routingType, String name, String filter, boolean durable, int maxConsumers, boolean purgeOnNoConsumers, boolean exclusive, boolean groupRebalance, int groupBuckets, boolean lastValue, String lastValueKey, boolean nonDestructive, int consumersBeforeDispatch, long delayBeforeDispatch, boolean autoCreateAddress) throws Exception {
             return (String) proxy.invokeOperation("createQueue", address, routingType, name, filter, durable, maxConsumers, purgeOnNoConsumers, exclusive, groupRebalance, groupBuckets, lastValue, lastValueKey, nonDestructive, consumersBeforeDispatch, delayBeforeDispatch, autoCreateAddress);
          }
@@ -352,6 +358,7 @@ public class ActiveMQServerControlUsingCoreTest extends ActiveMQServerControlTes
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public void createQueue(final String address, final String name, final boolean durable) throws Exception {
             proxy.invokeOperation("createQueue", address, name, durable);
          }
@@ -648,6 +655,7 @@ public class ActiveMQServerControlUsingCoreTest extends ActiveMQServerControlTes
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public long getMessageExpiryThreadPriority() {
             return (Long) proxy.retrieveAttributeValue("messageExpiryThreadPriority", Long.class);
          }
@@ -791,6 +799,7 @@ public class ActiveMQServerControlUsingCoreTest extends ActiveMQServerControlTes
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public String listPreparedTransactionDetailsAsHTML() throws Exception {
             return (String) proxy.invokeOperation("listPreparedTransactionDetailsAsHTML");
          }
@@ -951,6 +960,7 @@ public class ActiveMQServerControlUsingCoreTest extends ActiveMQServerControlTes
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public String createAddress(String name, String routingTypes) throws Exception {
             return (String) proxy.invokeOperation("createAddress", name, routingTypes);
          }
@@ -1027,6 +1037,7 @@ public class ActiveMQServerControlUsingCoreTest extends ActiveMQServerControlTes
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public String getRolesAsJSON(String addressMatch) throws Exception {
             return (String) proxy.invokeOperation("getRolesAsJSON", addressMatch);
          }
@@ -1492,6 +1503,7 @@ public class ActiveMQServerControlUsingCoreTest extends ActiveMQServerControlTes
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public void removeAddressSettings(String addressMatch) throws Exception {
             proxy.invokeOperation("removeAddressSettings", addressMatch);
          }
@@ -1546,6 +1558,7 @@ public class ActiveMQServerControlUsingCoreTest extends ActiveMQServerControlTes
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public void createDivert(String divertConfiguration) throws Exception {
             proxy.invokeOperation("createDivert", divertConfiguration);
          }
@@ -1616,6 +1629,7 @@ public class ActiveMQServerControlUsingCoreTest extends ActiveMQServerControlTes
          }
 
          @Override
+         @SuppressWarnings("deprecation")
          public String[] listDivertNames() {
             return new String[0];
          }
