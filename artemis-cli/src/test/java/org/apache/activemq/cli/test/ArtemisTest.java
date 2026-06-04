@@ -126,6 +126,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 /**
  * Test to validate that the CLI doesn't throw improper exceptions when invoked.
  */
+@SuppressWarnings("deprecation")
 public class ArtemisTest extends CliTestBase {
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
