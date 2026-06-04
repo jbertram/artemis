@@ -27,7 +27,7 @@ public final class Env {
 
    private static final int OS_PAGE_SIZE;
 
-   @SuppressWarnings("all")
+   @SuppressWarnings("removal")
    private static int getOsPageSize() {
       //most common OS page size value
       int osPageSize = 4096;

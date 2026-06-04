@@ -28,7 +28,7 @@ import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.activemq.artemis.utils.ConfigurationHelper;
 
-@SuppressWarnings("all")
+@SuppressWarnings("removal")
 public final class TopologyMemberImpl implements TopologyMember {
 
    private final Pair<TransportConfiguration, TransportConfiguration> connector;
@@ -59,7 +59,7 @@ public final class TopologyMemberImpl implements TopologyMember {
 
    @Override
    @Deprecated(forRemoval = true)
-   @SuppressWarnings("all")
+   @SuppressWarnings("removal")
    public TransportConfiguration getLive() {
       return getPrimary();
    }
