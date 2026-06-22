@@ -126,9 +126,17 @@ public class WebServerComponentTest extends ArtemisTestCase {
    static final String URL = System.getProperty("url", "http://localhost:8161/WebServerComponentTest.txt");
    static final String SECURE_URL = System.getProperty("url", "https://localhost:8448/WebServerComponentTest.txt");
 
-   static final String KEY_STORE_PATH = WebServerComponentTest.class.getClassLoader().getResource("server-keystore.p12").getFile();
+   static final String KEY_STORE_PATH;
+   static final String PEM_KEY_STORE_PATH;
 
-   static final String PEM_KEY_STORE_PATH = WebServerComponentTest.class.getClassLoader().getResource("server-keystore.pemcfg").getFile();
+   static {
+      try {
+         KEY_STORE_PATH = Paths.get(WebServerComponentTest.class.getClassLoader().getResource("server-keystore.p12").toURI()).toString();
+         PEM_KEY_STORE_PATH = Paths.get(WebServerComponentTest.class.getClassLoader().getResource("server-keystore.pemcfg").toURI()).toString();
+      } catch (URISyntaxException e) {
+         throw new RuntimeException(e);
+      }
+   }
 
    static final String KEY_STORE_PASSWORD = "securepass";
 
