@@ -17,6 +17,7 @@
 package org.apache.activemq.artemis.tests.unit.core.remoting.impl.ssl;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
@@ -113,16 +114,18 @@ public class SSLSupportTest extends ActiveMQTestBase {
    @TestTemplate
    public void testContextWithKeyStorePathAsURL() throws Exception {
       URL url = Thread.currentThread().getContextClassLoader().getResource(keyStorePath);
-      new SSLSupport()
-         .setKeystoreProvider(storeProvider)
-         .setKeystoreType(storeType)
-         .setKeystorePath(url.toString())
-         .setKeystorePassword(keyStorePassword)
-         .setTruststoreProvider(storeProvider)
-         .setTruststoreType(storeType)
-         .setTruststorePath(trustStorePath)
-         .setTruststorePassword(trustStorePassword)
-         .createContext();
+      assertThrows(Exception.class, () -> {
+         new SSLSupport()
+            .setKeystoreProvider(storeProvider)
+            .setKeystoreType(storeType)
+            .setKeystorePath(url.toString())
+            .setKeystorePassword(keyStorePassword)
+            .setTruststoreProvider(storeProvider)
+            .setTruststoreType(storeType)
+            .setTruststorePath(trustStorePath)
+            .setTruststorePassword(trustStorePassword)
+            .createContext();
+      });
    }
 
    @TestTemplate

@@ -25,9 +25,8 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
 import java.io.File;
-import java.io.IOException;
+import java.io.FileInputStream;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -456,8 +455,7 @@ public class SSLSupport {
       if (crlPath == null) {
          return null;
       }
-      URL resource = validateStoreURL(crlPath);
-      try (InputStream is = resource.openStream()) {
+      try (InputStream is = validateStorePath(crlPath)) {
          return CertificateFactory.getInstance("X.509").generateCRLs(is);
       }
    }
@@ -468,20 +466,13 @@ public class SSLSupport {
                                        final String keystorePassword) throws Exception {
       checkPemProviderLoaded(keystoreType);
       KeyStore ks = keystoreProvider == null ? KeyStore.getInstance(keystoreType) : KeyStore.getInstance(keystoreType, keystoreProvider);
-      InputStream in = null;
-      try {
-         if (keystorePath != null && !keystorePath.isEmpty() && !keystorePath.equalsIgnoreCase(NONE)) {
-            URL keystoreURL = SSLSupport.validateStoreURL(keystorePath);
-            in = keystoreURL.openStream();
+      char[] keystorePasswordChars = keystorePassword == null ? null : keystorePassword.toCharArray();
+      if (keystorePath != null && !keystorePath.isEmpty() && !keystorePath.equalsIgnoreCase(NONE)) {
+         try (InputStream in = SSLSupport.validateStorePath(keystorePath)) {
+            ks.load(in, keystorePasswordChars);
          }
-         ks.load(in, keystorePassword == null ? null : keystorePassword.toCharArray());
-      } finally {
-         if (in != null) {
-            try {
-               in.close();
-            } catch (IOException ignored) {
-            }
-         }
+      } else {
+         ks.load(null, keystorePasswordChars);
       }
       return ks;
    }
@@ -525,21 +516,17 @@ public class SSLSupport {
       }
    }
 
-   private static URL validateStoreURL(final String storePath) throws Exception {
+   private static InputStream validateStorePath(final String storePath) throws Exception {
       assert storePath != null;
 
-      // First see if this is a URL
-      try {
-         return new URL(storePath);
-      } catch (MalformedURLException e) {
-         File file = new File(storePath);
-         if (file.exists() && file.isFile()) {
-            return file.toURI().toURL();
-         } else {
-            URL url = findResource(storePath);
-            if (url != null) {
-               return url;
-            }
+      File file = new File(storePath);
+      if (file.exists() && file.isFile()) {
+         return new FileInputStream(file);
+      } else {
+         URL url = findResourceOnClasspath(storePath);
+         if (url != null) {
+            // since the URL comes from the controlled classpath search this should be safe (i.e. file: or jar:)
+            return url.openStream();
          }
       }
 
@@ -551,7 +538,7 @@ public class SSLSupport {
     * in a utility class, as it would be a door to load anything you like in a safe VM. For that reason any class trying
     * to do a privileged block should do with the AccessController directly.
     */
-   private static URL findResource(final String resourceName) {
+   private static URL findResourceOnClasspath(final String resourceName) {
       return SecurityManagerShim.doPrivileged((PrivilegedAction<URL>) () -> ClassloadingUtil.findResource(resourceName));
    }
 
