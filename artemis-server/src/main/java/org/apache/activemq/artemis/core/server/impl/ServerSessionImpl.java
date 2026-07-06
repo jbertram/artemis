@@ -1481,7 +1481,8 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
       return new TransactionImpl(null, storageManager, timeoutSeconds);
    }
 
-   private Transaction newTransaction(final Xid xid) {
+   @Override
+   public Transaction newTransaction(final Xid xid) {
       return new TransactionImpl(xid, storageManager, timeoutSeconds);
    }
 

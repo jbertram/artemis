@@ -829,7 +829,6 @@ public class TransactionImpl implements Transaction {
       return "TransactionImpl [xid=" + xid +
          ", txID=" +
          id +
-         ", xid=" + xid +
          ", state=" +
          state +
          ", createTime=" +

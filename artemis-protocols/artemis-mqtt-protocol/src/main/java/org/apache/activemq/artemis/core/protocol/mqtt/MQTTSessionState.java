@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -55,13 +54,6 @@ public class MQTTSessionState {
    private final String clientId;
 
    private final ConcurrentMap<String, SubscriptionItem> subscriptions = new ConcurrentHashMap<>();
-
-   // Used to store Packet ID of Publish QoS1 and QoS2 message.  See spec: 4.3.3 QoS 2: Exactly once delivery.  Method B.
-   private final Map<Integer, MQTTMessageInfo> messageRefStore = new ConcurrentHashMap<>();
-
-   private final ConcurrentMap<String, Map<Long, Integer>> addressMessageMap = new ConcurrentHashMap<>();
-
-   private final Set<Integer> pubRec = new HashSet<>();
 
    private boolean attached = false;
 
@@ -151,9 +143,6 @@ public class MQTTSessionState {
 
    public synchronized void clear() throws Exception {
       subscriptions.clear();
-      messageRefStore.clear();
-      addressMessageMap.clear();
-      pubRec.clear();
       outboundStore.clear();
       disconnectedTime = 0;
       if (willMessage != null) {
@@ -172,10 +161,6 @@ public class MQTTSessionState {
 
    public OutboundStore getOutboundStore() {
       return outboundStore;
-   }
-
-   public Set<Integer> getPubRec() {
-      return pubRec;
    }
 
    public boolean isAttached() {
@@ -201,8 +186,6 @@ public class MQTTSessionState {
    public boolean addSubscription(MqttTopicSubscription subscription, WildcardConfiguration wildcardConfiguration, Integer subscriptionIdentifier) throws Exception {
       // synchronized to prevent race with removeSubscription
       synchronized (subscriptions) {
-         addressMessageMap.putIfAbsent(MQTTUtil.getCoreAddressFromMqttTopic(subscription.topicFilter(), wildcardConfiguration), new ConcurrentHashMap<>());
-
          SubscriptionItem existingSubscription = subscriptions.get(subscription.topicFilter());
          if (existingSubscription != null) {
             if (subscription.qualityOfService().value() > existingSubscription.getSubscription().qualityOfService().value()
@@ -223,7 +206,6 @@ public class MQTTSessionState {
       // synchronized to prevent race with addSubscription
       synchronized (subscriptions) {
          subscriptions.remove(address);
-         addressMessageMap.remove(address);
       }
    }
 
@@ -394,15 +376,6 @@ public class MQTTSessionState {
       return serverTopicAliases == null ? null : serverTopicAliases.get(topicName);
    }
 
-   void removeMessageRef(Integer mqttId) {
-      MQTTMessageInfo info = messageRefStore.remove(mqttId);
-      if (info != null) {
-         Map<Long, Integer> addressMap = addressMessageMap.get(info.getAddress());
-         if (addressMap != null) {
-            addressMap.remove(info.getServerMessageId());
-         }
-      }
-   }
 
    public void clearTopicAliases() {
       if (clientTopicAliases != null) {
@@ -420,9 +393,6 @@ public class MQTTSessionState {
       return "MQTTSessionState[session=" + session +
          ", clientId=" + clientId +
          ", subscriptions=" + subscriptions +
-         ", messageRefStore=" + messageRefStore +
-         ", addressMessageMap=" + addressMessageMap +
-         ", pubRec=" + pubRec +
          ", attached=" + attached +
          ", outboundStore=" + outboundStore +
          ", disconnectedTime=" + disconnectedTime +

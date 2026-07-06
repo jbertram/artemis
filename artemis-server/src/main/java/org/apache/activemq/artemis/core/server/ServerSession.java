@@ -64,6 +64,8 @@ public interface ServerSession extends SecurityAuth {
 
    Transaction newTransaction();
 
+   Transaction newTransaction(Xid xid);
+
    boolean removeConsumer(long consumerID) throws Exception;
 
    List<Long> acknowledge(long consumerID, long messageID) throws Exception;

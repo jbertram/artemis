@@ -134,7 +134,7 @@ public class PahoMQTTQOS2SecurityTest extends MQTTTestSupport {
       } catch (MqttException e) {
          // ignore
       }
-      assertEquals(0, getSessions().get(clientID).getPubRec().size());
+      assertEquals(0, server.getResourceManager().getPreparedTransactions().size());
       producer.close();
    }
 
