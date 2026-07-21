@@ -74,7 +74,7 @@ public class MQTTUtil {
 
    public static final boolean DURABLE_MESSAGES = true;
 
-   public static final boolean SESSION_AUTO_COMMIT_SENDS = true;
+   public static final boolean SESSION_AUTO_COMMIT_SENDS = false;
 
    public static final boolean SESSION_AUTO_COMMIT_ACKS = true;
 

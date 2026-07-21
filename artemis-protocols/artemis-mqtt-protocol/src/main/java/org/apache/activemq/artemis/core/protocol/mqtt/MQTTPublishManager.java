@@ -205,77 +205,71 @@ public class MQTTPublishManager {
          if (qos > 0) {
             serverMessage.setDurable(MQTTUtil.DURABLE_MESSAGES);
          }
-         int packetId = message.variableHeader().packetId();
-         boolean qos2PublishAlreadyReceived = state.getPubRec().contains(packetId);
-         if (qos < 2 || !qos2PublishAlreadyReceived) {
-            Transaction tx = session.getServerSession().newTransaction();
-            try {
-               AddressInfo addressInfo = session.getServer().getAddressInfo(address);
-               if (addressInfo == null && session.getServer().getAddressSettingsRepository().getMatch(coreAddress).isAutoCreateAddresses()) {
-                  session.getServerSession().createAddress(address, RoutingType.MULTICAST, true);
-                  serverMessage.setRoutingType(RoutingType.MULTICAST);
-               }
-               if (addressInfo != null) {
-                  serverMessage.setRoutingType(addressInfo.getRoutingType());
-               }
-               session.getServerSession().send(tx, serverMessage, true, senderName, false);
-
-               if (qos == 2 && !internal) {
-                  state.getPubRec().add(packetId);
-               }
-
-               if (message.fixedHeader().isRetain()) {
-                  ByteBuf payload = message.payload();
-                  boolean reset = payload instanceof EmptyByteBuf || payload.capacity() == 0;
-                  session.getRetainMessageManager().handleRetainedMessage(serverMessage, topic, reset, tx);
-               }
-               tx.commit();
-            } catch (ActiveMQSecurityException e) {
-               tx.rollback();
-               if (internal) {
-                  throw e;
-               }
-               if (session.getVersion() == MQTTVersion.MQTT_5) {
-                  sendMessageAck(internal, qos, packetId, MQTTReasonCodes.NOT_AUTHORIZED);
-                  return;
-               } else if (session.getVersion() == MQTTVersion.MQTT_3_1_1) {
-                  /*
-                   * For MQTT 3.1.1 clients:
-                   *
-                   * [MQTT-3.3.5-2] If a Server implementation does not authorize a PUBLISH to be performed by a Client;
-                   * it has no way of informing that Client. It MUST either make a positive acknowledgement, according
-                   * to the normal QoS rules, or close the Network Connection
-                   *
-                   * Throwing an exception here will ultimately close the connection. This is the default behavior.
-                   */
-                  if (closeMqttConnectionOnPublishAuthorizationFailure) {
-                     throw new DisconnectException();
-                  } else {
-                     logger.debug("MQTT 3.1.1 client not authorized to publish message.");
-                  }
-               } else {
-                  /*
-                   * For MQTT 3.1 clients:
-                   *
-                   * Note that if a server implementation does not authorize a PUBLISH to be made by a client, it has no
-                   * way of informing that client. It must therefore make a positive acknowledgement, according to the
-                   * normal QoS rules, and the client will *not* be informed that it was not authorized to publish the
-                   * message.
-                   *
-                   * Log the failure since we have to just swallow it.
-                   */
-                  logger.debug("MQTT 3.1 client not authorized to publish message.");
-               }
-            } catch (Throwable t) {
-               MQTTLogger.LOGGER.failedToPublishMqttMessage(t.getMessage(), t);
-               tx.rollback();
-               throw t;
+         Transaction tx = session.getServerSession().newTransaction();
+         try {
+            AddressInfo addressInfo = session.getServer().getAddressInfo(address);
+            if (addressInfo == null && session.getServer().getAddressSettingsRepository().getMatch(coreAddress).isAutoCreateAddresses()) {
+               session.getServerSession().createAddress(address, RoutingType.MULTICAST, true);
+               serverMessage.setRoutingType(RoutingType.MULTICAST);
             }
-         } else if (qos2PublishAlreadyReceived) {
-            MQTTLogger.LOGGER.ignoringQoS2Publish(state.getClientId(), packetId);
+            if (addressInfo != null) {
+               serverMessage.setRoutingType(addressInfo.getRoutingType());
+            }
+            session.getServerSession().send(tx, serverMessage, true, senderName, false);
+
+            if (qos == 2 && !internal) {
+               state.addPubRec(message.variableHeader().packetId(), tx);
+            }
+
+            if (message.fixedHeader().isRetain()) {
+               ByteBuf payload = message.payload();
+               boolean reset = payload instanceof EmptyByteBuf || payload.capacity() == 0;
+               session.getRetainMessageManager().handleRetainedMessage(serverMessage, topic, reset, tx);
+            }
+            tx.commit();
+         } catch (ActiveMQSecurityException e) {
+            tx.rollback();
+            if (internal) {
+               throw e;
+            }
+            if (session.getVersion() == MQTTVersion.MQTT_5) {
+               sendMessageAck(internal, qos, message.variableHeader().packetId(), MQTTReasonCodes.NOT_AUTHORIZED);
+               return;
+            } else if (session.getVersion() == MQTTVersion.MQTT_3_1_1) {
+               /*
+                * For MQTT 3.1.1 clients:
+                *
+                * [MQTT-3.3.5-2] If a Server implementation does not authorize a PUBLISH to be performed by a Client;
+                * it has no way of informing that Client. It MUST either make a positive acknowledgement, according
+                * to the normal QoS rules, or close the Network Connection
+                *
+                * Throwing an exception here will ultimately close the connection. This is the default behavior.
+                */
+               if (closeMqttConnectionOnPublishAuthorizationFailure) {
+                  throw new DisconnectException();
+               } else {
+                  logger.debug("MQTT 3.1.1 client not authorized to publish message.");
+               }
+            } else {
+               /*
+                * For MQTT 3.1 clients:
+                *
+                * Note that if a server implementation does not authorize a PUBLISH to be made by a client, it has no
+                * way of informing that client. It must therefore make a positive acknowledgement, according to the
+                * normal QoS rules, and the client will *not* be informed that it was not authorized to publish the
+                * message.
+                *
+                * Log the failure since we have to just swallow it.
+                */
+               logger.debug("MQTT 3.1 client not authorized to publish message.");
+            }
+         } catch (Throwable t) {
+            MQTTLogger.LOGGER.failedToPublishMqttMessage(t.getMessage(), t);
+            tx.rollback();
+            throw t;
          }
 
-         createMessageAck(packetId, qos, internal);
+         createMessageAck(message.variableHeader().packetId(), qos, internal);
       }
    }
 
@@ -370,10 +364,16 @@ public class MQTTPublishManager {
    }
 
    void handlePubRel(int messageId) {
-      // We don't check to see if a PubRel existed for this message.  We assume it did and so send PubComp.
-      state.getPubRec().remove(messageId);
+      try {
+         boolean deleted = state.removePubRec(messageId);
+         if (!deleted) {
+            // TODO log that the publish wasn't found in the cache
+         }
+      } catch (Exception e) {
+         // TODO log something meaningful here
+         throw new RuntimeException(e);
+      }
       session.getProtocolHandler().sendPubComp(messageId);
-      state.removeMessageRef(messageId);
    }
 
    void handlePubAck(int messageId) throws Exception {

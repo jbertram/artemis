@@ -18,7 +18,10 @@ package org.apache.activemq.artemis.tests.integration.mqtt;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl;
+import org.apache.activemq.artemis.core.protocol.mqtt.MQTTSessionState;
 import org.apache.activemq.artemis.core.protocol.mqtt.MQTTUtil;
 import org.apache.activemq.artemis.core.security.Role;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
@@ -134,7 +137,7 @@ public class PahoMQTTQOS2SecurityTest extends MQTTTestSupport {
       } catch (MqttException e) {
          // ignore
       }
-      assertEquals(0, getSessions().get(clientID).getPubRec().size());
+      assertEquals(0, ((PostOfficeImpl)server.getPostOffice()).getDuplicateIDCaches().get(MQTTSessionState.getDuplicateIDCacheName(server.getInternalNamingPrefix(), clientID)).getMap().size());
       producer.close();
    }
 

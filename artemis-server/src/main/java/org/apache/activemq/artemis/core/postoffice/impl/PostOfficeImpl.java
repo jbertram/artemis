@@ -1051,7 +1051,8 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
       }
    }
 
-   private void deleteDuplicateCache(SimpleString address) throws Exception {
+   @Override
+   public void deleteDuplicateCache(SimpleString address) throws Exception {
       DuplicateIDCache cache = duplicateIDCaches.remove(address);
 
       if (cache != null) {

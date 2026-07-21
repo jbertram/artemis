@@ -195,6 +195,8 @@ public interface PostOffice extends ActiveMQComponent {
 
    DuplicateIDCache getDuplicateIDCache(SimpleString address, int idCacheSize);
 
+   void deleteDuplicateCache(SimpleString address) throws Exception;
+
    void sendQueueInfoToQueue(SimpleString queueName, SimpleString address) throws Exception;
 
    Object getNotificationLock();

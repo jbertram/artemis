@@ -205,6 +205,10 @@ public class FakePostOffice implements PostOffice {
    }
 
    @Override
+   public void deleteDuplicateCache(SimpleString address) throws Exception {
+   }
+
+   @Override
    public Collection<Binding> getMatchingBindings(final SimpleString address) {
 
       return null;

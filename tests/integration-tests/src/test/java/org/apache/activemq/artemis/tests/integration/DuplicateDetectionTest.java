@@ -140,6 +140,11 @@ public class DuplicateDetectionTest extends ActiveMQTestBase {
       producer.send(message);
       message2 = consumer.receiveImmediate();
       assertNull(message2);
+
+      consumer.close();
+
+//      session.deleteQueue(queueName);
+      server.getPostOffice().deleteDuplicateCache(queueName);
    }
 
    @TestTemplate
