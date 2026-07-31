@@ -130,7 +130,7 @@ public class MQTTSession {
          state.setAttached(false);
          state.setDisconnectedTime(System.currentTimeMillis());
          state.clearTopicAliases();
-         state.getOutboundStore().resetSendQuota();
+         state.resetSendQuota();
 
          if (getVersion() == MQTTVersion.MQTT_5) {
             if (state.getClientSessionExpiryInterval() == 0) {
@@ -231,7 +231,6 @@ public class MQTTSession {
 
    void clean(boolean enforceSecurity) throws Exception {
       subscriptionManager.clean(enforceSecurity);
-      mqttPublishManager.clean();
       state.clear();
    }
 

@@ -98,6 +98,11 @@ public class MQTTSubscriptionManager {
       for (MqttTopicSubscription subscription : session.getState().getSubscriptions()) {
          addSubscription(subscription, null, true);
       }
+
+      // Re-send PUBREL for any QoS 2 messages where PUBREC was received but PUBCOMP wasn't
+      for (int packetId : session.getState().getPubRecCache().getPacketIds()) {
+         session.getProtocolHandler().sendPubRel(packetId);
+      }
    }
 
    private void addSubscription(MqttTopicSubscription subscription, Integer subscriptionIdentifier, boolean initialStart) throws Exception {

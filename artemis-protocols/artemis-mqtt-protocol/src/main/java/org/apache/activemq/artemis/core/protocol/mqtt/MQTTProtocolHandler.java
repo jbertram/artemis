@@ -318,7 +318,7 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
          return;
       }
 
-      if (message.fixedHeader().qosLevel().value() == 2 && session.getState().pubRecExists(message.variableHeader().packetId())) {
+      if (message.fixedHeader().qosLevel().value() == 2 && session.getState().getPublishCache().exists(message.variableHeader().packetId())) {
          MQTTLogger.LOGGER.ignoringQoS2Publish(message.variableHeader().packetId(), session.getState().getClientId());
          sendPubRec(message.variableHeader().packetId(), MQTTReasonCodes.SUCCESS);
          return;

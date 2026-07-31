@@ -28,6 +28,10 @@ public final class Pair<A, B> implements Serializable {
 
    private static final long serialVersionUID = -2496357457812368127L;
 
+   public static <A, B> Pair<A, B> of(final A a, final B b) {
+      return new Pair<>(a, b);
+   }
+
    public Pair(final A a, final B b) {
       this.a = a;
 

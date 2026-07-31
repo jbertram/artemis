@@ -17,6 +17,8 @@
 package org.apache.activemq.artemis.core.protocol.mqtt;
 
 import org.apache.activemq.artemis.api.core.SimpleString;
+import org.apache.activemq.artemis.core.persistence.OperationContext;
+import org.apache.activemq.artemis.core.persistence.impl.journal.OperationContextImpl;
 import org.apache.activemq.artemis.core.server.MessageReference;
 import org.apache.activemq.artemis.core.server.ServerConsumer;
 import org.apache.activemq.artemis.spi.core.protocol.SessionCallback;
@@ -49,7 +51,8 @@ public class MQTTSessionCallback implements SessionCallback {
                           ServerConsumer consumer,
                           int deliveryCount) {
       try {
-         session.getMqttPublishManager().sendMessage(ref.getMessage().toCore(), consumer, deliveryCount);
+         System.out.println("Delivering: " + ref.getMessageID() + "; context: " + OperationContextImpl.getContext());
+            session.getMqttPublishManager().publishToClient(ref.getMessage().toCore(), consumer, deliveryCount);
       } catch (Exception e) {
          MQTTLogger.LOGGER.unableToSendMessage(ref, e);
       }
@@ -110,7 +113,7 @@ public class MQTTSessionCallback implements SessionCallback {
        * Therefore, enforce flow-control based on the number of pending QoS 1 & 2 messages
        */
       int maxInFlightPublishMessages = connection.getReceiveMaximum() > 0 ? connection.getReceiveMaximum() : defaultMaximumInFlightPublishMessages;
-      if (ref != null && ref.isDurable() == true && maxInFlightPublishMessages > 0 && session.getState().getOutboundStore().getSendQuota() >= maxInFlightPublishMessages) {
+      if (ref != null && ref.isDurable() == true && maxInFlightPublishMessages > 0 && session.getState().getSendQuota() >= maxInFlightPublishMessages) {
          return false;
       } else {
          return true;

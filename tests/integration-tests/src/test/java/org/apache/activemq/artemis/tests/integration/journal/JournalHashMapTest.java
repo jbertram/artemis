@@ -102,11 +102,11 @@ public class JournalHashMapTest extends ActiveMQTestBase {
 
       AtomicLong sequence = new AtomicLong(1);
 
-      JournalHashMapProvider<Long, Long, Object> journalHashMapProvider = new JournalHashMapProvider(sequence::incrementAndGet, new JournalManager(journal), new LongPersister(), (byte)3, OperationContextImpl::getContext, l -> null, (e, m, f) -> {
+      JournalHashMapProvider<Long, Long, Long, Object> journalHashMapProvider = new JournalHashMapProvider<>(sequence::incrementAndGet, new JournalManager(journal), new LongPersister(), (byte)3, OperationContextImpl::getContext, l -> null, (e, m, f) -> {
          e.printStackTrace();
       });
 
-      JournalHashMap<Long, Long, Object> journalHashMap = journalHashMapProvider.getMap(1);
+      JournalHashMap<Long, Long, Long, Object> journalHashMap = journalHashMapProvider.getMap(1L);
 
       for (long i = 0; i < 1000; i++) {
          journalHashMap.put(i, RandomUtil.randomLong());
@@ -131,15 +131,15 @@ public class JournalHashMapTest extends ActiveMQTestBase {
       List<PreparedTransactionInfo> preparedTransactions = new ArrayList<>();
       journal.load(recordInfos, preparedTransactions, (a, b, c) -> { }, true);
 
-      List<JournalHashMap.MapRecord<Long, Long>> records = new ArrayList<>();
+      List<JournalHashMap.MapRecord<Long, Long, Long>> records = new ArrayList<>();
       recordInfos.forEach(r -> {
          assertEquals((byte)3, r.userRecordType);
          journalHashMapProvider.reload(r);
       });
 
-      List<JournalHashMap<Long, Long, Object>> existingLists = journalHashMapProvider.getMaps();
+      List<JournalHashMap<Long, Long, Long, Object>> existingLists = journalHashMapProvider.getMaps();
       assertEquals(1, existingLists.size());
-      JournalHashMap<Long, Long, Object> reloadedList = existingLists.get(0);
+      JournalHashMap<Long, Long, Long, Object> reloadedList = existingLists.get(0);
 
       assertEquals(journalHashMap.size(), reloadedList.size());
 
@@ -148,11 +148,26 @@ public class JournalHashMapTest extends ActiveMQTestBase {
    }
 
 
-   private static class LongPersister extends AbstractHashMapPersister<Long, Long> {
+   private static class LongPersister extends AbstractHashMapPersister<Long, Long, Long> {
 
       @Override
       public byte getID() {
          return 0;
+      }
+
+      @Override
+      protected int getCollectionIdSize(Long collectionID) {
+         return DataConstants.SIZE_LONG;
+      }
+
+      @Override
+      protected void encodeCollectionId(ActiveMQBuffer buffer, Long collectionID) {
+         buffer.writeLong(collectionID);
+      }
+
+      @Override
+      protected Long decodeCollectionId(ActiveMQBuffer buffer) {
+         return buffer.readLong();
       }
 
       @Override

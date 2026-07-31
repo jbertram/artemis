@@ -86,6 +86,7 @@ public class MQTTProtocolManager extends AbstractProtocolManager<MqttMessage, MQ
       server.getManagementService().addNotificationListener(this);
       routingHandler = new MQTTRoutingHandler(server);
       sessionStateManager = MQTTStateManager.getInstance(server);
+      sessionStateManager.init();
       server.registerActivateCallback(new CleaningActivateCallback() {
          @Override
          public void deActivate() {

@@ -76,7 +76,7 @@ public class MQTTUtil {
 
    public static final boolean SESSION_AUTO_COMMIT_SENDS = false;
 
-   public static final boolean SESSION_AUTO_COMMIT_ACKS = true;
+   public static final boolean SESSION_AUTO_COMMIT_ACKS = false;
 
    public static final boolean SESSION_PREACKNOWLEDGE = false;
 
@@ -97,10 +97,6 @@ public class MQTTUtil {
    public static final String MQTT_RETAIN_ADDRESS_PREFIX = DOLLAR + "sys.mqtt.retain.";
 
    public static final SimpleString MQTT_QOS_LEVEL_KEY = SimpleString.of("mqtt.qos.level");
-
-   public static final SimpleString MQTT_MESSAGE_ID_KEY = SimpleString.of("mqtt.message.id");
-
-   public static final SimpleString MQTT_MESSAGE_TYPE_KEY = SimpleString.of("mqtt.message.type");
 
    public static final SimpleString MQTT_MESSAGE_RETAIN_KEY = SimpleString.of("mqtt.message.retain");
 

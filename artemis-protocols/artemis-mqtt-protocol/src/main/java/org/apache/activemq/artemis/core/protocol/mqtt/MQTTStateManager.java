@@ -32,11 +32,18 @@ import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.QueueConfiguration;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.core.filter.impl.FilterImpl;
+import org.apache.activemq.artemis.core.journal.RecordInfo;
+import org.apache.activemq.artemis.core.journal.collections.AbstractHashMapPersister;
+import org.apache.activemq.artemis.core.journal.collections.JournalHashMapProvider;
 import org.apache.activemq.artemis.core.message.impl.CoreMessage;
 import org.apache.activemq.artemis.core.persistence.StorageManager;
+import org.apache.activemq.artemis.core.persistence.impl.journal.JournalRecordIds;
+import org.apache.activemq.artemis.core.persistence.impl.journal.OperationContextImpl;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.MessageReference;
 import org.apache.activemq.artemis.core.server.Queue;
+import org.apache.activemq.artemis.utils.BufferHelper;
+import org.apache.activemq.artemis.utils.DataConstants;
 import org.apache.activemq.artemis.utils.collections.LinkedListIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,12 +51,14 @@ import org.slf4j.LoggerFactory;
 public class MQTTStateManager {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+   private static final Map<Integer, MQTTStateManager> INSTANCES = new HashMap<>();
+   private static final Qos2PacketIdCorrelationPersister QOS_2_PACKET_ID_CORRELATION_PERSISTER = new Qos2PacketIdCorrelationPersister();
    private final ActiveMQServer server;
    private final Map<String, MQTTSessionState> sessionStates = new ConcurrentHashMap<>();
-   private final Queue sessionStore;
-   private static final Map<Integer, MQTTStateManager> INSTANCES = new HashMap<>();
+   private Queue sessionStore;
    private final Map<String, MQTTConnection> connectedClients = new ConcurrentHashMap<>();
    private final boolean subscriptionPersistenceEnabled;
+   private final JournalHashMapProvider<String, Long, Integer, Object> journalHashMapProvider;
 
    /*
     * Even though there may be multiple instances of MQTTProtocolManager (e.g. for MQTT on different ports) we only want
@@ -73,37 +82,8 @@ public class MQTTStateManager {
    private MQTTStateManager(ActiveMQServer server) throws Exception {
       this.server = server;
       this.subscriptionPersistenceEnabled = server.getConfiguration().isMqttSubscriptionPersistenceEnabled();
-      if (subscriptionPersistenceEnabled) {
-         this.sessionStore = server.createQueue(QueueConfiguration.of(MQTTUtil.MQTT_SESSION_STORE).setRoutingType(RoutingType.ANYCAST).setLastValue(true).setDurable(true).setInternal(true).setAutoCreateAddress(true), true);
-
-         // load subscription data from queue
-         try (LinkedListIterator<MessageReference> iterator = sessionStore.browserIterator()) {
-            while (iterator.hasNext()) {
-               Message message = iterator.next().getMessage();
-               if (!(message instanceof CoreMessage)) {
-                  MQTTLogger.LOGGER.sessionStateMessageIncorrectType(message.getClass().getName());
-                  continue;
-               }
-               String clientId = message.getStringProperty(Message.HDR_LAST_VALUE_NAME);
-               if (clientId == null || clientId.isEmpty()) {
-                  MQTTLogger.LOGGER.sessionStateMessageBadClientId();
-                  continue;
-               }
-               MQTTSessionState sessionState;
-               try {
-                  sessionState = new MQTTSessionState((CoreMessage) message);
-               } catch (Exception e) {
-                  MQTTLogger.LOGGER.errorDeserializingStateMessage(e);
-                  continue;
-               }
-               sessionStates.put(clientId, sessionState);
-            }
-         } catch (NoSuchElementException ignored) {
-            // this could happen through paging browsing
-         }
-      } else {
-         this.sessionStore = null;
-      }
+//      this.journalHashMapProvider = new JournalHashMapProvider<>(server.getStorageManager()::generateID, server.getStorageManager(), getPersister(), JournalRecordIds.MQTT_QOS2_PACKET_ID_CORRELATION, server.getStorageManager()::getContext, null, server.getIoCriticalErrorListener());
+      this.journalHashMapProvider = new JournalHashMapProvider<>(server.getStorageManager()::generateID, server.getStorageManager(), getPersister(), JournalRecordIds.MQTT_QOS2_PACKET_ID_CORRELATION, OperationContextImpl::getContext, null, server.getIoCriticalErrorListener());
    }
 
    public void scanSessions() {
@@ -243,5 +223,123 @@ public class MQTTStateManager {
     */
    public Map<String, MQTTConnection> getConnectedClients() {
       return connectedClients;
+   }
+
+   public void reload(RecordInfo recordInfo) {
+      if (recordInfo.userRecordType == JournalRecordIds.MQTT_QOS2_PACKET_ID_CORRELATION) {
+         logger.info("reloading: {}", recordInfo);
+         journalHashMapProvider.reload(recordInfo);
+      }
+   }
+
+   public void putQoS2PacketIdCorrelation(String clientId, Long coreMessageId, Integer packetId) {
+      logger.info("putQoS2PacketIdCorrelation({}, {}, {})", clientId, coreMessageId, packetId);
+      journalHashMapProvider.getMap(clientId).put(coreMessageId, packetId);
+   }
+
+   public Integer getQoS2PacketIdCorrelation(String clientId, Long coreMessageId) {
+      Integer result = journalHashMapProvider.getMap(clientId).get(coreMessageId);
+      logger.info("getQoS2PacketIdCorrelation({}, {}): {}", clientId, coreMessageId, result);
+      return result;
+   }
+
+   public Integer removeQoS2PacketIdCorrelation(String clientId, Long coreMessageId, long transactionId) {
+      logger.info("removeQoS2PacketIdCorrelation({}, {}, {})", clientId, coreMessageId, transactionId);
+      return journalHashMapProvider.getMap(clientId).remove(coreMessageId, transactionId);
+   }
+
+   public boolean qos2PacketIdCorrelationExists(String clientId, int packetId) {
+      boolean result = journalHashMapProvider.getMap(clientId).containsValue(packetId);
+      logger.info("qos2PacketIdCorrelationExists({}, {}): {}", clientId, packetId, result);
+      return result;
+   }
+
+   public void init() throws Exception {
+      if (subscriptionPersistenceEnabled) {
+         this.sessionStore = server.createQueue(QueueConfiguration.of(MQTTUtil.MQTT_SESSION_STORE).setRoutingType(RoutingType.ANYCAST).setLastValue(true).setDurable(true).setInternal(true).setAutoCreateAddress(true), true);
+
+         // load subscription data from queue
+         try (LinkedListIterator<MessageReference> iterator = sessionStore.browserIterator()) {
+            while (iterator.hasNext()) {
+               Message message = iterator.next().getMessage();
+               if (!(message instanceof CoreMessage)) {
+                  MQTTLogger.LOGGER.sessionStateMessageIncorrectType(message.getClass().getName());
+                  continue;
+               }
+               String clientId = message.getStringProperty(Message.HDR_LAST_VALUE_NAME);
+               if (clientId == null || clientId.isEmpty()) {
+                  MQTTLogger.LOGGER.sessionStateMessageBadClientId();
+                  continue;
+               }
+               MQTTSessionState sessionState;
+               try {
+                  sessionState = new MQTTSessionState((CoreMessage) message);
+               } catch (Exception e) {
+                  MQTTLogger.LOGGER.errorDeserializingStateMessage(e);
+                  continue;
+               }
+               sessionStates.put(clientId, sessionState);
+            }
+         } catch (NoSuchElementException ignored) {
+            // this could happen through paging browsing
+         }
+      }
+   }
+
+   private static Qos2PacketIdCorrelationPersister getPersister() {
+      return QOS_2_PACKET_ID_CORRELATION_PERSISTER;
+   }
+
+   private static class Qos2PacketIdCorrelationPersister extends AbstractHashMapPersister<String, Long, Integer> {
+      @Override
+      protected int getCollectionIdSize(String collectionID) {
+//         logger.info("getCollectionIdSize({})", collectionID);
+         return BufferHelper.sizeOfString(collectionID);
+      }
+
+      @Override
+      protected void encodeCollectionId(ActiveMQBuffer buffer, String collectionID) {
+//         logger.info("encodeCollectionId({})", collectionID);
+         buffer.writeString(collectionID);
+      }
+
+      @Override
+      protected String decodeCollectionId(ActiveMQBuffer buffer) {
+         return buffer.readString();
+      }
+
+      @Override
+      protected int getKeySize(Long coreMessageId) {
+//         logger.info("getKeySize({})", coreMessageId);
+         return DataConstants.SIZE_LONG;
+      }
+
+      @Override
+      protected void encodeKey(ActiveMQBuffer buffer, Long coreMessageId) {
+//         logger.info("encodeKey({})", coreMessageId);
+         buffer.writeLong(coreMessageId);
+      }
+
+      @Override
+      protected Long decodeKey(ActiveMQBuffer buffer) {
+         return buffer.readLong();
+      }
+
+      @Override
+      protected int getValueSize(Integer mqttPacketId) {
+//         logger.info("getValueSize({})", mqttPacketId);
+         return DataConstants.SIZE_INT;
+      }
+
+      @Override
+      protected void encodeValue(ActiveMQBuffer buffer, Integer mqttPacketId) {
+//         logger.info("encodeValue({})", mqttPacketId);
+         buffer.writeInt(mqttPacketId);
+      }
+
+      @Override
+      protected Integer decodeValue(ActiveMQBuffer buffer, Long coreMessageId) {
+         return buffer.readInt();
+      }
    }
 }

@@ -608,7 +608,11 @@ public class RemotingServiceImpl implements RemotingService, ServerConnectionLif
    @Override
    public void loadProtocolServices(List<ActiveMQComponent> protocolServices) {
       for (ProtocolManagerFactory protocolManagerFactory : protocolMap.values()) {
-         protocolManagerFactory.loadProtocolServices(this.server, protocolServices);
+         try {
+            protocolManagerFactory.loadProtocolServices(this.server, protocolServices);
+         } catch (Exception e) {
+            logger.warn("Unable to load protocol services for: {}", protocolManagerFactory.getProtocols(), e);
+         }
       }
    }
 

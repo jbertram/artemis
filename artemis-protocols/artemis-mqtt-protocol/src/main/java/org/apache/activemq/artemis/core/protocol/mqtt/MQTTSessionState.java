@@ -39,10 +39,7 @@ import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.config.WildcardConfiguration;
 import org.apache.activemq.artemis.core.message.impl.CoreMessage;
 import org.apache.activemq.artemis.core.postoffice.Address;
-import org.apache.activemq.artemis.core.postoffice.DuplicateIDCache;
 import org.apache.activemq.artemis.core.postoffice.impl.AddressImpl;
-import org.apache.activemq.artemis.core.transaction.Transaction;
-import org.apache.activemq.artemis.utils.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,13 +55,15 @@ public class MQTTSessionState {
 
    private final ConcurrentMap<String, SubscriptionItem> subscriptions = new ConcurrentHashMap<>();
 
-   private DuplicateIDCache pubRec;
+   protected MQTTPacketIdCache publishCache;
+
+   protected MQTTPacketIdCache pubRecCache;
 
    private boolean attached = false;
 
    private long disconnectedTime = 0;
 
-   private final OutboundStore outboundStore = new OutboundStore();
+   private PacketIdGenerator packetIdGenerator;
 
    private int clientSessionExpiryInterval;
 
@@ -93,6 +92,10 @@ public class MQTTSessionState {
    private Integer clientTopicAliasMaximum;
 
    private Map<String, Integer> serverTopicAliases;
+
+   private Map<Integer, Pair<Long, Long>> coreMessageIds;
+
+   private int sendQuota = 0;
 
    public MQTTSessionState(String clientId) {
       this.clientId = clientId;
@@ -148,10 +151,15 @@ public class MQTTSessionState {
 
    public synchronized void clear() throws Exception {
       subscriptions.clear();
-      if (pubRec != null) {
-         session.getServer().getPostOffice().deleteDuplicateCache(getDuplicateIDCacheName());
+      if (publishCache != null) {
+         publishCache.clear();
       }
-      outboundStore.clear();
+      if (pubRecCache != null) {
+         pubRecCache.clear();
+      }
+      if (packetIdGenerator != null) {
+         packetIdGenerator.clear();
+      }
       disconnectedTime = 0;
       if (willMessage != null) {
          willMessage.clear();
@@ -167,44 +175,11 @@ public class MQTTSessionState {
       clientTopicAliasMaximum = 0;
    }
 
-   public OutboundStore getOutboundStore() {
-      return outboundStore;
-   }
-
-   public boolean pubRecExists(int packetId) {
-      initPubRec();
-      return pubRec.contains(ByteUtil.intToBytes(packetId));
-   }
-
-   public void addPubRec(int packetId, Transaction tx) throws Exception {
-      initPubRec();
-      pubRec.addToCache(ByteUtil.intToBytes(packetId), tx);
-   }
-
-   private void initPubRec() {
-      if (pubRec == null) {
-         pubRec = session.getServer().getPostOffice().getDuplicateIDCache(getDuplicateIDCacheName(), MQTTUtil.TWO_BYTE_INT_MAX);
+   public PacketIdGenerator getPacketIdGenerator() {
+      if (packetIdGenerator == null) {
+         packetIdGenerator = new PacketIdGenerator();
       }
-   }
-
-   public boolean removePubRec(int packetId) throws Exception {
-      if (pubRec == null) {
-         return false;
-      } else {
-         return pubRec.deleteFromCache(ByteUtil.intToBytes(packetId));
-      }
-   }
-
-   public int getPubRecCount() {
-      return pubRec.getSize();
-   }
-
-   private SimpleString getDuplicateIDCacheName() {
-      return getDuplicateIDCacheName(session.getServer().getInternalNamingPrefix(), clientId);
-   }
-
-   public static SimpleString getDuplicateIDCacheName(String prefix, String clientId) {
-      return SimpleString.of(prefix).concat("mqtt.qos2.pub.").concat(clientId);
+      return packetIdGenerator;
    }
 
    public boolean isAttached() {
@@ -431,14 +406,36 @@ public class MQTTSessionState {
       }
    }
 
+   public Pair<Long, Long> getCoreDeliveryInfo(Integer packetId) {
+      return coreMessageIds == null ? null : coreMessageIds.get(packetId);
+   }
+
+   public void putCoreDeliveryInfo(Integer packetId, Long coreMessageId, Long consumerId) {
+      if (coreMessageIds == null) {
+         coreMessageIds = new ConcurrentHashMap<>();
+      }
+      coreMessageIds.put(packetId, Pair.of(coreMessageId, consumerId));
+   }
+
+   public void removeCoreDeliveryInfo(Integer packetId) {
+      if (coreMessageIds != null) {
+         coreMessageIds.remove(packetId);
+      }
+   }
+
+   public boolean coreDeliveryInfoExists(Integer packetId) {
+      return coreMessageIds == null ? false : coreMessageIds.containsKey(packetId);
+   }
+
    @Override
    public String toString() {
       return "MQTTSessionState[session=" + session +
          ", clientId=" + clientId +
          ", subscriptions=" + subscriptions +
-         ", pubRec=" + pubRec +
+         ", publishCache=" + publishCache +
+         ", pubRecCache=" + pubRecCache +
          ", attached=" + attached +
-         ", outboundStore=" + outboundStore +
+         ", outboundStore=" + packetIdGenerator +
          ", disconnectedTime=" + disconnectedTime +
          ", sessionExpiryInterval=" + clientSessionExpiryInterval +
          ", isWill=" + isWill +
@@ -452,104 +449,72 @@ public class MQTTSessionState {
          "]@" + System.identityHashCode(this);
    }
 
-   public static class OutboundStore {
-      private final Map<Pair<Long, Long>, Integer> artemisToMqttMessageMap = new HashMap<>();
+   public MQTTPacketIdCache getPublishCache() {
+      Objects.requireNonNull(session, "session is null");
+      if (publishCache == null) {
+         publishCache = new MQTTPacketIdCache(session, SimpleString.of("pub"));
+      }
+      return publishCache;
+   }
 
-      private final Map<Integer, Pair<Long, Long>> mqttToServerIds = new HashMap<>();
+   public MQTTPacketIdCache getPubRecCache() {
+      Objects.requireNonNull(session, "session is null");
+      if (pubRecCache == null) {
+         pubRecCache = new MQTTPacketIdCache(session, SimpleString.of("sub"));
+      }
+      return pubRecCache;
+   }
 
-      private final Object dataStoreLock = new Object();
+   public int getSendQuota() {
+      return sendQuota;
+   }
 
+   public void incrementSendQuota() {
+      sendQuota++;
+   }
+
+   public void decrementSendQuota() {
+      sendQuota--;
+   }
+
+   public void resetSendQuota() {
+      sendQuota = 0;
+   }
+
+   public class PacketIdGenerator {
       private static final int INITIAL_ID = 0;
 
       private int currentId = INITIAL_ID;
 
-      // track send quota independently because it's reset when the client disconnects, but other state must remain in tact
-      private int sendQuota = 0;
-
-      private Pair<Long, Long> generateKey(long messageId, long consumerID) {
-         return new Pair<>(messageId, consumerID);
-      }
-
-      public int generateMqttId(long messageId, long consumerId) {
-         synchronized (dataStoreLock) {
-            Integer id = artemisToMqttMessageMap.get(generateKey(messageId, consumerId));
-            if (id == null) {
-               final int start = currentId;
-               do {
-                  // wrap around to the start if we reach the max
-                  if (++currentId > MQTTUtil.TWO_BYTE_INT_MAX) {
-                     currentId = INITIAL_ID;
-                  }
-                  // check to see if we looped all the way back around to where we started
-                  if (start == currentId) {
-                     // this detects an edge case where the same ID is acked & then generated again
-                     if (currentId != INITIAL_ID && !mqttToServerIds.containsKey(currentId)) {
-                        break;
-                     }
-                     throw MQTTBundle.BUNDLE.unableToGenerateID();
-                  }
+      public int generateMqttId() {
+         final int start = currentId;
+         do {
+            // wrap around to the start if we reach the max
+            if (++currentId > MQTTUtil.TWO_BYTE_INT_MAX) {
+               currentId = INITIAL_ID;
+            }
+            // check to see if we looped all the way back around to where we started
+            if (start == currentId) {
+               // this detects an edge case where the same ID is acked & then generated again
+               if (currentId != INITIAL_ID && !packetIdInUse(currentId)) {
+                  break;
                }
-               while (mqttToServerIds.containsKey(currentId) || currentId == INITIAL_ID);
-               id = currentId;
+               throw MQTTBundle.BUNDLE.unableToGenerateID();
             }
-            return id;
          }
+         while (packetIdInUse(currentId) || currentId == INITIAL_ID);
+         return currentId;
       }
 
-      public void publish(int mqtt, long messageId, long consumerId) {
-         synchronized (dataStoreLock) {
-            Pair<Long, Long> key = generateKey(messageId, consumerId);
-            artemisToMqttMessageMap.put(key, mqtt);
-            mqttToServerIds.put(mqtt, key);
-            sendQuota++;
-         }
-      }
-
-      public Pair<Long, Long> publishAckd(int mqtt) {
-         synchronized (dataStoreLock) {
-            Pair<Long, Long> p = mqttToServerIds.remove(mqtt);
-            if (p != null) {
-               sendQuota--;
-               artemisToMqttMessageMap.remove(p);
-            }
-            return p;
-         }
-      }
-
-      public Pair<Long, Long> publishReceived(int mqtt) {
-         return publishAckd(mqtt);
-      }
-
-      public void publishReleasedSent(int mqttId, long serverMessageId) {
-         synchronized (dataStoreLock) {
-            mqttToServerIds.put(mqttId, new Pair<>(serverMessageId, 0L));
-            sendQuota++;
-         }
-      }
-
-      public Pair<Long, Long> publishComplete(int mqtt) {
-         return publishAckd(mqtt);
+      /**
+       * Checks to see if the packet ID is in use already for either QoS 1 or QoS 2
+       */
+      private boolean packetIdInUse(int packetId) {
+         return coreDeliveryInfoExists(packetId) || session.getStateManager().qos2PacketIdCorrelationExists(clientId, packetId) || (pubRecCache != null && pubRecCache.exists(packetId));
       }
 
       public void clear() {
-         synchronized (dataStoreLock) {
-            artemisToMqttMessageMap.clear();
-            mqttToServerIds.clear();
-            currentId = INITIAL_ID;
-            sendQuota = 0;
-         }
-      }
-
-      public int getSendQuota() {
-         synchronized (dataStoreLock) {
-            return sendQuota;
-         }
-      }
-
-      public void resetSendQuota() {
-         synchronized (dataStoreLock) {
-            sendQuota = 0;
-         }
+         currentId = INITIAL_ID;
       }
    }
 

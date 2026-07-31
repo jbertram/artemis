@@ -16,12 +16,10 @@
  */
 package org.apache.activemq.artemis.tests.integration.mqtt;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
-import org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl;
-import org.apache.activemq.artemis.core.protocol.mqtt.MQTTSessionState;
 import org.apache.activemq.artemis.core.protocol.mqtt.MQTTUtil;
 import org.apache.activemq.artemis.core.security.Role;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
@@ -37,9 +35,8 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class PahoMQTTQOS2SecurityTest extends MQTTTestSupport {
 
@@ -137,7 +134,7 @@ public class PahoMQTTQOS2SecurityTest extends MQTTTestSupport {
       } catch (MqttException e) {
          // ignore
       }
-      assertEquals(0, ((PostOfficeImpl)server.getPostOffice()).getDuplicateIDCaches().get(MQTTSessionState.getDuplicateIDCacheName(server.getInternalNamingPrefix(), clientID)).getMap().size());
+      assertEquals(0, getSessions().get(clientID).getPublishCache().size());
       producer.close();
    }
 
