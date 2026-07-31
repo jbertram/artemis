@@ -298,6 +298,11 @@ public class FakePostOffice implements PostOffice {
    }
 
    @Override
+   public boolean duplicateIDCacheExists(SimpleString address) {
+      return false;
+   }
+
+   @Override
    public RoutingStatus route(Message message, boolean direct) throws Exception {
       return RoutingStatus.OK;
    }

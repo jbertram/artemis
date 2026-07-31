@@ -23,20 +23,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import org.apache.activemq.artemis.core.protocol.mqtt.MQTTInterceptor;
-import org.apache.activemq.artemis.core.protocol.mqtt.MQTTUtil;
 import org.apache.activemq.artemis.utils.RandomUtil;
 import org.apache.activemq.artemis.utils.Wait;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.eclipse.paho.mqttv5.client.MqttClient;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptionsBuilder;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -59,21 +51,9 @@ public class QoS2ConsumerResiliencyTest extends MQTT5TestSupport {
 
    protected static final long DEFAULT_TIMEOUT_SEC = 10;
 
-   @BeforeEach
-   public void enableMqttProtocolLogging() {
-      LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-      Configuration config = ctx.getConfiguration();
-      LoggerConfig loggerConfig = new LoggerConfig(MQTTUtil.class.getName(), Level.TRACE, true);
-      config.addLogger(MQTTUtil.class.getName(), loggerConfig);
-      ctx.updateLoggers();
-   }
-
-   @AfterEach
-   public void resetLogging() {
-      LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-      Configuration config = ctx.getConfiguration();
-      config.removeLogger(MQTTUtil.class.getName());
-      ctx.updateLoggers();
+   @Override
+   public boolean isProtocolLoggingEnabled() {
+      return true;
    }
 
    /**

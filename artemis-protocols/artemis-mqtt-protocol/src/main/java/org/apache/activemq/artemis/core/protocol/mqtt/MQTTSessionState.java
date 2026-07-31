@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.mqtt.MqttProperties;
@@ -95,7 +96,7 @@ public class MQTTSessionState {
 
    private Map<Integer, Pair<Long, Long>> coreMessageIds;
 
-   private int sendQuota = 0;
+   private AtomicInteger sendQuota = new AtomicInteger(0);
 
    public MQTTSessionState(String clientId) {
       this.clientId = clientId;
@@ -466,19 +467,19 @@ public class MQTTSessionState {
    }
 
    public int getSendQuota() {
-      return sendQuota;
+      return sendQuota.get();
    }
 
    public void incrementSendQuota() {
-      sendQuota++;
+      sendQuota.incrementAndGet();
    }
 
    public void decrementSendQuota() {
-      sendQuota--;
+      sendQuota.decrementAndGet();
    }
 
    public void resetSendQuota() {
-      sendQuota = 0;
+      sendQuota.set(0);
    }
 
    public class PacketIdGenerator {
@@ -510,7 +511,7 @@ public class MQTTSessionState {
        * Checks to see if the packet ID is in use already for either QoS 1 or QoS 2
        */
       private boolean packetIdInUse(int packetId) {
-         return coreDeliveryInfoExists(packetId) || session.getStateManager().qos2PacketIdCorrelationExists(clientId, packetId) || (pubRecCache != null && pubRecCache.exists(packetId));
+         return coreDeliveryInfoExists(packetId) || session.getStateManager().qos2PacketIdCorrelationExists(clientId, packetId) || (pubRecCache != null && pubRecCache.contains(packetId));
       }
 
       public void clear() {

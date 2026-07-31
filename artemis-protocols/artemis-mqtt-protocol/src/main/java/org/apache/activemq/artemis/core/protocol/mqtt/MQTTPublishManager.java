@@ -283,7 +283,7 @@ public class MQTTPublishManager {
    }
 
    synchronized void handlePubRec(int packetId) throws Exception {
-      if (state.getPubRecCache().exists(packetId)) {
+      if (state.getPubRecCache().contains(packetId)) {
          session.getProtocolHandler().sendPubRel(packetId);
          return;
       }
@@ -339,9 +339,9 @@ public class MQTTPublishManager {
       });
    }
 
-   synchronized void handlePubRel(int messageId) {
+   synchronized void handlePubRel(int packetId) {
       try {
-         boolean deleted = state.getPublishCache().remove(messageId);
+         boolean deleted = state.getPublishCache().remove(packetId);
          if (!deleted) {
             // TODO log that the publish wasn't found in the cache
          }
@@ -349,7 +349,7 @@ public class MQTTPublishManager {
          // TODO log something meaningful here
          throw new RuntimeException(e);
       }
-      session.getProtocolHandler().sendPubComp(messageId);
+      session.getProtocolHandler().sendPubComp(packetId);
    }
 
    synchronized void handlePubAck(int packetId) throws Exception {

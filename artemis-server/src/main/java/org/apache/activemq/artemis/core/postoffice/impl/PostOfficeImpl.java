@@ -1478,6 +1478,11 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
    }
 
    @Override
+   public boolean duplicateIDCacheExists(final SimpleString address) {
+      return duplicateIDCaches.containsKey(address);
+   }
+
+   @Override
    public DuplicateIDCache getDuplicateIDCache(final SimpleString address) {
       int resolvedIdCacheSize = resolveIdCacheSize(address);
       return getDuplicateIDCache(address, resolvedIdCacheSize, false);

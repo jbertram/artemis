@@ -17,69 +17,78 @@
 package org.apache.activemq.artemis.core.protocol.mqtt;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.activemq.artemis.api.core.Pair;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.postoffice.DuplicateIDCache;
+import org.apache.activemq.artemis.core.postoffice.PostOffice;
 import org.apache.activemq.artemis.core.transaction.Transaction;
 import org.apache.activemq.artemis.utils.ByteUtil;
 
 public class MQTTPacketIdCache {
 
    private DuplicateIDCache cache;
-   private SimpleString cacheName;
    private MQTTSession session;
+   private PostOffice postOffice;
    private SimpleString subName;
+   private final SimpleString cacheName;
 
    public MQTTPacketIdCache(MQTTSession session, SimpleString subName) {
       this.session = session;
+      this.postOffice = session.getServer().getPostOffice();
       this.subName = subName;
       this.cacheName = getCacheName(session.getServer().getInternalNamingPrefix(), session.getState().getClientId(), subName);
    }
 
-   public boolean exists(int packetId) {
-      init();
-      return cache.contains(ByteUtil.intToBytes(packetId));
+   /*
+    * "Getting" the cache from the PostOffice automatically creates it if it doesn't exist. We want to avoid this for
+    * most operations.
+    */
+   private void check() {
+      if (cache == null && postOffice.duplicateIDCacheExists(cacheName)) {
+         cache = postOffice.getDuplicateIDCache(cacheName, MQTTUtil.TWO_BYTE_INT_MAX);
+      }
    }
 
    public void add(int packetId, Transaction tx) throws Exception {
-      init();
+      if (cache == null) {
+         cache = postOffice.getDuplicateIDCache(cacheName, MQTTUtil.TWO_BYTE_INT_MAX);
+      }
       cache.addToCache(ByteUtil.intToBytes(packetId), tx);
    }
 
-   private void init() {
-      if (cache == null) {
-         cache = session.getServer().getPostOffice().getDuplicateIDCache(cacheName, MQTTUtil.TWO_BYTE_INT_MAX);
-      }
+   public boolean contains(int packetId) {
+      check();
+      return cache != null && cache.contains(ByteUtil.intToBytes(packetId));
    }
 
    public boolean remove(int packetId) throws Exception {
-      if (cache == null) {
-         return false;
-      } else {
-         return cache.deleteFromCache(ByteUtil.intToBytes(packetId));
-      }
-   }
-
-   public void clear() throws Exception {
-      if (cache != null) {
-         session.getServer().getPostOffice().deleteDuplicateCache(cacheName);
-         cache = null;
-      }
+      check();
+      return cache != null && cache.deleteFromCache(ByteUtil.intToBytes(packetId));
    }
 
    public int size() {
-      return cache.getMap().size();
+      check();
+      return cache != null ? cache.getMap().size() : 0;
    }
 
    public List<Integer> getPacketIds() {
-      init();
+      check();
+      if (cache == null) {
+         return Collections.emptyList();
+      }
       List<Integer> result = new ArrayList<>();
       for (Pair<byte[], Long> entry : cache.getMap()) {
          result.add(ByteUtil.bytesToInt(entry.getA()));
       }
       return result;
+   }
+
+   public void clear() throws Exception {
+      postOffice.deleteDuplicateCache(cacheName);
+      cache = null;
    }
 
    public static SimpleString getCacheName(String prefix, String clientId, SimpleString subName) {

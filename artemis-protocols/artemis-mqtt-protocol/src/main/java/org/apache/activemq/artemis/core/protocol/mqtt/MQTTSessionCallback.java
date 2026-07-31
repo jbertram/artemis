@@ -17,8 +17,6 @@
 package org.apache.activemq.artemis.core.protocol.mqtt;
 
 import org.apache.activemq.artemis.api.core.SimpleString;
-import org.apache.activemq.artemis.core.persistence.OperationContext;
-import org.apache.activemq.artemis.core.persistence.impl.journal.OperationContextImpl;
 import org.apache.activemq.artemis.core.server.MessageReference;
 import org.apache.activemq.artemis.core.server.ServerConsumer;
 import org.apache.activemq.artemis.spi.core.protocol.SessionCallback;
@@ -51,8 +49,7 @@ public class MQTTSessionCallback implements SessionCallback {
                           ServerConsumer consumer,
                           int deliveryCount) {
       try {
-         System.out.println("Delivering: " + ref.getMessageID() + "; context: " + OperationContextImpl.getContext());
-            session.getMqttPublishManager().publishToClient(ref.getMessage().toCore(), consumer, deliveryCount);
+         session.getMqttPublishManager().publishToClient(ref.getMessage().toCore(), consumer, deliveryCount);
       } catch (Exception e) {
          MQTTLogger.LOGGER.unableToSendMessage(ref, e);
       }
