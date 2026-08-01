@@ -453,7 +453,7 @@ public class MQTTSessionState {
    public MQTTPacketIdCache getPublishCache() {
       Objects.requireNonNull(session, "session is null");
       if (publishCache == null) {
-         publishCache = new MQTTPacketIdCache(session, SimpleString.of("pub"));
+         publishCache = new MQTTPacketIdCache(session, MQTTPacketIdCache.TYPE.PUB);
       }
       return publishCache;
    }
@@ -461,7 +461,7 @@ public class MQTTSessionState {
    public MQTTPacketIdCache getPubRecCache() {
       Objects.requireNonNull(session, "session is null");
       if (pubRecCache == null) {
-         pubRecCache = new MQTTPacketIdCache(session, SimpleString.of("sub"));
+         pubRecCache = new MQTTPacketIdCache(session, MQTTPacketIdCache.TYPE.SUB);
       }
       return pubRecCache;
    }

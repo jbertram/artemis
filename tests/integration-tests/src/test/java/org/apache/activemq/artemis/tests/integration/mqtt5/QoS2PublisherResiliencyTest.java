@@ -117,17 +117,17 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
 
       // Producer with persistent session
       MqttClient publisher = createPahoClient(CLIENTID);
-      MqttConnectionOptions producerOptions = new MqttConnectionOptionsBuilder()
-         .cleanStart(false)
-         .sessionExpiryInterval(300L)
-         .build();
-      publisher.connect(producerOptions);
       publisher.setCallback(new DefaultMqttCallback() {
          @Override
          public void disconnected(MqttDisconnectResponse disconnectResponse) {
             logger.info("{} disconnected", CLIENTID);
          }
       });
+      MqttConnectionOptions producerOptions = new MqttConnectionOptionsBuilder()
+         .cleanStart(false)
+         .sessionExpiryInterval(300L)
+         .build();
+      publisher.connect(producerOptions);
 
       assertNull(getPubCache(CLIENTID));
 
@@ -148,8 +148,8 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
          server.start();
          waitForServerToStart(server);
       } else {
+         server.getRemotingService().clearInterceptors();
          server.getActiveMQServerControl().closeConnectionWithID(server.getActiveMQServerControl().listConnectionIDs()[0]);
-         server.getRemotingService().removeIncomingInterceptor(pubRecInterceptor);
       }
 
       MQTTInterceptor pubCompInterceptor = (packet, connection) -> {
@@ -237,17 +237,17 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
 
       // Producer with persistent session
       MqttClient publisher = createPahoClient(CLIENTID);
-      MqttConnectionOptions producerOptions = new MqttConnectionOptionsBuilder()
-         .cleanStart(false)
-         .sessionExpiryInterval(300L)
-         .build();
-      publisher.connect(producerOptions);
       publisher.setCallback(new DefaultMqttCallback() {
          @Override
          public void disconnected(MqttDisconnectResponse disconnectResponse) {
             logger.info("{} disconnected", CLIENTID);
          }
       });
+      MqttConnectionOptions producerOptions = new MqttConnectionOptionsBuilder()
+         .cleanStart(false)
+         .sessionExpiryInterval(300L)
+         .build();
+      publisher.connect(producerOptions);
 
       assertEquals(0, server.locateQueue(TOPIC).getMessageCount());
       assertNull(getPubCache(CLIENTID));
@@ -268,8 +268,8 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
          server.start();
          waitForServerToStart(server);
       } else {
+         server.getRemotingService().clearInterceptors();
          server.getActiveMQServerControl().closeConnectionWithID(server.getActiveMQServerControl().listConnectionIDs()[0]);
-         server.getRemotingService().removeOutgoingInterceptor(pubRecInterceptor);
       }
 
       MQTTInterceptor pubCompInterceptor = (packet, connection) -> {
@@ -299,9 +299,14 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
       Wait.assertEquals(1L, () -> server.locateQueue(TOPIC).getMessageCount(), 500, 25);
 
       publisher.disconnect();
-      publisher.close();
 
       assertEquals(0, getPubCacheSize(CLIENTID));
+
+      // connect again to clean the session which will completely remove the cache from memory and disk
+      publisher.connect(new MqttConnectionOptionsBuilder().cleanStart(true).sessionExpiryInterval(0L).build());
+      assertNull(getPubCache(CLIENTID));
+      publisher.disconnect();
+      publisher.close();
    }
 
    /**
@@ -357,17 +362,17 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
 
       // Producer with persistent session
       MqttClient publisher = createPahoClient(CLIENTID);
-      MqttConnectionOptions producerOptions = new MqttConnectionOptionsBuilder()
-         .cleanStart(false)
-         .sessionExpiryInterval(300L)
-         .build();
-      publisher.connect(producerOptions);
       publisher.setCallback(new DefaultMqttCallback() {
          @Override
          public void disconnected(MqttDisconnectResponse disconnectResponse) {
             logger.info("{} disconnected", CLIENTID);
          }
       });
+      MqttConnectionOptions producerOptions = new MqttConnectionOptionsBuilder()
+         .cleanStart(false)
+         .sessionExpiryInterval(300L)
+         .build();
+      publisher.connect(producerOptions);
 
       assertNull(getPubCache(CLIENTID));
 
@@ -389,8 +394,8 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
          server.start();
          waitForServerToStart(server);
       } else {
+         server.getRemotingService().clearInterceptors();
          server.getActiveMQServerControl().closeConnectionWithID(server.getActiveMQServerControl().listConnectionIDs()[0]);
-         server.getRemotingService().removeIncomingInterceptor(pubRelInterceptor);
       }
 
       MQTTInterceptor pubCompInterceptor = (packet, connection) -> {
@@ -420,9 +425,14 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
       Wait.assertEquals(1L, () -> server.locateQueue(TOPIC).getMessageCount(), 500, 25);
 
       publisher.disconnect();
-      publisher.close();
 
       assertEquals(0, getPubCacheSize(CLIENTID));
+
+      // connect again to clean the session which will completely remove the cache from memory and disk
+      publisher.connect(new MqttConnectionOptionsBuilder().cleanStart(true).sessionExpiryInterval(0L).build());
+      assertNull(getPubCache(CLIENTID));
+      publisher.disconnect();
+      publisher.close();
    }
 
    /**
@@ -472,17 +482,17 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
 
       // Producer with persistent session
       MqttClient publisher = createPahoClient(CLIENTID);
-      MqttConnectionOptions producerOptions = new MqttConnectionOptionsBuilder()
-         .cleanStart(false)
-         .sessionExpiryInterval(300L)
-         .build();
-      publisher.connect(producerOptions);
       publisher.setCallback(new DefaultMqttCallback() {
          @Override
          public void disconnected(MqttDisconnectResponse disconnectResponse) {
             logger.info("{} disconnected", CLIENTID);
          }
       });
+      MqttConnectionOptions producerOptions = new MqttConnectionOptionsBuilder()
+         .cleanStart(false)
+         .sessionExpiryInterval(300L)
+         .build();
+      publisher.connect(producerOptions);
 
       assertEquals(0, server.locateQueue(TOPIC).getMessageCount());
       assertNull(getPubCache(CLIENTID));
@@ -503,8 +513,8 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
          server.start();
          waitForServerToStart(server);
       } else {
+         server.getRemotingService().clearInterceptors();
          server.getActiveMQServerControl().closeConnectionWithID(server.getActiveMQServerControl().listConnectionIDs()[0]);
-         server.getRemotingService().removeOutgoingInterceptor(initialPubCompInterceptor);
       }
 
       pubCompLatch.countUp();
@@ -539,25 +549,18 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
       Wait.assertEquals(1L, () -> server.locateQueue(TOPIC).getMessageCount(), 500, 25);
 
       publisher.disconnect();
-      publisher.close();
 
       if (restart) {
          assertNull(getPubCache(CLIENTID));
+         publisher.close();
       } else {
          assertEquals(0, getPubCacheSize(CLIENTID));
-      }
-   }
 
-   private DuplicateIDCache getPubCache(String clientId) {
-      SimpleString cacheName = MQTTPacketIdCache.getCacheName(server.getInternalNamingPrefix(), clientId, SimpleString.of("pub"));
-      if (server.getPostOffice().duplicateIDCacheExists(cacheName)) {
-         return server.getPostOffice().getDuplicateIDCache(cacheName);
-      } else {
-         return null;
+         // connect again to clean the session which will completely remove the cache from memory and disk
+         publisher.connect(new MqttConnectionOptionsBuilder().cleanStart(true).sessionExpiryInterval(0L).build());
+         assertNull(getPubCache(CLIENTID));
+         publisher.disconnect();
+         publisher.close();
       }
-   }
-
-   private int getPubCacheSize(String clientId) {
-      return getPubCache(clientId).getMap().size();
    }
 }

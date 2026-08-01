@@ -37,7 +37,9 @@ import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.core.config.Configuration;
+import org.apache.activemq.artemis.core.postoffice.DuplicateIDCache;
 import org.apache.activemq.artemis.core.protocol.mqtt.MQTTInterceptor;
+import org.apache.activemq.artemis.core.protocol.mqtt.MQTTPacketIdCache;
 import org.apache.activemq.artemis.core.protocol.mqtt.MQTTProtocolManager;
 import org.apache.activemq.artemis.core.protocol.mqtt.MQTTSessionState;
 import org.apache.activemq.artemis.core.protocol.mqtt.MQTTUtil;
@@ -77,6 +79,14 @@ import static java.util.Collections.singletonList;
 import static org.apache.activemq.artemis.core.protocol.mqtt.MQTTProtocolManagerFactory.MQTT_PROTOCOL_NAME;
 
 public class MQTT5TestSupport extends ActiveMQTestBase {
+
+   // The Paho MQTT client logging adds noise during QoS2 operations
+   private static final java.util.logging.Logger PAHO_LOGGER;
+   static {
+      PAHO_LOGGER = java.util.logging.Logger.getLogger("org.eclipse.paho.mqttv5.client.internal.ClientState");
+      PAHO_LOGGER.setLevel(java.util.logging.Level.WARNING);
+   }
+
    protected static final String TCP = "tcp";
    protected static final String WS = "ws";
    protected static final String SSL = "ssl";
@@ -370,6 +380,31 @@ public class MQTT5TestSupport extends ActiveMQTestBase {
    protected void setAcceptorProperty(String property) throws Exception {
       server.getRemotingService().getAcceptor(MQTT_PROTOCOL_NAME).stop();
       server.getRemotingService().createAcceptor(MQTT_PROTOCOL_NAME, "tcp://localhost:" + port + "?protocols=MQTT;" + property).start();
+   }
+
+   protected DuplicateIDCache getPubCache(String clientId) {
+      return getCache(clientId, MQTTPacketIdCache.TYPE.PUB);
+   }
+
+   protected int getPubCacheSize(String clientId) {
+      return getPubCache(clientId).getMap().size();
+   }
+
+   protected DuplicateIDCache getSubCache(String clientId) {
+      return getCache(clientId, MQTTPacketIdCache.TYPE.SUB);
+   }
+
+   protected int getSubCacheSize(String clientId) {
+      return getSubCache(clientId).getMap().size();
+   }
+
+   private DuplicateIDCache getCache(String clientId, MQTTPacketIdCache.TYPE type) {
+      SimpleString cacheName = MQTTPacketIdCache.getCacheName(server.getInternalNamingPrefix(), clientId, type);
+      if (server.getPostOffice().duplicateIDCacheExists(cacheName)) {
+         return server.getPostOffice().getDuplicateIDCache(cacheName);
+      } else {
+         return null;
+      }
    }
 
    /*

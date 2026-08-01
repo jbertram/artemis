@@ -32,14 +32,12 @@ public class MQTTPacketIdCache {
    private DuplicateIDCache cache;
    private MQTTSession session;
    private PostOffice postOffice;
-   private SimpleString subName;
    private final SimpleString cacheName;
 
-   public MQTTPacketIdCache(MQTTSession session, SimpleString subName) {
+   public MQTTPacketIdCache(MQTTSession session, TYPE type) {
       this.session = session;
       this.postOffice = session.getServer().getPostOffice();
-      this.subName = subName;
-      this.cacheName = getCacheName(session.getServer().getInternalNamingPrefix(), session.getState().getClientId(), subName);
+      this.cacheName = getCacheName(session.getServer().getInternalNamingPrefix(), session.getState().getClientId(), type);
    }
 
    /*
@@ -91,7 +89,18 @@ public class MQTTPacketIdCache {
       cache = null;
    }
 
-   public static SimpleString getCacheName(String prefix, String clientId, SimpleString subName) {
-      return SimpleString.of(prefix).concat("mqtt.qos2.").concat(subName).concat('.').concat(clientId);
+   public static SimpleString getCacheName(String prefix, String clientId, TYPE type) {
+      return SimpleString.of(prefix).concat("mqtt.qos2.").concat(type.type).concat('.').concat(clientId);
+   }
+
+   public enum TYPE {
+      PUB(SimpleString.of("pub")),
+      SUB(SimpleString.of("sub"));
+
+      final SimpleString type;
+
+      TYPE(SimpleString type) {
+         this.type = type;
+      }
    }
 }

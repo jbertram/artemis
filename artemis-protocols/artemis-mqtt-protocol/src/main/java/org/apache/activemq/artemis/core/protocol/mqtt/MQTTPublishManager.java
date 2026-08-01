@@ -137,12 +137,12 @@ public class MQTTPublishManager {
          final int packetIdToUse;
          synchronized (this) {
             Integer existingPacketId = session.getStateManager().getQoS2PacketIdCorrelation(state.getClientId(), message.getMessageID());
-            logger.info("existingPacketId {} for {}", existingPacketId, message.getMessageID());
+//            logger.info("existingPacketId {} for {}", existingPacketId, message.getMessageID());
             if (existingPacketId != null) {
                packetIdToUse = existingPacketId;
             } else {
                packetIdToUse = packetIdGenerator.generateMqttId();
-               logger.info("Storing packetId {} for {}", packetIdToUse, message.getMessageID());
+//               logger.info("Storing packetId {} for {}", packetIdToUse, message.getMessageID());
                session.getStateManager().putQoS2PacketIdCorrelation(state.getClientId(), message.getMessageID(), packetIdToUse);
             }
             state.putCoreDeliveryInfo(packetIdToUse, message.getMessageID(), consumer.getID());

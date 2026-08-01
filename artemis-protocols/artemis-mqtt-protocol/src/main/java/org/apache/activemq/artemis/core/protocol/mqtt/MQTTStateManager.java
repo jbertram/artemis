@@ -227,30 +227,36 @@ public class MQTTStateManager {
 
    public void reload(RecordInfo recordInfo) {
       if (recordInfo.userRecordType == JournalRecordIds.MQTT_QOS2_PACKET_ID_CORRELATION) {
-         logger.info("reloading: {}", recordInfo);
+//         logger.info("reloading: {}", recordInfo);
          journalHashMapProvider.reload(recordInfo);
       }
    }
 
    public void putQoS2PacketIdCorrelation(String clientId, Long coreMessageId, Integer packetId) {
-      logger.info("putQoS2PacketIdCorrelation({}, {}, {})", clientId, coreMessageId, packetId);
+//      logger.info("putQoS2PacketIdCorrelation({}, {}, {})", clientId, coreMessageId, packetId);
       journalHashMapProvider.getMap(clientId).put(coreMessageId, packetId);
    }
 
    public Integer getQoS2PacketIdCorrelation(String clientId, Long coreMessageId) {
       Integer result = journalHashMapProvider.getMap(clientId).get(coreMessageId);
-      logger.info("getQoS2PacketIdCorrelation({}, {}): {}", clientId, coreMessageId, result);
+//      logger.info("getQoS2PacketIdCorrelation({}, {}): {}", clientId, coreMessageId, result);
       return result;
    }
 
    public Integer removeQoS2PacketIdCorrelation(String clientId, Long coreMessageId, long transactionId) {
-      logger.info("removeQoS2PacketIdCorrelation({}, {}, {})", clientId, coreMessageId, transactionId);
+//      logger.info("removeQoS2PacketIdCorrelation({}, {}, {})", clientId, coreMessageId, transactionId);
       return journalHashMapProvider.getMap(clientId).remove(coreMessageId, transactionId);
    }
 
    public boolean qos2PacketIdCorrelationExists(String clientId, int packetId) {
       boolean result = journalHashMapProvider.getMap(clientId).containsValue(packetId);
-      logger.info("qos2PacketIdCorrelationExists({}, {}): {}", clientId, packetId, result);
+//      logger.info("qos2PacketIdCorrelationExists({}, {}): {}", clientId, packetId, result);
+      return result;
+   }
+
+   public int getQos2PacketIdCorrelationSize(String clientId) {
+      int result = journalHashMapProvider.getMap(clientId).size();
+//      logger.info("getQos2PacketIdCorrelationSize({}): {}", clientId, result);
       return result;
    }
 

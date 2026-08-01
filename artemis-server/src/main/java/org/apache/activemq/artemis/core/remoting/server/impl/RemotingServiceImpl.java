@@ -884,6 +884,13 @@ public class RemotingServiceImpl implements RemotingService, ServerConnectionLif
       }
    }
 
+   @Override
+   public void clearInterceptors() {
+      outgoingInterceptors.clear();
+      incomingInterceptors.clear();
+      updateProtocols();
+   }
+
    private ClusterConnection lookupClusterConnection(TransportConfiguration acceptorConfig) {
       String clusterConnectionName = (String) acceptorConfig.getParams().get(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.CLUSTER_CONNECTION);
 
