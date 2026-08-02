@@ -163,14 +163,7 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
       assertNull(getPubCache(CLIENTID));
 
       // The client will automatically re-initiate the QoS2 protocol after reconnecting since it never got a PUBREC
-      Wait.waitFor(() -> {
-         try {
-            publisher.reconnect();
-            return true;
-         } catch (MqttException e) {
-            return false;
-         }
-      });
+      reconnectSafely(publisher);
 
       // Wait for the PUBCOMP to confirm QoS2 protocol is done
       assertTrue(pubCompLatch.await(5, TimeUnit.SECONDS));
@@ -283,14 +276,7 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
       assertEquals(1, getPubCacheSize(CLIENTID));
 
       // The client will automatically re-initiate the QoS2 protocol after reconnecting since it never got a PUBREC
-      Wait.waitFor(() -> {
-         try {
-            publisher.reconnect();
-            return true;
-         } catch (MqttException e) {
-            return false;
-         }
-      });
+      reconnectSafely(publisher);
 
       // Wait for the PUBCOMP to confirm QoS2 protocol is done
       assertTrue(pubCompLatch.await(5, TimeUnit.SECONDS));
@@ -409,14 +395,7 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
       assertEquals(1, getPubCacheSize(CLIENTID));
 
       // The client will automatically re-initiate the QoS2 protocol after reconnecting since it never got a PUBCOMP
-      Wait.waitFor(() -> {
-         try {
-            publisher.reconnect();
-            return true;
-         } catch (MqttException e) {
-            return false;
-         }
-      });
+      reconnectSafely(publisher);
 
       // Wait for the PUBCOMP to confirm QoS2 protocol is done
       assertTrue(pubCompLatch.await(5, TimeUnit.SECONDS));
@@ -533,14 +512,7 @@ public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
       }
 
       // The client will automatically re-initiate the QoS2 protocol after reconnecting since it never got a PUBCOMP
-      Wait.waitFor(() -> {
-         try {
-            publisher.reconnect();
-            return true;
-         } catch (MqttException e) {
-            return false;
-         }
-      });
+      reconnectSafely(publisher);
 
       // Wait for the PUBCOMP to confirm QoS2 protocol is done
       assertTrue(pubCompLatch.await(5, TimeUnit.SECONDS));

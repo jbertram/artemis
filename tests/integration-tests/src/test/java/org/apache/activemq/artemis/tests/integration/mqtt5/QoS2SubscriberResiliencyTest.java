@@ -176,14 +176,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       };
       server.getRemotingService().addOutgoingInterceptor(pubInterceptor);
 
-      Wait.waitFor(() -> {
-         try {
-            subscriber.reconnect();
-            return true;
-         } catch (MqttException e) {
-            return false;
-         }
-      });
+      reconnectSafely(subscriber);
 
       assertTrue(packetIdLatch.await(5, TimeUnit.SECONDS), "Didn't find a PUBLISH with the expected packet id");
       assertTrue(pubCompLatch.await(5, TimeUnit.SECONDS));
@@ -292,14 +285,14 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       };
       server.getRemotingService().addIncomingInterceptor(pubCompInterceptor);
 
-      subscriber.reconnect();
+      reconnectSafely(subscriber);
 
       assertTrue(pubCompLatch.await(5, TimeUnit.SECONDS));
 
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
 
       assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
-      assertEquals(0, getSubCacheSize(SUBSCRIBER_CLIENT_ID));
+      Wait.assertEquals(0, () -> getSubCacheSize(SUBSCRIBER_CLIENT_ID));
 
       subscriber.disconnect();
 
@@ -317,6 +310,20 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
    @Test
    @Timeout(DEFAULT_TIMEOUT_SEC)
    public void testQoS2BrokerRestartAfterPubRelSent() throws Exception {
+      testQoS2FailureAfterPubRelSent(true);
+   }
+
+   /**
+    * Same test as {@link testQoS2BrokerRestartAfterPubRelSent} but disconnecting the client instead of restarting the
+    * broker.
+    */
+   @Test
+   @Timeout(DEFAULT_TIMEOUT_SEC)
+   public void testQoS2ClientDisconnectAfterPubRelSent() throws Exception {
+      testQoS2FailureAfterPubRelSent(false);
+   }
+
+   public void testQoS2FailureAfterPubRelSent(boolean restart) throws Exception {
       final String TOPIC = "test/resiliency";
       final String SUBSCRIBER_CLIENT_ID = "subscriber";
       final String PUBLISHER_CLIENT_ID = "publisher";
@@ -340,8 +347,8 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       server.getRemotingService().addIncomingInterceptor(pubCompBlocker);
 
       // Consumer with persistent session
-      MqttClient consumer = createPahoClient(SUBSCRIBER_CLIENT_ID);
-      consumer.setCallback(new DefaultMqttCallback() {
+      MqttClient subscriber = createPahoClient(SUBSCRIBER_CLIENT_ID);
+      subscriber.setCallback(new DefaultMqttCallback() {
          @Override
          public void messageArrived(String topic, MqttMessage message) throws Exception {
             logger.info("messageArrived({}, {})", topic, message);
@@ -351,8 +358,8 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
          .cleanStart(false)
          .sessionExpiryInterval(300L)
          .build();
-      consumer.connect(subscriberOptions);
-      consumer.subscribe(TOPIC, EXACTLY_ONCE);
+      subscriber.connect(subscriberOptions);
+      subscriber.subscribe(TOPIC, EXACTLY_ONCE);
 
       // Producer
       MqttClient producer = createPahoClient(PUBLISHER_CLIENT_ID);
@@ -365,10 +372,19 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
 
       assertTrue(pubCompBlockedLatch.await(5, TimeUnit.SECONDS));
       stopLatch.countDown();
-      server.stop();
-      waitForServerToStop(server);
-      server.start();
-      waitForServerToStart(server);
+
+      if (restart) {
+         server.stop();
+         waitForServerToStop(server);
+         server.start();
+         waitForServerToStart(server);
+      } else {
+         server.getRemotingService().clearInterceptors();
+         server.getActiveMQServerControl().closeConnectionWithID(server.getActiveMQServerControl().listConnectionIDs()[0]);
+      }
+
+      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      assertTrue(getSubCache(SUBSCRIBER_CLIENT_ID).contains(ByteUtil.intToBytes(1)));
 
       MQTTInterceptor pubCompInterceptor = (packet, connection) -> {
          if (packet.fixedHeader().messageType() == MqttMessageType.PUBCOMP) {
@@ -378,14 +394,22 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       };
       server.getRemotingService().addIncomingInterceptor(pubCompInterceptor);
 
-      consumer.reconnect();
+      reconnectSafely(subscriber);
 
       assertTrue(pubCompLatch.await(5, TimeUnit.SECONDS));
 
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
 
-      consumer.disconnect();
-      consumer.close();
+      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      Wait.assertEquals(0, () -> getSubCacheSize(SUBSCRIBER_CLIENT_ID));
+
+      subscriber.disconnect();
+
+      // connect again to clean the session which will completely remove the cache from memory and disk
+      subscriber.connect(new MqttConnectionOptionsBuilder().cleanStart(true).sessionExpiryInterval(0L).build());
+      assertNull(getSubCache(SUBSCRIBER_CLIENT_ID));
+      subscriber.disconnect();
+      subscriber.close();
    }
 
    /**
@@ -395,15 +419,29 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
    @Test
    @Timeout(DEFAULT_TIMEOUT_SEC)
    public void testQoS2BrokerRestartAfterPubCompSent() throws Exception {
+      testQoS2FailureAfterPubCompSent(true);
+   }
+
+   /**
+    * Same test as {@link testQoS2BrokerRestartAfterPubCompSent} but disconnecting the client instead of restarting the
+    * broker.
+    */
+   @Test
+   @Timeout(DEFAULT_TIMEOUT_SEC)
+   public void testQoS2ClientDisconnectAfterPubCompSent() throws Exception {
+      testQoS2FailureAfterPubCompSent(false);
+   }
+
+   public void testQoS2FailureAfterPubCompSent(boolean restart) throws Exception {
       final String TOPIC = "test/resiliency";
       final String SUBSCRIBER_CLIENT_ID = "subscriber";
       final String PUBLISHER_CLIENT_ID = "publisher";
-      final CountDownLatch pubCompLatch = new CountDownLatch(2);
+      final CountDownLatch pubCompLatch = new CountDownLatch(1);
       AtomicInteger messageCount = new AtomicInteger(0);
 
       // Consumer with persistent session
-      MqttClient consumer = createPahoClient(SUBSCRIBER_CLIENT_ID);
-      consumer.setCallback(new DefaultMqttCallback() {
+      MqttClient subscriber = createPahoClient(SUBSCRIBER_CLIENT_ID);
+      subscriber.setCallback(new DefaultMqttCallback() {
          @Override
          public void messageArrived(String topic, MqttMessage message) throws Exception {
             messageCount.incrementAndGet();
@@ -414,8 +452,8 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
          .cleanStart(false)
          .sessionExpiryInterval(300L)
          .build();
-      consumer.connect(subscriberOptions);
-      consumer.subscribe(TOPIC, EXACTLY_ONCE);
+      subscriber.connect(subscriberOptions);
+      subscriber.subscribe(TOPIC, EXACTLY_ONCE);
 
       // Track PUBCOMPs to know when both QoS 2 flows are complete
       MQTTInterceptor pubCompInterceptor = (packet, connection) -> {
@@ -431,7 +469,6 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       producer.connect();
 
       producer.publish(TOPIC, RandomUtil.randomBytes(), EXACTLY_ONCE, false);
-      producer.publish(TOPIC, RandomUtil.randomBytes(), EXACTLY_ONCE, false);
 
       producer.disconnect();
       producer.close();
@@ -440,10 +477,19 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       assertTrue(pubCompLatch.await(5, TimeUnit.SECONDS));
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
 
-      server.stop();
-      waitForServerToStop(server);
-      server.start();
-      waitForServerToStart(server);
+      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(0, getSubCacheSize(SUBSCRIBER_CLIENT_ID));
+
+      if (restart) {
+         server.stop();
+         waitForServerToStop(server);
+         server.start();
+         waitForServerToStart(server);
+      } else {
+         server.getRemotingService().clearInterceptors();
+         server.getActiveMQServerControl().closeConnectionWithID(
+            server.getActiveMQServerControl().listConnectionIDs()[0]);
+      }
 
       // Track any unexpected outgoing PUBLISH after restart
       CountDownLatch unexpectedPublishLatch = new CountDownLatch(1);
@@ -456,7 +502,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       server.getRemotingService().addOutgoingInterceptor(publishInterceptor);
 
       int countBeforeReconnect = messageCount.get();
-      consumer.reconnect();
+      reconnectSafely(subscriber);
 
       // Give time for any unexpected re-delivery, then verify none occurred
       Thread.sleep(500);
@@ -464,7 +510,19 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       assertTrue(messageCount.get() == countBeforeReconnect, "Unexpected message delivered after restart");
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
 
-      consumer.disconnect();
-      consumer.close();
+      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      if (restart) {
+         assertNull(getSubCache(SUBSCRIBER_CLIENT_ID));
+      } else {
+         assertEquals(0, getSubCacheSize(SUBSCRIBER_CLIENT_ID));
+      }
+
+      subscriber.disconnect();
+
+      // connect again to clean the session which will completely remove the cache from memory and disk
+      subscriber.connect(new MqttConnectionOptionsBuilder().cleanStart(true).sessionExpiryInterval(0L).build());
+      assertNull(getSubCache(SUBSCRIBER_CLIENT_ID));
+      subscriber.disconnect();
+      subscriber.close();
    }
 }

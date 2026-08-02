@@ -57,6 +57,7 @@ import org.apache.activemq.artemis.spi.core.remoting.Acceptor;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQJAASSecurityManager;
 import org.apache.activemq.artemis.tests.util.ActiveMQTestBase;
 import org.apache.activemq.artemis.utils.ClassloadingUtil;
+import org.apache.activemq.artemis.utils.Wait;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -287,7 +288,7 @@ public class MQTT5TestSupport extends ActiveMQTestBase {
       // MQTT transport connectors as needed, the port variable is always supposed to be
       // assigned the primary MQTT connector's port.
 
-      server.getConfiguration().addAcceptorConfiguration(MQTT_PROTOCOL_NAME, "tcp://localhost:" + (isUseSsl() ? sslPort : port) + "?protocols=MQTT;anycastPrefix=anycast:;multicastPrefix=multicast:" + (isUseSsl() ? "&sslEnabled=true&keyStorePath=server-keystore.p12&keyStorePassword=securepass" : "") + (isMutualSsl() ? "&needClientAuth=true&trustStorePath=client-ca-truststore.p12&trustStorePassword=securepass" : ""));
+      server.getConfiguration().addAcceptorConfiguration("FOO", "tcp://localhost:" + (isUseSsl() ? sslPort : port) + "?protocols=MQTT;anycastPrefix=anycast:;multicastPrefix=multicast:" + (isUseSsl() ? "&sslEnabled=true&keyStorePath=server-keystore.p12&keyStorePassword=securepass" : "") + (isMutualSsl() ? "&needClientAuth=true&trustStorePath=client-ca-truststore.p12&trustStorePassword=securepass" : ""));
       server.getConfiguration().setConnectionTtlCheckInterval(100);
 
       logger.debug("Added MQTT connector to broker");
@@ -405,6 +406,17 @@ public class MQTT5TestSupport extends ActiveMQTestBase {
       } else {
          return null;
       }
+   }
+
+   protected static void reconnectSafely(MqttClient subscriber) throws Exception {
+      Wait.waitFor(() -> {
+         try {
+            subscriber.reconnect();
+            return true;
+         } catch (MqttException e) {
+            return false;
+         }
+      });
    }
 
    /*
