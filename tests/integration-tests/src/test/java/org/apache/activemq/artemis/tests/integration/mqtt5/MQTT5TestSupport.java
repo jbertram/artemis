@@ -288,7 +288,7 @@ public class MQTT5TestSupport extends ActiveMQTestBase {
       // MQTT transport connectors as needed, the port variable is always supposed to be
       // assigned the primary MQTT connector's port.
 
-      server.getConfiguration().addAcceptorConfiguration("FOO", "tcp://localhost:" + (isUseSsl() ? sslPort : port) + "?protocols=MQTT;anycastPrefix=anycast:;multicastPrefix=multicast:" + (isUseSsl() ? "&sslEnabled=true&keyStorePath=server-keystore.p12&keyStorePassword=securepass" : "") + (isMutualSsl() ? "&needClientAuth=true&trustStorePath=client-ca-truststore.p12&trustStorePassword=securepass" : ""));
+      server.getConfiguration().addAcceptorConfiguration(MQTT_PROTOCOL_NAME, "tcp://localhost:" + (isUseSsl() ? sslPort : port) + "?protocols=MQTT;anycastPrefix=anycast:;multicastPrefix=multicast:" + (isUseSsl() ? "&sslEnabled=true&keyStorePath=server-keystore.p12&keyStorePassword=securepass" : "") + (isMutualSsl() ? "&needClientAuth=true&trustStorePath=client-ca-truststore.p12&trustStorePassword=securepass" : ""));
       server.getConfiguration().setConnectionTtlCheckInterval(100);
 
       logger.debug("Added MQTT connector to broker");

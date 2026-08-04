@@ -882,8 +882,8 @@ public interface ActiveMQServerLogger {
    @LogMessage(id = 222229, value = "Failed to perform rollback", level = LogMessage.Level.WARN)
    void failedToPerformRollback(IllegalStateException e);
 
-   @LogMessage(id = 222230, value = "Failed to send notification", level = LogMessage.Level.WARN)
-   void failedToSendNotification(Exception e);
+   @LogMessage(id = 222230, value = "Failed to send notification: {}; Exception message: {}", level = LogMessage.Level.WARN)
+   void failedToSendNotification(String notification, String exceptionMessage);
 
    @LogMessage(id = 222231, value = "Failed to flush outstanding data from the connection", level = LogMessage.Level.WARN)
    void failedToFlushOutstandingDataFromTheConnection(Throwable e);

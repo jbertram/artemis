@@ -215,7 +215,7 @@ public class JournalHashMap<I, K, V, C> implements Map<K, V> {
          if (completionSupplier != null) {
             callback = completionSupplier.get();
          }
-         logger.info("Storing {}; type: {}; callback: {}", record, recordType, callback);
+//         logger.info("Storing {}; type: {}; callback: {}", record, recordType, callback);
          if (callback == null) {
             journal.storeMapRecord(record.id, recordType, persister, record, false);
          } else {

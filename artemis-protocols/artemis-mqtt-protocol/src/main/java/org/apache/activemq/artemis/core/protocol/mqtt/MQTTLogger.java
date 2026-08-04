@@ -29,10 +29,10 @@ public interface MQTTLogger {
 
    MQTTLogger LOGGER = BundleFactory.newBundle(MQTTLogger.class, MQTTLogger.class.getPackage().getName());
 
-   @LogMessage(id = 832000, value = "Unable to send message: {}", level = LogMessage.Level.WARN)
-   void unableToSendMessage(MessageReference message, Exception e);
+   @LogMessage(id = 832000, value = "Unable to send message to MQTT client {}: {}", level = LogMessage.Level.WARN)
+   void unableToSendMessage(String clientId, MessageReference message, Exception e);
 
-   @LogMessage(id = 832001, value = "MQTT client({}) attempted to ack already ack'd message: ", level = LogMessage.Level.WARN)
+   @LogMessage(id = 832001, value = "MQTT client({}) failed to acknowledge message: ", level = LogMessage.Level.WARN)
    void failedToAckMessage(String clientId, Exception e);
 
    @LogMessage(id = 834000, value = "Error removing subscription.", level = LogMessage.Level.ERROR)
@@ -53,8 +53,8 @@ public interface MQTTLogger {
    @LogMessage(id = 834005, value = "Failed to cast property {}.", level = LogMessage.Level.ERROR)
    void failedToCastProperty(String property);
 
-   @LogMessage(id = 834006, value = "Failed to publish MQTT message: {}.", level = LogMessage.Level.ERROR)
-   void failedToPublishMqttMessage(String exceptionMessage, Throwable t);
+   @LogMessage(id = 834006, value = "Failed to publish MQTT message. Client ID: {}. Packet ID: . {}", level = LogMessage.Level.ERROR)
+   void failedToPublishMqttMessage(int packetId, String clientId, String exceptionMessage, Throwable t);
 
    @LogMessage(id = 834007, value = "Authorization failure sending will message: {}", level = LogMessage.Level.ERROR)
    void authorizationFailureSendingWillMessage(String message);

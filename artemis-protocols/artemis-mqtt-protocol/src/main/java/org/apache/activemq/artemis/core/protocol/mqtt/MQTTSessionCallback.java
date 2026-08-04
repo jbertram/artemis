@@ -28,7 +28,7 @@ public class MQTTSessionCallback implements SessionCallback {
    private final MQTTConnection connection;
    private final int defaultMaximumInFlightPublishMessages;
 
-   public MQTTSessionCallback(MQTTSession session, MQTTConnection connection, int defaultMaximumInFlightPublishMessages) throws Exception {
+   public MQTTSessionCallback(MQTTSession session, MQTTConnection connection, int defaultMaximumInFlightPublishMessages) {
       this.session = session;
       this.connection = connection;
       this.defaultMaximumInFlightPublishMessages = defaultMaximumInFlightPublishMessages;
@@ -51,7 +51,7 @@ public class MQTTSessionCallback implements SessionCallback {
       try {
          session.getMqttPublishManager().publishToClient(ref.getMessage().toCore(), consumer, deliveryCount);
       } catch (Exception e) {
-         MQTTLogger.LOGGER.unableToSendMessage(ref, e);
+         MQTTLogger.LOGGER.unableToSendMessage(session.getState().getClientId(), ref, e);
       }
       return 1;
    }

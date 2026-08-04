@@ -81,7 +81,7 @@ public class MQTTSession {
                       MQTTConnection connection,
                       MQTTProtocolManager protocolManager,
                       WildcardConfiguration wildcardConfiguration,
-                      OperationContext sessionContext) throws Exception {
+                      OperationContext sessionContext) {
       this.protocolHandler = protocolHandler;
       this.protocolManager = protocolManager;
       this.stateManager = protocolManager.getStateManager();

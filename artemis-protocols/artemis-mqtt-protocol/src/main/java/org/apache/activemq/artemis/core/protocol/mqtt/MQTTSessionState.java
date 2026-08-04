@@ -418,9 +418,11 @@ public class MQTTSessionState {
       coreMessageIds.put(packetId, Pair.of(coreMessageId, consumerId));
    }
 
-   public void removeCoreDeliveryInfo(Integer packetId) {
+   public Pair<Long, Long> removeCoreDeliveryInfo(Integer packetId) {
       if (coreMessageIds != null) {
-         coreMessageIds.remove(packetId);
+         return coreMessageIds.remove(packetId);
+      } else {
+         return null;
       }
    }
 

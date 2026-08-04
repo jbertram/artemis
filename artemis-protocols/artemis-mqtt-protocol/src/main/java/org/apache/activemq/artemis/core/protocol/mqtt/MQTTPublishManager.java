@@ -121,9 +121,9 @@ public class MQTTPublishManager {
    protected void publishToClient(ICoreMessage message, ServerConsumer consumer, int deliveryCount) throws Exception {
       int qos = decideQoS(message, consumer);
       if (qos == 0) {
-         // TODO should this use -1 or something as the packet ID since this is QoS0? See https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901026.
-         if (publishToClient((int) message.getMessageID(), message, deliveryCount, qos, consumer.getID())) {
-            session.getServerSession().individualAcknowledge(consumer.getID(), message.getMessageID());
+         // hard-code the packet ID to 0 as QoS0 PUBLISH packets don't have a packet ID [MQTT-2.2.1-2]
+         if (publishToClient(0, message, deliveryCount, qos, consumer.getID())) {
+            acknowledge(consumer.getID(), message.getMessageID());
          }
       } else if (qos == 1) {
          final int packetId;
@@ -137,12 +137,10 @@ public class MQTTPublishManager {
          final int packetIdToUse;
          synchronized (this) {
             Integer existingPacketId = session.getStateManager().getQoS2PacketIdCorrelation(state.getClientId(), message.getMessageID());
-//            logger.info("existingPacketId {} for {}", existingPacketId, message.getMessageID());
             if (existingPacketId != null) {
                packetIdToUse = existingPacketId;
             } else {
                packetIdToUse = packetIdGenerator.generateMqttId();
-//               logger.info("Storing packetId {} for {}", packetIdToUse, message.getMessageID());
                session.getStateManager().putQoS2PacketIdCorrelation(state.getClientId(), message.getMessageID(), packetIdToUse);
             }
             state.putCoreDeliveryInfo(packetIdToUse, message.getMessageID(), consumer.getID());
@@ -152,6 +150,21 @@ public class MQTTPublishManager {
       } else {
          // Client must have disconnected and it's Subscription QoS cleared
          consumer.individualCancel(message.getMessageID(), false);
+      }
+   }
+
+   private void acknowledge(long consumerId, long coreMessageId) throws Exception {
+      Transaction tx = null;
+      try {
+         tx = session.getServerSession().newTransaction();
+         session.getServerSession().locateConsumer(consumerId).individualAcknowledge(tx, coreMessageId);
+         tx.commit();
+
+      } catch (ActiveMQIllegalStateException e) {
+         if (tx != null) {
+            tx.rollback();
+         }
+         MQTTLogger.LOGGER.failedToAckMessage(session.getState().getClientId(), e);
       }
    }
 
@@ -263,7 +276,7 @@ public class MQTTPublishManager {
                logger.debug("MQTT 3.1 client not authorized to publish message.");
             }
          } catch (Throwable t) {
-            MQTTLogger.LOGGER.failedToPublishMqttMessage(t.getMessage(), t);
+            MQTTLogger.LOGGER.failedToPublishMqttMessage(message.variableHeader().packetId(), state.getClientId(), t.getMessage(), t);
             tx.rollback();
             throw t;
          }
@@ -354,14 +367,14 @@ public class MQTTPublishManager {
 
    synchronized void handlePubAck(int packetId) throws Exception {
       try {
-         Pair<Long, Long> delivery = state.getCoreDeliveryInfo(packetId);
+         Pair<Long, Long> delivery = state.removeCoreDeliveryInfo(packetId);
          if (delivery != null) {
-            session.getServerSession().individualAcknowledge(delivery.getB(), delivery.getA());
+            acknowledge(delivery.getB(), delivery.getA());
             state.decrementSendQuota();
             releaseFlowControl(delivery.getB());
          }
       } catch (ActiveMQIllegalStateException e) {
-         logger.warn("MQTT Client({}) attempted to Ack already Ack'd message", session.getState().getClientId());
+         logger.warn("MQTT client({}) attempted to Ack already Ack'd message", session.getState().getClientId());
       }
    }
 
@@ -428,7 +441,7 @@ public class MQTTPublishManager {
              */
             logger.debug("Not sending message {} to client as its size ({}) exceeds the max ({})", coreMessage, size, maxSize);
             // TODO with QoS > 0 this is going to orphan/leak data; write a test for this
-            session.getServerSession().individualAcknowledge(consumerId, coreMessage.getMessageID());
+            acknowledge(consumerId, coreMessage.getMessageID());
             return false;
          }
       }
