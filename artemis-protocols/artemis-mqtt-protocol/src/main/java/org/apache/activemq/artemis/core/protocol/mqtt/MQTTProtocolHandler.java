@@ -370,19 +370,20 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
 
    void handlePuback(MqttPubAckMessage message) throws Exception {
       // ((MqttPubReplyMessageVariableHeader)message.variableHeader()).reasonCode();
-      session.getMqttPublishManager().handlePubAck(getMessageId(message));
+      session.getMqttPublishManager().handlePubAck(getPacketId(message));
    }
 
    void handlePubrec(MqttMessage message) throws Exception {
-      session.getMqttPublishManager().handlePubRec(getMessageId(message));
+      // TODO handle reason code >= 128 (i.e. abort QoS2) -
+      session.getMqttPublishManager().handlePubRec(getPacketId(message));
    }
 
    void handlePubrel(MqttMessage message) {
-      session.getMqttPublishManager().handlePubRel(getMessageId(message));
+      session.getMqttPublishManager().handlePubRel(getPacketId(message));
    }
 
    void handlePubcomp(MqttMessage message) throws Exception {
-      session.getMqttPublishManager().handlePubComp(getMessageId(message));
+      session.getMqttPublishManager().handlePubComp(getPacketId(message));
    }
 
    void handleSubscribe(MqttSubscribeMessage message) throws Exception {
@@ -428,7 +429,7 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
       });
    }
 
-   private int getMessageId(MqttMessage message) {
+   private int getPacketId(MqttMessage message) {
       return ((MqttMessageIdVariableHeader) message.variableHeader()).messageId();
    }
 
