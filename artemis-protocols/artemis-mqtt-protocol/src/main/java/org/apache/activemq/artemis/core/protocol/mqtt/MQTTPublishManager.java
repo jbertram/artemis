@@ -118,11 +118,12 @@ public class MQTTPublishManager {
     * reference to original ID and consumer in the Session state. This way we can look up the consumer Id and the
     * message Id from the PubAck or PubRec message id.
     */
-   protected void publishToClient(ICoreMessage message, ServerConsumer consumer, int deliveryCount) throws Exception {
+   protected void publishToClient(ICoreMessage message, ServerConsumer consumer) throws Exception {
       int qos = decideQoS(message, consumer);
       if (qos == 0) {
-         // hard-code the packet ID to 0 as QoS0 PUBLISH packets don't have a packet ID [MQTT-2.2.1-2]
-         if (publishToClient(0, message, deliveryCount, qos, consumer.getID())) {
+         // [MQTT-2.2.1-2] Hard-code the packet ID to 0 as QoS0 PUBLISH packets don't have a packet ID
+         // [MQTT-3.3.1-2] The DUP flag MUST be set to 0 for all QoS 0 messages.
+         if (publishToClient(0, message, false, qos, consumer.getID())) {
             acknowledge(consumer.getID(), message.getMessageID());
          }
       } else if (qos == 1) {
@@ -132,21 +133,24 @@ public class MQTTPublishManager {
             state.putCoreDeliveryInfo(packetId, message.getMessageID(), consumer.getID());
             state.incrementSendQuota();
          }
-         publishToClient(packetId, message, deliveryCount, qos, consumer.getID());
+         // TODO should this be hard-coded to false?
+         publishToClient(packetId, message, false, qos, consumer.getID());
       } else if (qos == 2) {
+         Integer existingPacketId;
          final int packetIdToUse;
          synchronized (this) {
-            Integer existingPacketId = session.getStateManager().getQoS2PacketIdCorrelation(state.getClientId(), message.getMessageID());
+            existingPacketId = session.getStateManager().getQoS2PacketIdCorrelation(state.getClientId(), message.getMessageID());
             if (existingPacketId != null) {
                packetIdToUse = existingPacketId;
             } else {
                packetIdToUse = packetIdGenerator.generateMqttId();
                session.getStateManager().putQoS2PacketIdCorrelation(state.getClientId(), message.getMessageID(), packetIdToUse);
             }
+//            logger.info("dispatching: {}", message.getMessageID());
             state.putCoreDeliveryInfo(packetIdToUse, message.getMessageID(), consumer.getID());
             state.incrementSendQuota();
          }
-         publishToClient(packetIdToUse, message, deliveryCount, qos, consumer.getID());
+         publishToClient(packetIdToUse, message, existingPacketId != null, qos, consumer.getID());
       } else {
          // Client must have disconnected and it's Subscription QoS cleared
          consumer.individualCancel(message.getMessageID(), false);
@@ -307,6 +311,7 @@ public class MQTTPublishManager {
          if (delivery != null) {
             tx = session.getServerSession().newTransaction();
             state.getPubRecCache().add(packetId, tx);
+//            logger.info("acking: {}", delivery.getA());
             session.getServerSession().locateConsumer(delivery.getB()).individualAcknowledge(tx, delivery.getA());
             state.removeCoreDeliveryInfo(packetId);
             session.getStateManager().removeQoS2PacketIdCorrelation(state.getClientId(), delivery.getA(), tx.getID());
@@ -316,11 +321,12 @@ public class MQTTPublishManager {
          }
 
          session.getProtocolHandler().sendPubRel(packetId);
-      } catch (ActiveMQIllegalStateException e) {
+      } catch (Exception e) {
          if (tx != null) {
             tx.rollback();
          }
          MQTTLogger.LOGGER.failedToAckMessage(session.getState().getClientId(), e);
+         session.getProtocolHandler().sendPubRel(packetId, MQTTReasonCodes.PACKET_IDENTIFIER_NOT_FOUND);
       }
    }
 
@@ -378,7 +384,7 @@ public class MQTTPublishManager {
       }
    }
 
-   private boolean publishToClient(int packetId, ICoreMessage coreMessage, int deliveryCount, int qos, long consumerId) throws Exception {
+   private boolean publishToClient(int packetId, ICoreMessage coreMessage, boolean redelivery, int qos, long consumerId) throws Exception {
       String topic = MQTTUtil.getMqttTopicFromCoreAddress(Objects.requireNonNullElse(coreMessage.getAddress(), ""), session.getWildcardConfiguration());
 
       ByteBuf payload;
@@ -396,9 +402,6 @@ public class MQTTPublishManager {
             payload.writeBytes(bodyBuffer.byteBuf());
             break;
       }
-
-      // [MQTT-3.3.1-2] The DUP flag MUST be set to 0 for all QoS 0 messages.
-      boolean redelivery = qos == 0 ? false : (deliveryCount > 1);
 
       boolean isRetain = coreMessage.containsProperty(MQTT_MESSAGE_RETAIN_INITIAL_DISTRIBUTION_KEY);
       MqttProperties mqttProperties = null;
@@ -427,7 +430,7 @@ public class MQTTPublishManager {
       }
 
       int remainingLength = MQTTUtil.calculateRemainingLength(topic, mqttProperties, payload);
-      MqttFixedHeader header = new MqttFixedHeader(MqttMessageType.PUBLISH, redelivery, MqttQoS.valueOf(qos), isRetain, remainingLength);
+      MqttFixedHeader header = new MqttFixedHeader(MqttMessageType.PUBLISH, qos == 0 ? false : redelivery, MqttQoS.valueOf(qos), isRetain, remainingLength);
       MqttPublishVariableHeader varHeader = new MqttPublishVariableHeader(topic, packetId, mqttProperties);
       MqttPublishMessage publish = new MqttPublishMessage(header, varHeader, payload);
 

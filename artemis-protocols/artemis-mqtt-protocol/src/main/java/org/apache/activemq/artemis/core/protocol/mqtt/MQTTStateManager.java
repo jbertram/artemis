@@ -151,9 +151,9 @@ public class MQTTStateManager {
       return "MQTTSessionStateManager@" + Integer.toHexString(System.identityHashCode(this));
    }
 
-   public void storeDurableSubscriptionState(MQTTSessionState state) throws Exception {
+   public void storeDurableState(MQTTSessionState state) throws Exception {
       if (subscriptionPersistenceEnabled) {
-         logger.debug("Adding durable MQTT subscription record for: {}", state.getClientId());
+         logger.debug("Adding durable MQTT record for: {}", state.getClientId());
          StorageManager storageManager = server.getStorageManager();
          MQTTUtil.sendMessageDirectlyToQueue(storageManager, server.getPostOffice(), serializeState(state, storageManager.generateID()), sessionStore, null);
       }
@@ -184,6 +184,8 @@ public class MQTTStateManager {
          buf.writeInt(sub.option().retainHandling().value());
          buf.writeNullableInt(item.getId());
       }
+
+      buf.writeInt(state.getClientSessionExpiryInterval());
 
       return message;
    }
@@ -299,13 +301,11 @@ public class MQTTStateManager {
    private static class Qos2PacketIdCorrelationPersister extends AbstractHashMapPersister<String, Long, Integer> {
       @Override
       protected int getCollectionIdSize(String collectionID) {
-//         logger.info("getCollectionIdSize({})", collectionID);
          return BufferHelper.sizeOfString(collectionID);
       }
 
       @Override
       protected void encodeCollectionId(ActiveMQBuffer buffer, String collectionID) {
-//         logger.info("encodeCollectionId({})", collectionID);
          buffer.writeString(collectionID);
       }
 
@@ -316,13 +316,11 @@ public class MQTTStateManager {
 
       @Override
       protected int getKeySize(Long coreMessageId) {
-//         logger.info("getKeySize({})", coreMessageId);
          return DataConstants.SIZE_LONG;
       }
 
       @Override
       protected void encodeKey(ActiveMQBuffer buffer, Long coreMessageId) {
-//         logger.info("encodeKey({})", coreMessageId);
          buffer.writeLong(coreMessageId);
       }
 
@@ -333,13 +331,11 @@ public class MQTTStateManager {
 
       @Override
       protected int getValueSize(Integer mqttPacketId) {
-//         logger.info("getValueSize({})", mqttPacketId);
          return DataConstants.SIZE_INT;
       }
 
       @Override
       protected void encodeValue(ActiveMQBuffer buffer, Integer mqttPacketId) {
-//         logger.info("encodeValue({})", mqttPacketId);
          buffer.writeInt(mqttPacketId);
       }
 

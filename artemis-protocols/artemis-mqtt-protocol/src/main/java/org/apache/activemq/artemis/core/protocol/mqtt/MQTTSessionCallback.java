@@ -49,7 +49,7 @@ public class MQTTSessionCallback implements SessionCallback {
                           ServerConsumer consumer,
                           int deliveryCount) {
       try {
-         session.getMqttPublishManager().publishToClient(ref.getMessage().toCore(), consumer, deliveryCount);
+         session.getMqttPublishManager().publishToClient(ref.getMessage().toCore(), consumer);
       } catch (Exception e) {
          MQTTLogger.LOGGER.unableToSendMessage(session.getState().getClientId(), ref, e);
       }

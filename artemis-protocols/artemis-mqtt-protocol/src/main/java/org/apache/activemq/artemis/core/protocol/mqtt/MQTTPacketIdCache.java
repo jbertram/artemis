@@ -45,9 +45,14 @@ public class MQTTPacketIdCache {
     * most operations.
     */
    private void check() {
-      if (cache == null && postOffice.duplicateIDCacheExists(cacheName)) {
+      if (cache == null && durableStateExists()) {
          cache = postOffice.getDuplicateIDCache(cacheName, MQTTUtil.TWO_BYTE_INT_MAX);
       }
+   }
+
+   // TODO better name?
+   public boolean durableStateExists() {
+      return postOffice.duplicateIDCacheExists(cacheName);
    }
 
    public void add(int packetId, Transaction tx) throws Exception {

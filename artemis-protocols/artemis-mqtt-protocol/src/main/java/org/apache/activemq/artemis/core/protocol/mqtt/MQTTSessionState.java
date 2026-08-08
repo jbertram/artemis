@@ -140,6 +140,11 @@ public class MQTTSessionState {
 
          subscriptions.put(topicName, new SubscriptionItem(new MqttTopicSubscription(topicName, new MqttSubscriptionOption(qos, nolocal, retainAsPublished, retainedHandlingPolicy)), subscriptionId));
       }
+
+      if (buf.readable()) {
+         clientSessionExpiryInterval = buf.readInt();
+         disconnectedTime = System.currentTimeMillis();
+      }
    }
 
    public MQTTSession getSession() {

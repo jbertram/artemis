@@ -16,11 +16,13 @@
  */
 package org.apache.activemq.artemis.tests.soak.mqtt;
 
-import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -30,6 +32,13 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.hivemq.client.mqtt.MqttGlobalPublishFilter;
+import com.hivemq.client.mqtt.datatypes.MqttQos;
+import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
+import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
+import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
+import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PublishResult;
+import io.reactivex.schedulers.Schedulers;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.persistence.impl.journal.DescribeJournal;
 import org.apache.activemq.artemis.core.postoffice.DuplicateIDCache;
@@ -41,7 +50,6 @@ import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.Queue;
 import org.apache.activemq.artemis.spi.core.protocol.ProtocolManager;
 import org.apache.activemq.artemis.spi.core.remoting.Acceptor;
-import org.apache.activemq.artemis.tests.extensions.TargetTempDirFactory;
 import org.apache.activemq.artemis.tests.util.ActiveMQTestBase;
 import org.apache.activemq.artemis.utils.TestParameters;
 import org.apache.activemq.artemis.utils.Wait;
@@ -49,19 +57,10 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.LoggerConfig;
-import org.eclipse.paho.mqttv5.client.MqttClient;
-import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
-import org.eclipse.paho.mqttv5.client.MqttConnectionOptionsBuilder;
-import org.eclipse.paho.mqttv5.client.MqttClientException;
-import org.eclipse.paho.mqttv5.client.persist.MemoryPersistence;
-import org.eclipse.paho.mqttv5.client.persist.MqttDefaultFilePersistence;
-import org.eclipse.paho.mqttv5.common.MqttException;
-import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,31 +70,21 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
+public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-   private static final java.util.logging.Logger PAHO_LOGGER;
-
-   static {
-      PAHO_LOGGER = java.util.logging.Logger.getLogger("org.eclipse.paho.mqttv5.client.internal.ClientState");
-      PAHO_LOGGER.setLevel(java.util.logging.Level.WARNING);
-   }
 
    private static final String TEST_NAME = "QOS2_RESILIENCY_SOAK";
    private static final String TOPIC = "qos2/resiliency";
    private static final int MQTT_PORT = 1883;
 
-   private static final int NUM_PUBLISHERS = TestParameters.testProperty(TEST_NAME, "NUM_PUBLISHERS", 5);
-   private static final int NUM_SUBSCRIBERS = TestParameters.testProperty(TEST_NAME, "NUM_SUBSCRIBERS", 5);
-   private static final int NUM_MESSAGES = TestParameters.testProperty(TEST_NAME, "NUM_MESSAGES", 800);
+   private static final int NUM_PUBLISHERS = TestParameters.testProperty(TEST_NAME, "NUM_PUBLISHERS", 10);
+   private static final int NUM_SUBSCRIBERS = TestParameters.testProperty(TEST_NAME, "NUM_SUBSCRIBERS", 15);
+   private static final int NUM_MESSAGES = TestParameters.testProperty(TEST_NAME, "NUM_MESSAGES", 50_000);
    private static final int RESTART_PAUSE = TestParameters.testProperty(TEST_NAME, "RESTART_PAUSE", 2_000);
-   private static final int TIMEOUT_SECONDS = TestParameters.testProperty(TEST_NAME, "TIMEOUT_SECONDS", 120);
+   private static final int TIMEOUT_SECONDS = TestParameters.testProperty(TEST_NAME, "TIMEOUT_SECONDS", 1200);
 
    private ActiveMQServer server;
-
-   @TempDir(factory = TargetTempDirFactory.class)
-   public File tempMqttClientPersistence;
 
    @BeforeEach
    @Override
@@ -131,6 +120,7 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
       if (server != null && server.isStarted()) {
          server.stop();
       }
+      Schedulers.shutdown();
       super.tearDown();
    }
 
@@ -141,13 +131,15 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
       final String SUB_CLIENT_ID = "sub";
 
       // create subscription queue for consuming messages later
-      MqttClient subscriber = createPahoClient(SUB_CLIENT_ID, false);
-      MqttConnectionOptions subscriberOptions = new MqttConnectionOptionsBuilder()
+      Mqtt5BlockingClient subscriber = createHiveMQClient(SUB_CLIENT_ID, false);
+      subscriber.connectWith()
          .cleanStart(false)
-         .sessionExpiryInterval(300L)
-         .build();
-      subscriber.connect(subscriberOptions);
-      subscriber.subscribe(TOPIC, 1);
+         .sessionExpiryInterval(300)
+         .send();
+      subscriber.subscribeWith()
+         .topicFilter(TOPIC)
+         .qos(MqttQos.AT_LEAST_ONCE)
+         .send();
       subscriber.disconnect();
 
       assertNotNull(getSubscriptionQueue(TOPIC, SUB_CLIENT_ID));
@@ -155,24 +147,20 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
       logger.info("{} publishers, {} messages/publisher, {} total expected", NUM_PUBLISHERS, NUM_MESSAGES, NUM_PUBLISHERS * NUM_MESSAGES);
 
       // create and connect publishers
-      final List<MqttClient> publishers = new ArrayList<>();
+      final List<Mqtt5BlockingClient> publishers = new ArrayList<>();
       runAfter(() -> publishers.forEach(c -> {
          try {
-            c.disconnectForcibly(0, 0);
-            c.close();
+            c.disconnect();
          } catch (Exception ignored) {
          }
       }));
       for (int i = 0; i < NUM_PUBLISHERS; i++) {
          String clientId = PUB_CLIENT_ID_PREFIX + i;
-         MqttClient publisher = createPahoClient(clientId, false);
-         MqttConnectionOptions options = new MqttConnectionOptionsBuilder()
+         Mqtt5BlockingClient publisher = createHiveMQClient(clientId, true);
+         publisher.connectWith()
             .cleanStart(false)
-            .sessionExpiryInterval(300L)
-            .automaticReconnect(true)
-            .build();
-         options.setMaxReconnectDelay(500);
-         publisher.connect(options);
+            .sessionExpiryInterval(300)
+            .send();
          publishers.add(publisher);
          logger.info("Publisher {} connected", clientId);
       }
@@ -181,13 +169,9 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
       ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
       ScheduledFuture restarter = scheduler.scheduleWithFixedDelay(() -> {
          try {
-            logger.info("Stopping");
+            logger.info("Stopping broker");
             server.stop();
             waitForServerToStop(server);
-//            compactJournal(server.getConfiguration().getJournalLocation(), server.getConfiguration().getJournalRetentionLocation(), "activemq-data", "amq", server.getConfiguration().getJournalMinFiles(),
-//                           server.getConfiguration().getJournalPoolFiles(), server.getConfiguration().getJournalFileSize(), null, JournalRecordIds.UPDATE_DELIVERY_COUNT,
-//                           JournalRecordIds.SET_SCHEDULED_DELIVERY_TIME);
-//            DescribeJournal.describeMessagesJournal(server.getConfiguration().getJournalLocation(), System.out, false, false, true, false);
             server.start();
             waitForServerToStart(server);
          } catch (Exception e) {
@@ -195,8 +179,7 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
          }
       }, RESTART_PAUSE, RESTART_PAUSE, TimeUnit.MILLISECONDS);
 
-      // enable protocol logging for the critical part of the test
-//      enableProtocolLogging();
+      enableProtocolLogging();
 
       // Start publisher tasks
       final ExecutorService publisherExecutor = Executors.newFixedThreadPool(NUM_PUBLISHERS);
@@ -205,25 +188,25 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
       final AtomicInteger publishErrors = new AtomicInteger(0);
       for (int i = 0; i < NUM_PUBLISHERS; i++) {
          final int pubId = i;
-         final MqttClient publisher = publishers.get(i);
+         final Mqtt5BlockingClient publisher = publishers.get(i);
          publisherExecutor.execute(() -> {
             for (int seq = 0; seq < NUM_MESSAGES; seq++) {
                String payload = pubId + "-" + seq;
-               while (!sentMessages.contains(payload)) {
-                  try {
-                     waitForClientConnected(publisher);
-                     publisher.publish(TOPIC, payload.getBytes(StandardCharsets.UTF_8), 2, false);
-                     sentMessages.add(payload);
-                  } catch (MqttException e) {
-                     publishErrors.incrementAndGet();
-                     if (e.getReasonCode() == MqttClientException.REASON_CODE_CLIENT_NOT_CONNECTED) {
-                        logger.info("Pub failed: {}; client not connected, retrying manually", payload, e);
-                     } else {
-                        sentMessages.add(payload);
-                        logger.info("Pub failed: {}; message should be retried by client automatically", payload);
-                     }
+               try {
+                  waitForClientConnected(publisher);
+                  Mqtt5PublishResult result = publisher.publishWith()
+                     .topic(TOPIC)
+                     .qos(MqttQos.EXACTLY_ONCE)
+                     .payload(payload.getBytes(StandardCharsets.UTF_8))
+                     .send();
+                  if (result.getError().isPresent()) {
+                     throw result.getError().get();
                   }
+               } catch (Throwable e) {
+                  publishErrors.incrementAndGet();
+                  logger.info("Pub failed: {}; message should be retried by client automatically", payload, e);
                }
+               sentMessages.add(payload);
             }
             logger.info("Publisher {} finished sending all {} messages", pubId, NUM_MESSAGES);
          });
@@ -233,10 +216,6 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
       publisherExecutor.shutdown();
       assertTrue(publisherExecutor.awaitTermination(TIMEOUT_SECONDS, TimeUnit.SECONDS), "Publishers did not finish in time");
       logger.info("All publishers finished. Total messages sent: {}. Publish errors: {}", sentMessages.size(), publishErrors.get());
-
-      for (MqttClient publisher : publishers) {
-         safeDisconnect(publisher);
-      }
 
       disableProtocolLogging();
 
@@ -248,131 +227,123 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
          waitForServerToStart(server);
       }
 
-      long messageCount = getSubscriptionQueue(TOPIC, SUB_CLIENT_ID).getMessageCount();
-
-      logger.info("Subscription queue message count: {}", messageCount);
+      final long messageCount = getSubscriptionQueue(TOPIC, SUB_CLIENT_ID).getMessageCount();
 
       // reconnect subscriber to verify there are no duplicates
       Set<String> consumedMessages = ConcurrentHashMap.newKeySet(NUM_MESSAGES * NUM_PUBLISHERS);
       AtomicInteger duplicateCount = new AtomicInteger(0);
-      subscriber.setCallback(new MQTT5SoakTest.DefaultMqttCallback() {
-         @Override
-         public void messageArrived(String topic, MqttMessage message) throws Exception {
-            String payload = new String(message.getPayload(), StandardCharsets.UTF_8);
-            if (consumedMessages.contains(payload)) {
-               logger.warn("Duplicate message: {}", payload);
-               duplicateCount.incrementAndGet();
-            }
-            consumedMessages.add(payload);
-            sentMessages.remove(payload);
+      subscriber.toAsync().publishes(MqttGlobalPublishFilter.ALL, publish -> {
+         String payload = new String(publish.getPayloadAsBytes(), StandardCharsets.UTF_8);
+         if (consumedMessages.contains(payload)) {
+            logger.warn("Duplicate message: {}", payload);
+            duplicateCount.incrementAndGet();
          }
+         consumedMessages.add(payload);
+         sentMessages.remove(payload);
       });
-      subscriber.connect(subscriberOptions);
 
-      Wait.assertEquals(0, () -> getSubscriptionQueue(TOPIC, SUB_CLIENT_ID).getMessageCount());
+      subscriber.connectWith()
+         .cleanStart(false)
+         .sessionExpiryInterval(300)
+         .send();
+
       Wait.waitFor(() -> consumedMessages.size() == messageCount);
+
+      cleanDisconnect(subscriber);
+
       assertEquals(0, duplicateCount.get());
       assertEquals(0, sentMessages.size(), "These messages were published, but were not on the broker: " + sentMessages);
       assertEquals(NUM_PUBLISHERS * NUM_MESSAGES, consumedMessages.size());
 
-      // verify QoS2 state is clean
-      for (int i = 0; i < NUM_PUBLISHERS; i++) {
-         String clientId = PUB_CLIENT_ID_PREFIX + i;
+      for (Mqtt5BlockingClient publisher : publishers) {
+         String clientId = getClientId(publisher);
          Wait.assertEquals(0, () -> getPubCacheSize(clientId), 5000, 100);
-      }
-      logger.info("QoS2 state verified clean for all clients");
-
-      // clean session teardown
-      for (MqttClient publisher : publishers) {
-         safeDisconnect(publisher);
-         publisher.connect(new MqttConnectionOptionsBuilder().cleanStart(true).sessionExpiryInterval(0L).build());
-         String clientId = publisher.getClientId();
+         cleanDisconnect(publisher);
          assertNull(getPubCache(clientId), "Pub cache should be null after clean start for " + clientId);
-         publisher.disconnect();
-         publisher.close();
       }
-
-      // DescribeJournal.describeMessagesJournal(server.getConfiguration().getJournalLocation(), System.out, false, false, true, false);
    }
 
    @Test
    @Timeout(value = 30, unit = TimeUnit.MINUTES)
    public void testQoS2SubscriberResiliency() throws Exception {
-      final String SUB_CLIENT_ID_PREFIX = "sub-";
-      final String PUB_CLIENT_ID = "pub";
+      logger.info("{} subscribers, {} messages/subscriber", NUM_SUBSCRIBERS, NUM_MESSAGES);
 
-      logger.info("{} subscribers, {} messages", NUM_SUBSCRIBERS, NUM_MESSAGES);
-
-      // create and subscribe subscribers, then disconnect to leave idle subscriptions on the broker
-      final List<MqttClient> subscribers = new ArrayList<>();
+      // create and subscribe then disconnect to leave idle subscriptions on the broker
+      final List<Mqtt5BlockingClient> subscribers = new ArrayList<>(NUM_SUBSCRIBERS);
       runAfter(() -> subscribers.forEach(c -> {
          try {
-            c.disconnectForcibly(0, 0);
-            c.close();
+            c.disconnect();
          } catch (Exception ignored) {
          }
       }));
-      MqttConnectionOptions subscriberOptions = new MqttConnectionOptionsBuilder()
-         .cleanStart(false)
-         .sessionExpiryInterval(300L)
-         .automaticReconnect(true)
-         .build();
-      subscriberOptions.setMaxReconnectDelay(500);
       for (int i = 0; i < NUM_SUBSCRIBERS; i++) {
-         String clientId = SUB_CLIENT_ID_PREFIX + i;
-         MqttClient subscriber = createPahoClient(clientId, true);
-         subscriber.connect(subscriberOptions);
-         subscriber.subscribe(TOPIC, 2);
+         String clientId = "sub-" + i;
+         Mqtt5BlockingClient subscriber = createHiveMQClient(clientId, true);
+         subscriber.connectWith()
+            .cleanStart(false)
+            .sessionExpiryInterval(300)
+            .send();
+         subscriber.subscribeWith()
+            .topicFilter(TOPIC)
+            .qos(MqttQos.EXACTLY_ONCE)
+            .send();
          subscriber.disconnect();
          subscribers.add(subscriber);
-         logger.info("Subscriber {} connected, subscribed, and disconnected", clientId);
+         assertNotNull(getSubscriptionQueue(TOPIC, getClientId(subscriber)));
       }
 
-      for (int i = 0; i < NUM_SUBSCRIBERS; i++) {
-         assertNotNull(getSubscriptionQueue(TOPIC, SUB_CLIENT_ID_PREFIX + i));
-      }
-
-      // sends messages using QoS1
-      MqttClient publisher = createPahoClient(PUB_CLIENT_ID, false);
-      publisher.connect();
+      // send messages using QoS 2
+      final Set<String> sentMessages = new HashSet<>(NUM_MESSAGES);
+      Mqtt5BlockingClient publisher = createHiveMQClient("pub", false);
+      publisher.connectWith().cleanStart(true).send();
       logger.info("Publishing {} messages...", NUM_MESSAGES);
       for (int seq = 0; seq < NUM_MESSAGES; seq++) {
-         publisher.publish(TOPIC, String.valueOf(seq).getBytes(StandardCharsets.UTF_8), 2, false);
+         String payload = String.valueOf(seq);
+         sentMessages.add(payload);
+         publisher.publishWith()
+            .topic(TOPIC)
+            .qos(MqttQos.EXACTLY_ONCE)
+            .payload(payload.getBytes(StandardCharsets.UTF_8))
+            .send();
       }
       logger.info("Published {} messages.", NUM_MESSAGES);
-      safeDisconnect(publisher);
-      publisher.close();
+      cleanDisconnect(publisher);
+
+      for (Mqtt5BlockingClient subscriber : subscribers) {
+         assertEquals(NUM_MESSAGES, getSubscriptionQueue(TOPIC, getClientId(subscriber)).getMessageCount());
+      }
 
       enableProtocolLogging();
 
-      // reconnect subscribers to begin receiving messages
-      final List<Set<String>> receivedPerSubscriber = new ArrayList<>();
-      final List<AtomicInteger> duplicateCounts = new ArrayList<>();
-      for (int i = 0; i < NUM_SUBSCRIBERS; i++) {
-         final int subId = i;
-         receivedPerSubscriber.add(ConcurrentHashMap.newKeySet(NUM_MESSAGES));
-         duplicateCounts.add(new AtomicInteger(0));
-         MqttClient subscriber = subscribers.get(i);
-         subscriber.setCallback(new MQTT5SoakTest.DefaultMqttCallback() {
-            @Override
-            public void messageArrived(String topic, MqttMessage message) throws Exception {
-               String payload = new String(message.getPayload(), StandardCharsets.UTF_8);
-               logger.info("Subscriber sub-{} received: {}; duplicate flag: {}", subId, payload, message.isDuplicate());
-               if (!receivedPerSubscriber.get(subId).add(payload)) {
-                  logger.warn("Subscriber sub-{} duplicate: {}", subId, payload);
-                  duplicateCounts.get(subId).incrementAndGet();
-               }
+      final Map<String, Set<String>> receivedPerSubscriber = new HashMap<>();
+      final Map<String, Set<String>> duplicatesPerSubscriber = new HashMap<>();
+
+      for (Mqtt5BlockingClient subscriber : subscribers) {
+         final String clientId = getClientId(subscriber);
+         final Set<String> received = ConcurrentHashMap.newKeySet(NUM_MESSAGES);
+         receivedPerSubscriber.put(clientId, received);
+         final Set<String> duplicates = ConcurrentHashMap.newKeySet();
+         duplicatesPerSubscriber.put(clientId, duplicates);
+         subscriber.toAsync().publishes(MqttGlobalPublishFilter.ALL, publish -> {
+            String payload = new String(publish.getPayloadAsBytes(), StandardCharsets.UTF_8);
+            logger.info("Subscriber {} received: {}", clientId, payload);
+            if (!received.add(payload)) {
+               logger.warn("Subscriber {} received duplicate: {}", clientId, payload);
+               duplicates.add(payload);
             }
          });
-         subscriber.connect(subscriberOptions);
-         logger.info("Subscriber sub-{} reconnected", subId);
+         subscriber.connectWith()
+            .cleanStart(false)
+            .sessionExpiryInterval(300)
+            .send();
+         logger.info("Subscriber {} reconnected", clientId);
       }
 
       // start broker restart task
       ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
       ScheduledFuture restarter = scheduler.scheduleWithFixedDelay(() -> {
          try {
-            logger.info("Stopping");
+            logger.info("Stopping broker");
             server.stop();
             waitForServerToStop(server);
             server.start();
@@ -384,9 +355,8 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
 
       // wait for all subscribers to receive all messages
       Wait.assertTrue(() -> {
-         for (int i = 0; i < NUM_SUBSCRIBERS; i++) {
-            if (receivedPerSubscriber.get(i).size() < NUM_MESSAGES) {
-               logger.info("Sub {} received: {}", i, receivedPerSubscriber.get(i).size());
+         for (Mqtt5BlockingClient subscriber : subscribers) {
+            if (receivedPerSubscriber.get(getClientId(subscriber)).size() < NUM_MESSAGES) {
                return false;
             }
          }
@@ -403,52 +373,61 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
          waitForServerToStart(server);
       }
 
+      enableProtocolLogging();
+
       // verify all expected messages received with no duplicates
-      for (int i = 0; i < NUM_SUBSCRIBERS; i++) {
-         assertEquals(0, duplicateCounts.get(i).get(), "Subscriber sub-" + i + " received duplicates");
-         assertEquals(NUM_MESSAGES, receivedPerSubscriber.get(i).size(), "Subscriber sub-" + i + " did not receive all messages");
-      }
-      logger.info("All subscribers received all {} messages with no duplicates", NUM_MESSAGES);
-
-      // verify broker state cleanup
-      for (int i = 0; i < NUM_SUBSCRIBERS; i++) {
-         String clientId = SUB_CLIENT_ID_PREFIX + i;
-         Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, clientId).getMessageCount(), 5000, 100);
-         Wait.assertEquals(0, () -> getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(clientId), 5000, 100);
-         Wait.assertEquals(0, () -> getSubCacheSize(clientId), 5000, 100);
-      }
-      logger.info("Broker state verified clean for all subscribers");
-
-      for (MqttClient subscriber : subscribers) {
-         safeDisconnect(subscriber);
-         subscriber.connect(new MqttConnectionOptionsBuilder().cleanStart(true).sessionExpiryInterval(0L).build());
-         String clientId = subscriber.getClientId();
-         assertNull(getSubCache(clientId), "Sub cache should be null after clean start for " + clientId);
-         subscriber.disconnect();
-         subscriber.close();
+      for (Mqtt5BlockingClient subscriber : subscribers) {
+         String clientId = getClientId(subscriber);
+         assertEquals(0, duplicatesPerSubscriber.get(clientId).size(), "Subscriber " + getClientId(subscriber) + " received duplicates: " + duplicatesPerSubscriber.get(clientId));
+         assertEquals(NUM_MESSAGES, receivedPerSubscriber.get(clientId).size(), "Subscriber " + getClientId(subscriber) + " didn't receive: " + getMissingMessages(sentMessages, receivedPerSubscriber.get(clientId)));
+         assertEquals(0L, getSubscriptionQueue(TOPIC, getClientId(subscriber)).getMessageCount(), "Subscription queue for " + getClientId(subscriber) + " has incorrect message count");
+         assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(getClientId(subscriber)));
+         assertEquals(0, getSubCacheSize(getClientId(subscriber)));
+         cleanDisconnect(subscriber);
+         assertNull(getPubCache(getClientId(subscriber)), "Sub cache should be null after clean start for " + getClientId(subscriber));
       }
 
       DescribeJournal.describeMessagesJournal(server.getConfiguration().getJournalLocation(), System.out, false, false, true, false);
    }
 
-   private MqttClient createPahoClient(String clientId, boolean persist) throws MqttException {
-      return new MqttClient("tcp://localhost:" + MQTT_PORT, clientId, persist ? new MqttDefaultFilePersistence(tempMqttClientPersistence.getAbsolutePath()) : new MemoryPersistence());
+   private Set<String> getMissingMessages(Set<String> expected, Set<String> received) {
+      Set<String> missing = new HashSet<>(expected);
+      missing.removeAll(received);
+      return missing;
    }
 
-   private static void waitForClientConnected(MqttClient client) {
-      Wait.waitFor(() -> {
-         //         logger.info("Is {} connected?", client);
-         return client.isConnected();
-      }, 30_000, 500);
+   private static String getClientId(Mqtt5BlockingClient subscriber) {
+      return subscriber.getConfig().getClientIdentifier().get().toString();
    }
 
-   private static void safeDisconnect(MqttClient client) {
+   private Mqtt5BlockingClient createHiveMQClient(String clientId, boolean autoReconnect) {
+      var builder = Mqtt5Client.builder()
+         .identifier(clientId)
+         .serverHost("localhost")
+         .serverPort(MQTT_PORT);
+      if (autoReconnect) {
+         builder.automaticReconnect()
+            .initialDelay(500, TimeUnit.MILLISECONDS)
+            .maxDelay(500, TimeUnit.MILLISECONDS)
+            .applyAutomaticReconnect();
+      }
+      return builder.buildBlocking();
+   }
+
+   private static void waitForClientConnected(Mqtt5BlockingClient client) {
+      Wait.waitFor(() -> client.getConfig().getState().isConnected(), 30_000, 500);
+   }
+
+   private static void cleanDisconnect(Mqtt5BlockingClient client) {
+      logger.info("cleanDisconnect for {}", getClientId(client));
       try {
-         if (client.isConnected()) {
+         if (client.getConfig().getState().isConnected()) {
             client.disconnect();
          }
-      } catch (MqttException e) {
-         logger.debug("Error disconnecting {}: {}", client.getClientId(), e.getMessage());
+         client.connectWith().cleanStart(true).sessionExpiryInterval(0).send();
+         client.disconnect();
+      } catch (Exception e) {
+         logger.debug("Error disconnecting: {}", e.getMessage());
       }
    }
 

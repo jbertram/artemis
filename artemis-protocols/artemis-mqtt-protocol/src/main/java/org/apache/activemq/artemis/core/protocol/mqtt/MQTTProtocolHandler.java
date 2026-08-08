@@ -193,7 +193,7 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
                disconnect(true);
          }
       } catch (Exception e) {
-         MQTTLogger.LOGGER.errorProcessingControlPacket(message.toString(), e);
+         MQTTLogger.LOGGER.errorProcessingPacket(session.getState().getClientId(), MQTTUtil.getMessageForLogging(message, session.getVersion()), e.getMessage());
          if (session.getVersion() == MQTTVersion.MQTT_5) {
             sendDisconnect(MQTTReasonCodes.IMPLEMENTATION_SPECIFIC_ERROR);
          }
@@ -273,9 +273,10 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
    }
 
    void disconnect(boolean error, MqttMessage disconnect) {
-      if (disconnect != null && disconnect.variableHeader() instanceof MqttReasonCodeAndPropertiesVariableHeader) {
-         Integer sessionExpiryInterval = MQTTUtil.getProperty(Integer.class, ((MqttReasonCodeAndPropertiesVariableHeader)disconnect.variableHeader()).properties(), SESSION_EXPIRY_INTERVAL, null);
+      if (disconnect != null && disconnect.variableHeader() instanceof MqttReasonCodeAndPropertiesVariableHeader variableHeader) {
+         Integer sessionExpiryInterval = MQTTUtil.getProperty(Integer.class, variableHeader.properties(), SESSION_EXPIRY_INTERVAL, null);
          if (sessionExpiryInterval != null) {
+            // TODO if this is 0 should the state be removed?
             session.getState().setClientSessionExpiryInterval(sessionExpiryInterval);
          }
       }
@@ -340,6 +341,10 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
 
    void sendPubRel(int messageId) {
       sendPublishProtocolControlMessage(messageId, MqttMessageType.PUBREL);
+   }
+
+   void sendPubRel(int messageId, byte reasonCode) {
+      sendPublishProtocolControlMessage(messageId, MqttMessageType.PUBREL, reasonCode);
    }
 
    void sendPubRec(int messageId, byte reasonCode) {

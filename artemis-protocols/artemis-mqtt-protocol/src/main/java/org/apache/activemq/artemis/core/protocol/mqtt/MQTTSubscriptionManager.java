@@ -144,10 +144,12 @@ public class MQTTSubscriptionManager {
 
    synchronized void stop() throws Exception {
       for (ServerConsumer consumer : consumers.values()) {
-         consumer.setStarted(false);
-         consumer.disconnect();
-         consumer.getQueue().removeConsumer(consumer);
-         consumer.close(false);
+         if (!consumer.isClosed()) {
+            consumer.setStarted(false);
+            consumer.disconnect();
+            consumer.getQueue().removeConsumer(consumer);
+            consumer.close(false);
+         }
       }
    }
 
@@ -290,7 +292,7 @@ public class MQTTSubscriptionManager {
          // deal with durable state after *all* requested subscriptions have been removed in memory
          if (state.getSubscriptions().size() > 0) {
             // if there are some subscriptions left then update the state
-            stateManager.storeDurableSubscriptionState(state);
+            stateManager.storeDurableState(state);
          } else {
             // if there are no subscriptions left then remove the state entirely
             stateManager.removeDurableSubscriptionState(state.getClientId());
@@ -343,7 +345,7 @@ public class MQTTSubscriptionManager {
          }
 
          // store state after *all* requested subscriptions have been created in memory
-         stateManager.storeDurableSubscriptionState(state);
+         stateManager.storeDurableState(state);
 
          return qos;
       }
