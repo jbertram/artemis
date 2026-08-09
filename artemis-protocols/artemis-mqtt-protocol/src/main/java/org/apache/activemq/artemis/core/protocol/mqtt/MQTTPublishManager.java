@@ -126,25 +126,16 @@ public class MQTTPublishManager {
          if (publishToClient(0, message, false, qos, consumer.getID())) {
             acknowledge(consumer.getID(), message.getMessageID());
          }
-      } else if (qos == 1) {
-         final int packetId;
-         synchronized (this) {
-            packetId = packetIdGenerator.generateMqttId();
-            state.putCoreDeliveryInfo(packetId, message.getMessageID(), consumer.getID());
-            state.incrementSendQuota();
-         }
-         // TODO should this be hard-coded to false?
-         publishToClient(packetId, message, false, qos, consumer.getID());
-      } else if (qos == 2) {
+      } else if (qos == 1 || qos == 2) {
          Integer existingPacketId;
          final int packetIdToUse;
          synchronized (this) {
-            existingPacketId = session.getStateManager().getQoS2PacketIdCorrelation(state.getClientId(), message.getMessageID());
+            existingPacketId = session.getStateManager().getPacketIdCorrelation(state.getClientId(), message.getMessageID());
             if (existingPacketId != null) {
                packetIdToUse = existingPacketId;
             } else {
                packetIdToUse = packetIdGenerator.generateMqttId();
-               session.getStateManager().putQoS2PacketIdCorrelation(state.getClientId(), message.getMessageID(), packetIdToUse);
+               session.getStateManager().putPacketIdCorrelation(state.getClientId(), message.getMessageID(), packetIdToUse);
             }
             state.putCoreDeliveryInfo(packetIdToUse, message.getMessageID(), consumer.getID());
             state.incrementSendQuota();
@@ -316,7 +307,7 @@ public class MQTTPublishManager {
             }
             tx = session.getServerSession().newTransaction();
             state.getPubRecCache().add(packetId, tx);
-            session.getStateManager().removeQoS2PacketIdCorrelation(state.getClientId(), delivery.getA(), tx.getID());
+            session.getStateManager().removePacketIdCorrelation(state.getClientId(), delivery.getA(), tx.getID());
             consumer.individualAcknowledge(tx, delivery.getA());
             tx.commit();
             state.removeCoreDeliveryInfo(packetId);
@@ -378,15 +369,28 @@ public class MQTTPublishManager {
    }
 
    synchronized void handlePubAck(int packetId) throws Exception {
+      Transaction tx = null;
       try {
-         Pair<Long, Long> delivery = state.removeCoreDeliveryInfo(packetId);
+         Pair<Long, Long> delivery = state.getCoreDeliveryInfo(packetId);
          if (delivery != null) {
-            acknowledge(delivery.getB(), delivery.getA());
+            ServerConsumer consumer = session.getServerSession().locateConsumer(delivery.getB());
+            if (consumer == null) {
+               MQTTLogger.LOGGER.failedToAckMessageConsumerNotFound(state.getClientId(), packetId, delivery.getB(), session.getServerSession().isClosed() ? "closed" : "not closed");
+               return;
+            }
+            tx = session.getServerSession().newTransaction();
+            session.getStateManager().removePacketIdCorrelation(state.getClientId(), delivery.getA(), tx.getID());
+            consumer.individualAcknowledge(tx, delivery.getA());
+            tx.commit();
+            state.removeCoreDeliveryInfo(packetId);
             state.decrementSendQuota();
             releaseFlowControl(delivery.getB());
          }
-      } catch (ActiveMQIllegalStateException e) {
-         logger.warn("MQTT client({}) attempted to Ack already Ack'd message", session.getState().getClientId());
+      } catch (Exception e) {
+         if (tx != null) {
+            tx.rollback();
+         }
+         MQTTLogger.LOGGER.failedToAckMessage(session.getState().getClientId(), e.getMessage());
       }
    }
 

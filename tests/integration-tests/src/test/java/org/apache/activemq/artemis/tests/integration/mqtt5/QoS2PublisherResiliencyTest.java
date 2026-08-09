@@ -40,17 +40,17 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests for QoS 2 protocol resiliency with client reconnections and broker restarts.
+ * Tests for QoS 2 protocol resiliency with publisher reconnections or broker restarts.
  * <p>
- * QoS 2 Protocol Flow:
+ * QoS 2 Protocol Flow (publisher sending to broker):
  * <ol>
- * <li>Sender sends PUBLISH (QoS=2)</li>
- * <li>Receiver sends PUBREC</li>
- * <li>Sender sends PUBREL</li>
- * <li>Receiver sends PUBCOMP</li>
+ * <li>Publisher sends PUBLISH (QoS=2)</li>
+ * <li>Broker sends PUBREC</li>
+ * <li>Publisher sends PUBREL</li>
+ * <li>Broker sends PUBCOMP</li>
  * </ol>
- * These tests verify that the protocol maintains exactly-once delivery semantics when clients disconnect/reconnect and
- * when the broker is stopped and restarted.
+ * These tests verify that the protocol maintains exactly-once delivery semantics when either clients
+ * reconnect or the broker is restarted at each stage of the QoS 2 flow.
  */
 public class QoS2PublisherResiliencyTest extends MQTT5TestSupport {
 

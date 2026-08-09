@@ -38,17 +38,17 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests for QoS 2 protocol resiliency with client reconnections and broker restarts.
+ * Tests for QoS 2 protocol resiliency with subscriber reconnections or broker restarts.
  * <p>
- * QoS 2 Protocol Flow (broker sending to consumer):
+ * QoS 2 Protocol Flow (broker sending to subscriber):
  * <ol>
  * <li>Broker sends PUBLISH (QoS=2)</li>
- * <li>Consumer sends PUBREC</li>
+ * <li>Subscriber sends PUBREC</li>
  * <li>Broker sends PUBREL</li>
- * <li>Consumer sends PUBCOMP</li>
+ * <li>Subscriber sends PUBCOMP</li>
  * </ol>
- * These tests verify that the protocol maintains exactly-once delivery semantics when the broker is stopped and
- * restarted at each stage of the QoS 2 flow.
+ * These tests verify that the protocol maintains exactly-once delivery semantics when either clients
+ * reconnect or the broker is restarted at each stage of the QoS 2 flow.
  */
 public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
 
@@ -83,13 +83,12 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       final String TOPIC = "test/resiliency";
       final String SUBSCRIBER_CLIENT_ID = "subscriber";
       final String PUBLISHER_CLIENT_ID = "publisher";
+
+      // Set up interceptor to block the *second* incoming PUBREC.
+      // Allow 1 PUBREC so the packet ID goes up to 2 for testing.
       final CountDownLatch pubRecLatch = new CountDownLatch(1);
       AtomicInteger pubRecCount = new AtomicInteger(0);
       final CountDownLatch stopLatch = new CountDownLatch(1);
-      final CountDownLatch pubCompLatch = new CountDownLatch(1);
-
-      // Set up interceptor to block the *second* incoming PUBREC.
-      // We allow 1 PUBREC so the packet ID goes up to 2 for testing.
       MQTTInterceptor pubRecInterceptor = (packet, connection) -> {
          if (packet.fixedHeader().messageType() == MqttMessageType.PUBREC && pubRecCount.incrementAndGet() > 1) {
             pubRecLatch.countDown();
@@ -150,20 +149,21 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
          server.getActiveMQServerControl().closeConnectionWithID(server.getActiveMQServerControl().listConnectionIDs()[0]);
       }
 
-      assertTrue(getProtocolManager().getStateManager().qos2PacketIdCorrelationExists(SUBSCRIBER_CLIENT_ID, 2));
+      assertTrue(getProtocolManager().getStateManager().packetIdCorrelationExists(SUBSCRIBER_CLIENT_ID, 2));
 
+      final CountDownLatch pubCompLatch = new CountDownLatch(1);
       MQTTInterceptor pubCompInterceptor = (packet, connection) -> {
          if (packet.fixedHeader().messageType() == MqttMessageType.PUBCOMP) {
             pubCompLatch.countDown();
          }
          return true;
       };
-      CountDownLatch packetIdLatch = new CountDownLatch(1);
       server.getRemotingService().addIncomingInterceptor(pubCompInterceptor);
 
+      CountDownLatch packetIdLatch = new CountDownLatch(1);
       MQTTInterceptor pubInterceptor = (packet, connection) -> {
          if (packet.fixedHeader().messageType() == MqttMessageType.PUBLISH) {
-            if (((MqttPublishMessage)packet).variableHeader().packetId() == 2) {
+            if (((MqttPublishMessage)packet).variableHeader().packetId() == 2 && ((MqttPublishMessage)packet).fixedHeader().isDup()) {
                packetIdLatch.countDown();
             }
          }
@@ -173,7 +173,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
 
       reconnectSafely(subscriber);
 
-      assertTrue(packetIdLatch.await(5, TimeUnit.SECONDS), "Didn't find a PUBLISH with the expected packet id");
+      assertTrue(packetIdLatch.await(5, TimeUnit.SECONDS), "Didn't find a duplicate PUBLISH with the expected packet id");
       assertTrue(pubCompLatch.await(5, TimeUnit.SECONDS));
 
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);

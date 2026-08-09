@@ -518,7 +518,7 @@ public class MQTTSessionState {
        * Checks to see if the packet ID is in use already for either QoS 1 or QoS 2
        */
       private boolean packetIdInUse(int packetId) {
-         return coreDeliveryInfoExists(packetId) || session.getStateManager().qos2PacketIdCorrelationExists(clientId, packetId) || (pubRecCache != null && pubRecCache.contains(packetId));
+         return coreDeliveryInfoExists(packetId) || session.getStateManager().packetIdCorrelationExists(clientId, packetId) || (pubRecCache != null && pubRecCache.contains(packetId));
       }
 
       public void clear() {

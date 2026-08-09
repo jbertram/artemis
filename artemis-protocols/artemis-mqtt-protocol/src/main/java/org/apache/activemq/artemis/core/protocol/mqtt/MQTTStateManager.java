@@ -234,25 +234,25 @@ public class MQTTStateManager {
       }
    }
 
-   public void putQoS2PacketIdCorrelation(String clientId, Long coreMessageId, Integer packetId) {
-//      logger.info("putQoS2PacketIdCorrelation({}, {}, {})", clientId, coreMessageId, packetId);
+   public void putPacketIdCorrelation(String clientId, Long coreMessageId, Integer packetId) {
+//      logger.info("putPacketIdCorrelation({}, {}, {})", clientId, coreMessageId, packetId);
       journalHashMapProvider.getMap(clientId).put(coreMessageId, packetId);
    }
 
-   public Integer getQoS2PacketIdCorrelation(String clientId, Long coreMessageId) {
+   public Integer getPacketIdCorrelation(String clientId, Long coreMessageId) {
       Integer result = journalHashMapProvider.getMap(clientId).get(coreMessageId);
-//      logger.info("getQoS2PacketIdCorrelation({}, {}): {}", clientId, coreMessageId, result);
+//      logger.info("getPacketIdCorrelation({}, {}): {}", clientId, coreMessageId, result);
       return result;
    }
 
-   public Integer removeQoS2PacketIdCorrelation(String clientId, Long coreMessageId, long transactionId) {
-//      logger.info("removeQoS2PacketIdCorrelation({}, {}, {})", clientId, coreMessageId, transactionId);
+   public Integer removePacketIdCorrelation(String clientId, Long coreMessageId, long transactionId) {
+//      logger.info("removePacketIdCorrelation({}, {}, {})", clientId, coreMessageId, transactionId);
       return journalHashMapProvider.getMap(clientId).remove(coreMessageId, transactionId);
    }
 
-   public boolean qos2PacketIdCorrelationExists(String clientId, int packetId) {
+   public boolean packetIdCorrelationExists(String clientId, int packetId) {
       boolean result = journalHashMapProvider.getMap(clientId).containsValue(packetId);
-//      logger.info("qos2PacketIdCorrelationExists({}, {}): {}", clientId, packetId, result);
+//      logger.info("packetIdCorrelationExists({}, {}): {}", clientId, packetId, result);
       return result;
    }
 
