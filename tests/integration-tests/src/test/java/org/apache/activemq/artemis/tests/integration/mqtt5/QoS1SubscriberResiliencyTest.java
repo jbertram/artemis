@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import org.apache.activemq.artemis.core.protocol.mqtt.MQTTInterceptor;
-import org.apache.activemq.artemis.utils.ByteUtil;
 import org.apache.activemq.artemis.utils.RandomUtil;
 import org.apache.activemq.artemis.utils.Wait;
 import org.eclipse.paho.mqttv5.client.MqttClient;
@@ -34,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -161,7 +161,7 @@ public class QoS1SubscriberResiliencyTest extends MQTT5TestSupport {
       assertTrue(packetIdLatch.await(5, TimeUnit.SECONDS), "Didn't find a duplicate PUBLISH with the expected packet id");
 
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
-      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
 
       subscriber.disconnect();
       subscriber.close();
@@ -191,10 +191,9 @@ public class QoS1SubscriberResiliencyTest extends MQTT5TestSupport {
       final String TOPIC = "test/resiliency";
       final String SUBSCRIBER_CLIENT_ID = "subscriber";
       final String PUBLISHER_CLIENT_ID = "publisher";
-      final CountDownLatch pubAckLatch = new CountDownLatch(1);
       AtomicInteger messageCount = new AtomicInteger(0);
 
-      // Consumer with persistent session
+      // Subscriber with persistent session
       MqttClient subscriber = createPahoClient(SUBSCRIBER_CLIENT_ID);
       subscriber.setCallback(new DefaultMqttCallback() {
          @Override
@@ -210,29 +209,17 @@ public class QoS1SubscriberResiliencyTest extends MQTT5TestSupport {
       subscriber.connect(subscriberOptions);
       subscriber.subscribe(TOPIC, 1);
 
-      // Track PUBACKs to know when the QoS 1 flow is complete
-      MQTTInterceptor pubAckInterceptor = (packet, connection) -> {
-         if (packet.fixedHeader().messageType() == MqttMessageType.PUBACK) {
-            pubAckLatch.countDown();
-         }
-         return true;
-      };
-      server.getRemotingService().addIncomingInterceptor(pubAckInterceptor);
-
-      // Producer
       MqttClient producer = createPahoClient(PUBLISHER_CLIENT_ID);
       producer.connect();
-
       producer.publish(TOPIC, RandomUtil.randomBytes(), 1, false);
-
       producer.disconnect();
       producer.close();
 
-      // Wait for the QoS 1 flow to complete
-      assertTrue(pubAckLatch.await(5, TimeUnit.SECONDS));
+      Wait.assertEquals(1L, () -> messageCount.get(), 500, 25);
+      Wait.assertEquals(1L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessagesAcknowledged(), 500, 25);
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
 
-      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
 
       if (restart) {
          server.stop();
@@ -241,30 +228,15 @@ public class QoS1SubscriberResiliencyTest extends MQTT5TestSupport {
          waitForServerToStart(server);
       } else {
          server.getRemotingService().clearInterceptors();
-         server.getActiveMQServerControl().closeConnectionWithID(
-            server.getActiveMQServerControl().listConnectionIDs()[0]);
+         server.getActiveMQServerControl().closeConnectionWithID(server.getActiveMQServerControl().listConnectionIDs()[0]);
       }
 
-      // Track any unexpected outgoing PUBLISH after restart
-      CountDownLatch unexpectedPublishLatch = new CountDownLatch(1);
-      MQTTInterceptor publishInterceptor = (packet, connection) -> {
-         if (packet.fixedHeader().messageType() == MqttMessageType.PUBLISH) {
-            unexpectedPublishLatch.countDown();
-         }
-         return true;
-      };
-      server.getRemotingService().addOutgoingInterceptor(publishInterceptor);
-
-      int countBeforeReconnect = messageCount.get();
       reconnectSafely(subscriber);
 
-      // Give time for any unexpected re-delivery, then verify none occurred
-      Thread.sleep(500);
-      assertTrue(unexpectedPublishLatch.getCount() > 0, "Unexpected PUBLISH sent after restart");
-      assertTrue(messageCount.get() == countBeforeReconnect, "Unexpected message delivered after restart");
-      Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
+      // Check for any unexpected re-delivery
+      assertFalse(Wait.waitFor(() -> messageCount.get() > 1, 500, 25));
 
-      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
 
       subscriber.disconnect();
       subscriber.close();

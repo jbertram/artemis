@@ -425,7 +425,7 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
          assertEquals(0, duplicatesPerSubscriber.get(clientId).size(), "Subscriber " + getClientId(subscriber) + " received duplicates: " + duplicatesPerSubscriber.get(clientId));
          assertEquals(NUM_MESSAGES, receivedPerSubscriber.get(clientId).size(), "Subscriber " + getClientId(subscriber) + " didn't receive: " + getMissingMessages(sentMessages, receivedPerSubscriber.get(clientId)));
          assertEquals(0L, getSubscriptionQueue(TOPIC, getClientId(subscriber)).getMessageCount(), "Subscription queue for " + getClientId(subscriber) + " has incorrect message count");
-         assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(getClientId(subscriber)));
+         assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(getClientId(subscriber)));
          assertEquals(0, getSubCacheSize(getClientId(subscriber)));
          cleanDisconnect(subscriber);
          assertNull(getSubCache(getClientId(subscriber)), "Sub cache should be null after clean start for " + getClientId(subscriber));
@@ -602,7 +602,7 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
          assertEquals(0, duplicatesPerSubscriber.get(clientId).size(), "Subscriber " + clientId + " received duplicates: " + duplicatesPerSubscriber.get(clientId));
          assertEquals(NUM_PUBLISHERS * NUM_MESSAGES, receivedPerSubscriber.get(clientId).size(), "Subscriber " + clientId + " didn't receive: " + getMissingMessages(sentMessages, receivedPerSubscriber.get(clientId)));
          assertEquals(0L, getSubscriptionQueue(TOPIC, clientId).getMessageCount(), "Subscription queue for " + clientId + " has incorrect message count");
-         assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(clientId));
+         assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(clientId));
          assertEquals(0, getSubCacheSize(clientId));
          cleanDisconnect(subscriber);
          assertNull(getSubCache(clientId), "Sub cache should be null after clean start for " + clientId);

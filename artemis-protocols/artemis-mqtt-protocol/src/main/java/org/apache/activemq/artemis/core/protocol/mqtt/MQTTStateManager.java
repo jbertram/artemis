@@ -256,7 +256,7 @@ public class MQTTStateManager {
       return result;
    }
 
-   public int getQos2PacketIdCorrelationSize(String clientId) {
+   public int getPacketIdCorrelationSize(String clientId) {
       int result = journalHashMapProvider.getMap(clientId).size();
 //      logger.info("getQos2PacketIdCorrelationSize({}): {}", clientId, result);
       return result;

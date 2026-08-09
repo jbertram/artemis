@@ -178,7 +178,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
 
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
 
-      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
       assertEquals(0, getSubCacheSize(SUBSCRIBER_CLIENT_ID));
 
       subscriber.disconnect();
@@ -269,7 +269,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
          server.getActiveMQServerControl().closeConnectionWithID(server.getActiveMQServerControl().listConnectionIDs()[0]);
       }
 
-      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
       assertTrue(getSubCache(SUBSCRIBER_CLIENT_ID).contains(ByteUtil.intToBytes(1)));
 
       MQTTInterceptor pubCompInterceptor = (packet, connection) -> {
@@ -286,7 +286,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
 
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
 
-      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
       Wait.assertEquals(0, () -> getSubCacheSize(SUBSCRIBER_CLIENT_ID));
 
       subscriber.disconnect();
@@ -378,7 +378,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
          server.getActiveMQServerControl().closeConnectionWithID(server.getActiveMQServerControl().listConnectionIDs()[0]);
       }
 
-      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
       assertTrue(getSubCache(SUBSCRIBER_CLIENT_ID).contains(ByteUtil.intToBytes(1)));
 
       MQTTInterceptor pubCompInterceptor = (packet, connection) -> {
@@ -395,7 +395,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
 
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
 
-      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
       Wait.assertEquals(0, () -> getSubCacheSize(SUBSCRIBER_CLIENT_ID));
 
       subscriber.disconnect();
@@ -472,7 +472,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       assertTrue(pubCompLatch.await(5, TimeUnit.SECONDS));
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
 
-      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
       assertEquals(0, getSubCacheSize(SUBSCRIBER_CLIENT_ID));
 
       if (restart) {
@@ -505,7 +505,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       assertTrue(messageCount.get() == countBeforeReconnect, "Unexpected message delivered after restart");
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
 
-      assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
       if (restart) {
          assertNull(getSubCache(SUBSCRIBER_CLIENT_ID));
       } else {
