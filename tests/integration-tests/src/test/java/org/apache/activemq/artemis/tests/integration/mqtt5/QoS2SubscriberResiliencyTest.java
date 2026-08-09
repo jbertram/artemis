@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -216,6 +217,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       final String PUBLISHER_CLIENT_ID = "publisher";
       final CountDownLatch pubRelLatch = new CountDownLatch(1);
       final CountDownLatch pubCompLatch = new CountDownLatch(1);
+      AtomicInteger messageCount = new AtomicInteger(0);
 
       // Block the outgoing PUBREL so the broker has processed PUBREC but the consumer never receives PUBREL
       MQTTInterceptor pubRelInterceptor = (packet, connection) -> {
@@ -234,6 +236,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       subscriber.setCallback(new DefaultMqttCallback() {
          @Override
          public void messageArrived(String topic, MqttMessage message) throws Exception {
+            messageCount.incrementAndGet();
             logger.info("messageArrived({}, {})", topic, message);
          }
       });
@@ -288,6 +291,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
 
       assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
       Wait.assertEquals(0, () -> getSubCacheSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(1, messageCount.get());
 
       subscriber.disconnect();
 
@@ -325,6 +329,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       final CountDownLatch pubCompBlockedLatch = new CountDownLatch(1);
       final CountDownLatch stopLatch = new CountDownLatch(1);
       final CountDownLatch pubCompLatch = new CountDownLatch(1);
+      AtomicInteger messageCount = new AtomicInteger(0);
 
       // Block the incoming PUBCOMP so the broker has sent PUBREL but never processes the PUBCOMP
       MQTTInterceptor pubCompBlocker = (packet, connection) -> {
@@ -346,6 +351,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       subscriber.setCallback(new DefaultMqttCallback() {
          @Override
          public void messageArrived(String topic, MqttMessage message) throws Exception {
+            messageCount.incrementAndGet();
             logger.info("messageArrived({}, {})", topic, message);
          }
       });
@@ -397,6 +403,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
 
       assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
       Wait.assertEquals(0, () -> getSubCacheSize(SUBSCRIBER_CLIENT_ID));
+      assertEquals(1, messageCount.get());
 
       subscriber.disconnect();
 
@@ -486,23 +493,11 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
             server.getActiveMQServerControl().listConnectionIDs()[0]);
       }
 
-      // Track any unexpected outgoing PUBLISH after restart
-      CountDownLatch unexpectedPublishLatch = new CountDownLatch(1);
-      MQTTInterceptor publishInterceptor = (packet, connection) -> {
-         if (packet.fixedHeader().messageType() == MqttMessageType.PUBLISH) {
-            unexpectedPublishLatch.countDown();
-         }
-         return true;
-      };
-      server.getRemotingService().addOutgoingInterceptor(publishInterceptor);
-
       int countBeforeReconnect = messageCount.get();
       reconnectSafely(subscriber);
 
-      // Give time for any unexpected re-delivery, then verify none occurred
-      Thread.sleep(500);
-      assertTrue(unexpectedPublishLatch.getCount() > 0, "Unexpected PUBLISH sent after restart");
-      assertTrue(messageCount.get() == countBeforeReconnect, "Unexpected message delivered after restart");
+      // Verify no unexpected re-delivery
+      assertFalse(Wait.waitFor(() -> messageCount.get() > countBeforeReconnect, 500, 25), "Unexpected message delivered after restart");
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
 
       assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
