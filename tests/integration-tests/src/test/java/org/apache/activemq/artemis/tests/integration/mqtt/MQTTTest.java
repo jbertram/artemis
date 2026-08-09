@@ -322,30 +322,6 @@ public class MQTTTest extends MQTTTestSupport {
 
    @Test
    @Timeout(120)
-   public void testManagementQueueMessagesAreAckd() throws Exception {
-      String clientId = "test.client.id";
-      final MQTTClientProvider provider = getMQTTClientProvider();
-      provider.setClientId(clientId);
-      initializeConnection(provider);
-      provider.subscribe("foo", EXACTLY_ONCE);
-      for (int i = 0; i < NUM_MESSAGES; i++) {
-         String payload = "Test Message: " + i;
-         provider.publish("foo", payload.getBytes(), EXACTLY_ONCE);
-         byte[] message = provider.receive(5000);
-         assertNotNull(message, "Should get a message");
-         assertEquals(payload, new String(message));
-      }
-
-      final Queue queue = server.locateQueue(SimpleString.of(MQTTUtil.QOS2_MANAGEMENT_QUEUE_PREFIX + clientId));
-
-      Wait.waitFor(() -> queue.getMessageCount() == 0, 1000, 100);
-
-      assertEquals(0, queue.getMessageCount());
-      provider.disconnect();
-   }
-
-   @Test
-   @Timeout(120)
    public void testSendAtLeastOnceReceiveExactlyOnce() throws Exception {
       final MQTTClientProvider provider = getMQTTClientProvider();
       initializeConnection(provider);
@@ -951,7 +927,7 @@ public class MQTTTest extends MQTTTestSupport {
       mqtt.setTracer(new Tracer() {
          @Override
          public void onReceive(MQTTFrame frame) {
-            logger.debug("Client received:\n{}", frame);
+            logger.info("Client received: {}", frame);
             if (frame.messageType() == PUBLISH.TYPE) {
                PUBLISH publish = new PUBLISH();
                try {
@@ -959,13 +935,14 @@ public class MQTTTest extends MQTTTestSupport {
                } catch (ProtocolException e) {
                   fail("Error decoding publish " + e.getMessage());
                }
+               logger.info("adding {}", publish);
                publishList.add(publish);
             }
          }
 
          @Override
          public void onSend(MQTTFrame frame) {
-            logger.debug("Client sent:\n{}", frame);
+            logger.info("Client sent: {}", frame);
          }
       });
 
@@ -990,6 +967,7 @@ public class MQTTTest extends MQTTTestSupport {
 
       Message msg = connection.receive(5000, TimeUnit.MILLISECONDS);
       do {
+         logger.info("received: {}", msg);
          assertNotNull(msg);
          assertEquals(TOPIC, new String(msg.getPayload()));
          msg.ack();

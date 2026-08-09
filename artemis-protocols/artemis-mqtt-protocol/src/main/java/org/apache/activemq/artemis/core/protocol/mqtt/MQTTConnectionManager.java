@@ -134,7 +134,7 @@ public class MQTTConnectionManager {
 
       session.getConnection().setConnected(true);
       session.getProtocolHandler().sendConnack(MQTTReasonCodes.SUCCESS, sessionPresent && !cleanStart, connackProperties);
-      // [MQTT-3.2.0-1] defer session.start() so it runs after the CONNACK is sent
+      // [MQTT-3.2.0-1] the CONNACK is sent via IO callback so the session should be started the same way to avoid a race
       session.getProtocolHandler().runAfterStorageOperations(() -> {
          try {
             session.start();

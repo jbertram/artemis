@@ -82,7 +82,7 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
 
    private static final int NUM_PUBLISHERS = TestParameters.testProperty(TEST_NAME, "NUM_PUBLISHERS", 20);
    private static final int NUM_SUBSCRIBERS = TestParameters.testProperty(TEST_NAME, "NUM_SUBSCRIBERS", 20);
-   private static final int NUM_MESSAGES = TestParameters.testProperty(TEST_NAME, "NUM_MESSAGES", 25_000);
+   private static final int NUM_MESSAGES = TestParameters.testProperty(TEST_NAME, "NUM_MESSAGES", 50_000);
    private static final int RESTART_PAUSE = TestParameters.testProperty(TEST_NAME, "RESTART_PAUSE", 3_000);
    private static final int TIMEOUT_SECONDS = TestParameters.testProperty(TEST_NAME, "TIMEOUT_SECONDS", 1200);
 
@@ -199,7 +199,13 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
 
       // Start publisher tasks
       final ExecutorService publisherExecutor = Executors.newFixedThreadPool(NUM_PUBLISHERS);
-      runAfter(publisherExecutor::shutdownNow);
+      runAfter(() -> {
+         publisherExecutor.shutdownNow();
+         try {
+            publisherExecutor.awaitTermination(10, TimeUnit.SECONDS);
+         } catch (InterruptedException ignored) {
+         }
+      });
       final Set<String> sentMessages = ConcurrentHashMap.newKeySet(NUM_PUBLISHERS * NUM_MESSAGES);
       final AtomicInteger publishErrors = new AtomicInteger(0);
       for (int i = 0; i < NUM_PUBLISHERS; i++) {
@@ -220,7 +226,7 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
                   }
                } catch (Throwable e) {
                   publishErrors.incrementAndGet();
-                  logger.info("Pub failed: {}; message should be retried by client automatically", payload, e);
+                  logger.info("Pub failed: {}; in-flight QoS 2 state will be resumed on reconnect", payload, e);
                }
                sentMessages.add(payload);
             }
@@ -238,6 +244,7 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
       // stop restart task and ensure broker is running
       restarter.cancel(true);
       scheduler.shutdownNow();
+      scheduler.awaitTermination(10, TimeUnit.SECONDS);
       if (!server.isStarted()) {
          server.start();
          waitForServerToStart(server);
@@ -412,6 +419,7 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
       // stop reconnection task, ensure broker is running
       restarter.cancel(true);
       scheduler.shutdownNow();
+      scheduler.awaitTermination(10, TimeUnit.SECONDS);
       if (!server.isStarted()) {
          server.start();
          waitForServerToStart(server);
@@ -503,7 +511,13 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
 
       // start publisher tasks
       final ExecutorService publisherExecutor = Executors.newFixedThreadPool(NUM_PUBLISHERS);
-      runAfter(publisherExecutor::shutdownNow);
+      runAfter(() -> {
+         publisherExecutor.shutdownNow();
+         try {
+            publisherExecutor.awaitTermination(10, TimeUnit.SECONDS);
+         } catch (InterruptedException ignored) {
+         }
+      });
       final Set<String> sentMessages = ConcurrentHashMap.newKeySet(NUM_PUBLISHERS * NUM_MESSAGES);
       final AtomicInteger publishErrors = new AtomicInteger(0);
       for (int i = 0; i < NUM_PUBLISHERS; i++) {
@@ -524,7 +538,7 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
                   }
                } catch (Throwable e) {
                   publishErrors.incrementAndGet();
-                  logger.info("Pub failed: {}; message should be retried by client automatically", payload, e);
+                  logger.info("Pub failed: {}; in-flight QoS 2 state will be resumed on reconnect", payload, e);
                }
                sentMessages.add(payload);
             }
@@ -591,6 +605,7 @@ public class QoS2ResiliencySoakTest extends ActiveMQTestBase {
       // stop reconnection task, ensure broker is running
       restarter.cancel(true);
       scheduler.shutdownNow();
+      scheduler.awaitTermination(10, TimeUnit.SECONDS);
       if (!server.isStarted()) {
          server.start();
          waitForServerToStart(server);
