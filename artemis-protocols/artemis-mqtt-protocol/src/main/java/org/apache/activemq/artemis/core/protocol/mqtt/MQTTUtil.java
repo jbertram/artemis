@@ -300,6 +300,7 @@ public class MQTTUtil {
          }
 
          String messageForLogging = getMessageForLogging(message, version);
+
          if (messageForLogging != null) {
             logger.trace(log.append(messageForLogging).toString());
          }
@@ -421,7 +422,7 @@ public class MQTTUtil {
    }
 
    private static String formatByte(byte bite) {
-      return String.format("0x%02X ", bite);
+      return String.format("0x%02X", bite);
    }
 
    private static String formatCase(String string) {

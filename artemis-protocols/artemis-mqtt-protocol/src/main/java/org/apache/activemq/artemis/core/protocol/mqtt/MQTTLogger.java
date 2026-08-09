@@ -32,8 +32,8 @@ public interface MQTTLogger {
    @LogMessage(id = 832000, value = "Unable to send message to MQTT client {}: {}", level = LogMessage.Level.WARN)
    void unableToSendMessage(String clientId, MessageReference message, Exception e);
 
-   @LogMessage(id = 832001, value = "MQTT client({}) failed to acknowledge message: ", level = LogMessage.Level.WARN)
-   void failedToAckMessage(String clientId, Exception e);
+   @LogMessage(id = 832001, value = "MQTT client {} failed to acknowledge message: {}", level = LogMessage.Level.WARN)
+   void failedToAckMessage(String clientId, String exceptionMessage);
 
    @LogMessage(id = 834000, value = "Error removing subscription.", level = LogMessage.Level.ERROR)
    void errorRemovingSubscription(Exception e);
@@ -76,4 +76,10 @@ public interface MQTTLogger {
 
    @LogMessage(id = 834013, value = "Invalid MQTT session state message. Will not load this state into memory.", level = LogMessage.Level.WARN)
    void errorDeserializingStateMessage(Exception e);
+
+   @LogMessage(id = 834014, value = "MQTT client {} sent PUBREC for packet {}, but acknowledgement failed. Internal consumer {} not found. Internal session is {}.", level = LogMessage.Level.WARN)
+   void failedToAckMessageConsumerNotFound(String clientId, int packetId, long consumerId, String closed);
+
+   @LogMessage(id = 834015, value = "Unable to handle MQTT packet [{}] from {}. Internal session is closed.", level = LogMessage.Level.ERROR)
+   void internalSessionClosed(String packet, String clientId);
 }

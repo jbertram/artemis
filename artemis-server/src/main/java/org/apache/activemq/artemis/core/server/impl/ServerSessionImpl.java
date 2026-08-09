@@ -395,6 +395,7 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
 
    @Override
    public boolean removeConsumer(final long consumerID) throws Exception {
+      //logger.info("removeConsumer({})", consumerID);
       return consumers.remove(consumerID) != null;
    }
 
@@ -461,6 +462,7 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
 
       try {
          if (consumers != null) {
+            //logger.info("clearing consumers");
             consumers.clear();
          }
          if (serverProducers != null) {
@@ -619,6 +621,7 @@ public class ServerSessionImpl extends CriticalComponentImpl implements ServerSe
             throw ActiveMQMessageBundle.BUNDLE.cannotCreateConsumerOnClosedSession(queueName);
          }
          consumer = new ServerConsumerImpl(consumerID, this, (QueueBinding) binding, filter, priority, started, browseOnly, storageManager, callback, preAcknowledge, strictUpdateDeliveryCount, managementService, supportLargeMessage, credits, server);
+         //logger.info("adding consumer: {}", consumer.getID());
          consumers.put(consumer.getID(), consumer);
       }
 

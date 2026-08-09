@@ -31,16 +31,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.hivemq.client.mqtt.MqttGlobalPublishFilter;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
-import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PublishResult;
 import io.reactivex.schedulers.Schedulers;
 import org.apache.activemq.artemis.api.core.SimpleString;
-import org.apache.activemq.artemis.core.persistence.impl.journal.DescribeJournal;
+import org.apache.activemq.artemis.core.persistence.impl.journal.JournalRecordIds;
 import org.apache.activemq.artemis.core.postoffice.DuplicateIDCache;
 import org.apache.activemq.artemis.core.protocol.mqtt.MQTTPacketIdCache;
 import org.apache.activemq.artemis.core.protocol.mqtt.MQTTProtocolManager;
@@ -48,6 +48,7 @@ import org.apache.activemq.artemis.core.protocol.mqtt.MQTTUtil;
 import org.apache.activemq.artemis.core.remoting.impl.AbstractAcceptor;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.Queue;
+import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.apache.activemq.artemis.spi.core.protocol.ProtocolManager;
 import org.apache.activemq.artemis.spi.core.remoting.Acceptor;
 import org.apache.activemq.artemis.tests.util.ActiveMQTestBase;
@@ -64,6 +65,8 @@ import org.junit.jupiter.api.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.activemq.artemis.cli.commands.tools.journal.CompactJournal.compactJournal;
+import static org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager.ACTIVEMQ_DATA;
 import static org.apache.activemq.artemis.core.protocol.mqtt.MQTTProtocolManagerFactory.MQTT_PROTOCOL_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -78,9 +81,9 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
    private static final String TOPIC = "qos2/resiliency";
    private static final int MQTT_PORT = 1883;
 
-   private static final int NUM_PUBLISHERS = TestParameters.testProperty(TEST_NAME, "NUM_PUBLISHERS", 10);
-   private static final int NUM_SUBSCRIBERS = TestParameters.testProperty(TEST_NAME, "NUM_SUBSCRIBERS", 15);
-   private static final int NUM_MESSAGES = TestParameters.testProperty(TEST_NAME, "NUM_MESSAGES", 50_000);
+   private static final int NUM_PUBLISHERS = TestParameters.testProperty(TEST_NAME, "NUM_PUBLISHERS", 20);
+   private static final int NUM_SUBSCRIBERS = TestParameters.testProperty(TEST_NAME, "NUM_SUBSCRIBERS", 20);
+   private static final int NUM_MESSAGES = TestParameters.testProperty(TEST_NAME, "NUM_MESSAGES", 100_000);
    private static final int RESTART_PAUSE = TestParameters.testProperty(TEST_NAME, "RESTART_PAUSE", 2_000);
    private static final int TIMEOUT_SECONDS = TestParameters.testProperty(TEST_NAME, "TIMEOUT_SECONDS", 1200);
 
@@ -127,6 +130,7 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
    @Test
    @Timeout(value = 30, unit = TimeUnit.MINUTES)
    public void testQoS2PublisherResiliency() throws Exception {
+      disableProtocolLogging();
       final String PUB_CLIENT_ID_PREFIX = "pub-";
       final String SUB_CLIENT_ID = "sub";
 
@@ -169,9 +173,21 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
       ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
       ScheduledFuture restarter = scheduler.scheduleWithFixedDelay(() -> {
          try {
+            logger.info("===========");
+            logger.info("Subscription queue received {}/{} messages", getSubscriptionQueue(TOPIC, SUB_CLIENT_ID).getMessageCount(), NUM_PUBLISHERS * NUM_MESSAGES);
+            logger.info("===========");
+
             logger.info("Stopping broker");
             server.stop();
             waitForServerToStop(server);
+
+            // compacting keeps the journal small to reduce start-up time
+            logger.info("Compacting journal...");
+            compactJournal(server.getConfiguration().getJournalLocation(), server.getConfiguration().getJournalRetentionLocation(), ACTIVEMQ_DATA, "amq", server.getConfiguration().getJournalMinFiles(),
+                           server.getConfiguration().getJournalPoolFiles(), server.getConfiguration().getJournalFileSize(), null, JournalRecordIds.UPDATE_DELIVERY_COUNT,
+                           JournalRecordIds.SET_SCHEDULED_DELIVERY_TIME);
+            logger.info("Compacted journal.");
+
             server.start();
             waitForServerToStart(server);
          } catch (Exception e) {
@@ -179,7 +195,7 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
          }
       }, RESTART_PAUSE, RESTART_PAUSE, TimeUnit.MILLISECONDS);
 
-      enableProtocolLogging();
+      // enableProtocolLogging();
 
       // Start publisher tasks
       final ExecutorService publisherExecutor = Executors.newFixedThreadPool(NUM_PUBLISHERS);
@@ -266,6 +282,7 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
    @Test
    @Timeout(value = 30, unit = TimeUnit.MINUTES)
    public void testQoS2SubscriberResiliency() throws Exception {
+      disableProtocolLogging();
       logger.info("{} subscribers, {} messages/subscriber", NUM_SUBSCRIBERS, NUM_MESSAGES);
 
       // create and subscribe then disconnect to leave idle subscriptions on the broker
@@ -278,7 +295,7 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
       }));
       for (int i = 0; i < NUM_SUBSCRIBERS; i++) {
          String clientId = "sub-" + i;
-         Mqtt5BlockingClient subscriber = createHiveMQClient(clientId, true);
+         Mqtt5BlockingClient subscriber = createHiveMQClient(clientId, false);
          subscriber.connectWith()
             .cleanStart(false)
             .sessionExpiryInterval(300)
@@ -313,10 +330,11 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
          assertEquals(NUM_MESSAGES, getSubscriptionQueue(TOPIC, getClientId(subscriber)).getMessageCount());
       }
 
-      enableProtocolLogging();
+      // enableProtocolLogging();
 
       final Map<String, Set<String>> receivedPerSubscriber = new HashMap<>();
       final Map<String, Set<String>> duplicatesPerSubscriber = new HashMap<>();
+      final AtomicLong lastReceiveTime = new AtomicLong(System.currentTimeMillis());
 
       for (Mqtt5BlockingClient subscriber : subscribers) {
          final String clientId = getClientId(subscriber);
@@ -326,11 +344,11 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
          duplicatesPerSubscriber.put(clientId, duplicates);
          subscriber.toAsync().publishes(MqttGlobalPublishFilter.ALL, publish -> {
             String payload = new String(publish.getPayloadAsBytes(), StandardCharsets.UTF_8);
-            logger.info("Subscriber {} received: {}", clientId, payload);
             if (!received.add(payload)) {
                logger.warn("Subscriber {} received duplicate: {}", clientId, payload);
                duplicates.add(payload);
             }
+            lastReceiveTime.set(System.currentTimeMillis());
          });
          subscriber.connectWith()
             .cleanStart(false)
@@ -339,6 +357,26 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
          logger.info("Subscriber {} reconnected", clientId);
       }
 
+      // start reconnection task — use a thread pool so a blocked connect() doesn't stall other reconnections
+      ExecutorService reconnectPool = Executors.newFixedThreadPool(NUM_SUBSCRIBERS);
+      ScheduledExecutorService reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
+      ScheduledFuture reconnectTask = reconnectScheduler.scheduleWithFixedDelay(() -> {
+         for (Mqtt5BlockingClient sub : subscribers) {
+            if (!sub.getConfig().getState().isConnected()) {
+               reconnectPool.submit(() -> {
+                  try {
+                     sub.connectWith()
+                        .cleanStart(false)
+                        .sessionExpiryInterval(300)
+                        .send();
+                     logger.info("Subscriber {} reconnected.", getClientId(sub));
+                  } catch (Exception ignored) {
+                  }
+               });
+            }
+         }
+      }, 500, 500, TimeUnit.MILLISECONDS);
+
       // start broker restart task
       ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
       ScheduledFuture restarter = scheduler.scheduleWithFixedDelay(() -> {
@@ -346,6 +384,21 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
             logger.info("Stopping broker");
             server.stop();
             waitForServerToStop(server);
+
+            logger.info("===========");
+            for (Map.Entry<String, Set<String>> entry : receivedPerSubscriber.entrySet()) {
+               logger.info("Subscriber {} received {}/{} messages", entry.getKey(), entry.getValue().size(), NUM_MESSAGES);
+            }
+            logger.info("Last message received {}ms ago.", System.currentTimeMillis() - lastReceiveTime.get());
+            logger.info("===========");
+
+            // compacting keeps the journal small to reduce start-up time
+            logger.info("Compacting journal...");
+            compactJournal(server.getConfiguration().getJournalLocation(), server.getConfiguration().getJournalRetentionLocation(), ACTIVEMQ_DATA, "amq", server.getConfiguration().getJournalMinFiles(),
+                           server.getConfiguration().getJournalPoolFiles(), server.getConfiguration().getJournalFileSize(), null, JournalRecordIds.UPDATE_DELIVERY_COUNT,
+                           JournalRecordIds.SET_SCHEDULED_DELIVERY_TIME);
+            logger.info("Compacted journal.");
+
             server.start();
             waitForServerToStart(server);
          } catch (Exception e) {
@@ -353,10 +406,21 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
          }
       }, RESTART_PAUSE, RESTART_PAUSE, TimeUnit.MILLISECONDS);
 
-      // wait for all subscribers to receive all messages
+      final long STALL_TIMEOUT_MS = 20_000;
       Wait.assertTrue(() -> {
-         for (Mqtt5BlockingClient subscriber : subscribers) {
-            if (receivedPerSubscriber.get(getClientId(subscriber)).size() < NUM_MESSAGES) {
+         // quit early if subscribers are dead/stalled for some reason
+         if (System.currentTimeMillis() - lastReceiveTime.get() > STALL_TIMEOUT_MS) {
+            for (Map.Entry<String, Set<String>> entry : receivedPerSubscriber.entrySet()) {
+               logger.warn("Subscriber {} received {}/{} messages", entry.getKey(), entry.getValue().size(), NUM_MESSAGES);
+            }
+            throw new AssertionError("No subscriber has received a message in " + STALL_TIMEOUT_MS / 1000 + " seconds");
+         }
+         // any duplicate is a failure, no need to wait until the end
+         for (Map.Entry<String, Set<String>> duplicates : duplicatesPerSubscriber.entrySet()) {
+            assertEquals(0, duplicates.getValue().size(), "Subscriber " + duplicates.getKey() + " received duplicates: " + duplicates.getValue());
+         }
+         for (Set<String> received : receivedPerSubscriber.values()) {
+            if (received.size() < NUM_MESSAGES) {
                return false;
             }
          }
@@ -365,7 +429,10 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
 
       disableProtocolLogging();
 
-      // stop restart task and ensure broker is running
+      // stop reconnection and restart tasks, ensure broker is running
+      reconnectTask.cancel(true);
+      reconnectScheduler.shutdownNow();
+      reconnectPool.shutdownNow();
       restarter.cancel(true);
       scheduler.shutdownNow();
       if (!server.isStarted()) {
@@ -373,7 +440,7 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
          waitForServerToStart(server);
       }
 
-      enableProtocolLogging();
+      // enableProtocolLogging();
 
       // verify all expected messages received with no duplicates
       for (Mqtt5BlockingClient subscriber : subscribers) {
@@ -384,10 +451,8 @@ public class QoS2ResiliencyHiveMQSoakTest extends ActiveMQTestBase {
          assertEquals(0, getProtocolManager().getStateManager().getQos2PacketIdCorrelationSize(getClientId(subscriber)));
          assertEquals(0, getSubCacheSize(getClientId(subscriber)));
          cleanDisconnect(subscriber);
-         assertNull(getPubCache(getClientId(subscriber)), "Sub cache should be null after clean start for " + getClientId(subscriber));
+         assertNull(getSubCache(getClientId(subscriber)), "Sub cache should be null after clean start for " + getClientId(subscriber));
       }
-
-      DescribeJournal.describeMessagesJournal(server.getConfiguration().getJournalLocation(), System.out, false, false, true, false);
    }
 
    private Set<String> getMissingMessages(Set<String> expected, Set<String> received) {

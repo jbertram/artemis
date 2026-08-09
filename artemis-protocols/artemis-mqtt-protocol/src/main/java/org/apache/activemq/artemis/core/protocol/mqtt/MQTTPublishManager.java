@@ -146,7 +146,6 @@ public class MQTTPublishManager {
                packetIdToUse = packetIdGenerator.generateMqttId();
                session.getStateManager().putQoS2PacketIdCorrelation(state.getClientId(), message.getMessageID(), packetIdToUse);
             }
-//            logger.info("dispatching: {}", message.getMessageID());
             state.putCoreDeliveryInfo(packetIdToUse, message.getMessageID(), consumer.getID());
             state.incrementSendQuota();
          }
@@ -168,7 +167,7 @@ public class MQTTPublishManager {
          if (tx != null) {
             tx.rollback();
          }
-         MQTTLogger.LOGGER.failedToAckMessage(session.getState().getClientId(), e);
+         MQTTLogger.LOGGER.failedToAckMessage(session.getState().getClientId(), e.getMessage());
       }
    }
 
@@ -301,7 +300,7 @@ public class MQTTPublishManager {
 
    synchronized void handlePubRec(int packetId) throws Exception {
       if (state.getPubRecCache().contains(packetId)) {
-         session.getProtocolHandler().sendPubRel(packetId);
+         session.getProtocolHandler().sendPubRel(packetId, MQTTReasonCodes.SUCCESS);
          return;
       }
 
@@ -309,23 +308,30 @@ public class MQTTPublishManager {
       try {
          Pair<Long, Long> delivery = state.getCoreDeliveryInfo(packetId);
          if (delivery != null) {
+            ServerConsumer consumer = session.getServerSession().locateConsumer(delivery.getB());
+            if (consumer == null) {
+               MQTTLogger.LOGGER.failedToAckMessageConsumerNotFound(state.getClientId(), packetId, delivery.getB(), session.getServerSession().isClosed() ? "closed" : "not closed");
+               session.getProtocolHandler().sendPubRel(packetId, MQTTReasonCodes.PACKET_IDENTIFIER_NOT_FOUND);
+               return;
+            }
             tx = session.getServerSession().newTransaction();
             state.getPubRecCache().add(packetId, tx);
-//            logger.info("acking: {}", delivery.getA());
-            session.getServerSession().locateConsumer(delivery.getB()).individualAcknowledge(tx, delivery.getA());
-            state.removeCoreDeliveryInfo(packetId);
             session.getStateManager().removeQoS2PacketIdCorrelation(state.getClientId(), delivery.getA(), tx.getID());
+            consumer.individualAcknowledge(tx, delivery.getA());
             tx.commit();
+            state.removeCoreDeliveryInfo(packetId);
             state.decrementSendQuota();
             releaseFlowControl(delivery.getB());
+            session.getProtocolHandler().sendPubRel(packetId, MQTTReasonCodes.SUCCESS);
+         } else {
+            session.getProtocolHandler().sendPubRel(packetId, MQTTReasonCodes.PACKET_IDENTIFIER_NOT_FOUND);
          }
-
-         session.getProtocolHandler().sendPubRel(packetId);
       } catch (Exception e) {
          if (tx != null) {
             tx.rollback();
          }
-         MQTTLogger.LOGGER.failedToAckMessage(session.getState().getClientId(), e);
+         MQTTLogger.LOGGER.failedToAckMessage(session.getState().getClientId(), e.getMessage());
+         // should I send this?
          session.getProtocolHandler().sendPubRel(packetId, MQTTReasonCodes.PACKET_IDENTIFIER_NOT_FOUND);
       }
    }

@@ -45,6 +45,7 @@ import io.netty.util.ReferenceCountUtil;
 import org.apache.activemq.artemis.api.core.ActiveMQSecurityException;
 import org.apache.activemq.artemis.api.core.Pair;
 import org.apache.activemq.artemis.core.io.IOCallback;
+import org.apache.activemq.artemis.core.persistence.StorageManager;
 import org.apache.activemq.artemis.core.protocol.mqtt.exceptions.DisconnectException;
 import org.apache.activemq.artemis.core.protocol.mqtt.exceptions.InvalidClientIdException;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
@@ -119,6 +120,15 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
          logger.debug("Disconnecting client due to message decoding failure.", message.decoderResult().cause());
          if (session.getVersion() == MQTTVersion.MQTT_5) {
             sendDisconnect(MQTTReasonCodes.MALFORMED_PACKET);
+         }
+         disconnect(true);
+         return;
+      }
+
+      if (session.getServerSession() != null && session.getServerSession().isClosed()) {
+         MQTTLogger.LOGGER.internalSessionClosed(MQTTUtil.getMessageForLogging(message, session.getVersion()), session.getState().getClientId());
+         if (session.getVersion() == MQTTVersion.MQTT_5) {
+            sendDisconnect(MQTTReasonCodes.IMPLEMENTATION_SPECIFIC_ERROR);
          }
          disconnect(true);
          return;
@@ -339,10 +349,6 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
       sendPublishProtocolControlMessage(messageId, MqttMessageType.PUBACK, reasonCode);
    }
 
-   void sendPubRel(int messageId) {
-      sendPublishProtocolControlMessage(messageId, MqttMessageType.PUBREL);
-   }
-
    void sendPubRel(int messageId, byte reasonCode) {
       sendPublishProtocolControlMessage(messageId, MqttMessageType.PUBREL, reasonCode);
    }
@@ -352,11 +358,7 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
    }
 
    void sendPubComp(int messageId) {
-      sendPublishProtocolControlMessage(messageId, MqttMessageType.PUBCOMP);
-   }
-
-   void sendPublishProtocolControlMessage(int messageId, MqttMessageType messageType) {
-      sendPublishProtocolControlMessage(messageId, messageType, MQTTReasonCodes.SUCCESS);
+      sendPublishProtocolControlMessage(messageId, MqttMessageType.PUBCOMP, MQTTReasonCodes.SUCCESS);
    }
 
    void sendPublishProtocolControlMessage(int messageId, MqttMessageType messageType, byte reasonCode) {
@@ -422,10 +424,18 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
          return;
       }
       MQTTUtil.logMessage(session.getState(), message, false, session.getVersion());
+      runAfterStorageOperations(() -> ctx.writeAndFlush(message, ctx.voidPromise()));
+   }
+
+   void runAfterStorageOperations(Runnable runnable) {
+      StorageManager storageManager = server.getStorageManager();
+      if (storageManager == null) {
+         throw new RuntimeException("StorageManager is null");
+      }
       server.getStorageManager().afterCompleteOperations(new IOCallback() {
          @Override
          public void done() {
-            ctx.writeAndFlush(message, ctx.voidPromise());
+            runnable.run();
          }
 
          @Override

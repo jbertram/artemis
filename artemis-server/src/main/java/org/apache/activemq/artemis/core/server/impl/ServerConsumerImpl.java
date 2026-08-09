@@ -723,6 +723,7 @@ public class ServerConsumerImpl implements ServerConsumer, ReadyListener {
    public List<MessageReference> cancelRefs(final boolean failed,
                                             final boolean lastConsumedAsDelivered,
                                             final Transaction tx) throws Exception {
+      //logger.info("{} cancelling refs", this);
       boolean performACK = lastConsumedAsDelivered;
 
       try {
@@ -743,6 +744,7 @@ public class ServerConsumerImpl implements ServerConsumer, ReadyListener {
          final List<MessageReference> refs = new ArrayList<>(deliveringRefs.size());
          MessageReference ref;
          while ((ref = deliveringRefs.poll()) != null) {
+            //logger.info("{} cancel: {}", this, ref.getMessageID());
             metrics.addAcknowledge(ref.getMessage().getEncodeSize(), tx);
             if (performACK) {
                ref.acknowledge(tx, this);

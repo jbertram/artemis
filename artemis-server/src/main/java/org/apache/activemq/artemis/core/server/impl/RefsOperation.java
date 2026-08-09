@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.activemq.artemis.api.core.ActiveMQShutdownException;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.RefCountMessage;
 import org.apache.activemq.artemis.core.paging.cursor.PagedReference;
@@ -79,11 +80,13 @@ public class RefsOperation extends TransactionOperationAbstract {
    }
 
    synchronized void addOnlyRefAck(final MessageReference ref) {
+//      logger.info("addOnlyRefAck({})", ref);
       refsToAck.add(ref);
    }
 
    synchronized void addAck(final MessageReference ref) {
       refsToAck.add(ref);
+//      logger.info("{} addAck({}); size: {}", System.identityHashCode(this), ref, refsToAck.size());
       if (ref.isPaged()) {
          if (pagedMessagesToPostACK == null) {
             pagedMessagesToPostACK = new ArrayList<>();
@@ -117,6 +120,8 @@ public class RefsOperation extends TransactionOperationAbstract {
                ackedRefs.add(ref);
             }
             rollbackRedelivery(tx, ref, timeBase, queueMap);
+         } catch (ActiveMQShutdownException e) {
+            ActiveMQServerLogger.LOGGER.unableToProcessRedeliveryDuringRollback(ref.toString(), tx.toString(), e.getMessage());
          } catch (Exception e) {
             ActiveMQServerLogger.LOGGER.errorCheckingDLQ(e);
          }

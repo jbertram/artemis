@@ -134,8 +134,15 @@ public class MQTTConnectionManager {
 
       session.getConnection().setConnected(true);
       session.getProtocolHandler().sendConnack(MQTTReasonCodes.SUCCESS, sessionPresent && !cleanStart, connackProperties);
-      // ensure we don't publish before the CONNACK
-      session.start();
+      // [MQTT-3.2.0-1] defer session.start() so it runs after the CONNACK is sent
+      session.getProtocolHandler().runAfterStorageOperations(() -> {
+         try {
+            session.start();
+         } catch (Exception e) {
+            MQTTLogger.LOGGER.errorDisconnectingClient(e);
+            disconnect(true);
+         }
+      });
    }
 
    private MqttProperties getConnackProperties() {

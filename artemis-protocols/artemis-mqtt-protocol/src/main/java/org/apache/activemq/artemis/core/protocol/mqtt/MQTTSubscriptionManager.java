@@ -101,7 +101,7 @@ public class MQTTSubscriptionManager {
 
       // Re-send PUBREL for any QoS 2 messages where PUBREC was received but PUBCOMP wasn't
       for (int packetId : session.getState().getPubRecCache().getPacketIds()) {
-         session.getProtocolHandler().sendPubRel(packetId);
+         session.getProtocolHandler().sendPubRel(packetId, MQTTReasonCodes.SUCCESS);
       }
    }
 
