@@ -1695,6 +1695,7 @@ public class MQTTTest extends MQTTTestSupport {
    @Test
    @Timeout(60)
    public void testReceiveMessageSentWhileOffline() throws Exception {
+//      enableProtocolLogging();
       final byte[] payload = new byte[1024 * 32];
       for (int i = 0; i < payload.length; i++) {
          payload[i] = '2';
@@ -2243,6 +2244,7 @@ public class MQTTTest extends MQTTTestSupport {
    @Test
    @Timeout(60)
    public void testAutoDeleteRetainedQueue() throws Exception {
+      enableProtocolLogging();
       final String TOPIC = "/abc/123";
       final String RETAINED_QUEUE = MQTTUtil.getCoreRetainAddressFromMqttTopic(TOPIC, server.getConfiguration().getWildcardConfiguration());
       final MQTTClientProvider publisher = getMQTTClientProvider();

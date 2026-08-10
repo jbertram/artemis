@@ -65,9 +65,9 @@ public class MQTTSubscriptionManager {
 
    private final char anyWords;
 
-   public MQTTSubscriptionManager(MQTTSession session, MQTTStateManager stateManager) {
+   public MQTTSubscriptionManager(MQTTSession session) {
       this.session = session;
-      this.stateManager = stateManager;
+      this.stateManager = session.getStateManager();
 
       singleWord = session.getServer().getConfiguration().getWildcardConfiguration().getSingleWord();
       anyWords = session.getServer().getConfiguration().getWildcardConfiguration().getAnyWords();

@@ -57,6 +57,10 @@ import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.activemq.artemis.spi.core.remoting.Acceptor;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQJAASSecurityManager;
 import org.apache.activemq.artemis.tests.util.ActiveMQTestBase;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -112,6 +116,14 @@ public class MQTTTestSupport extends ActiveMQTestBase {
    public MQTTTestSupport() {
       this.protocolScheme = "mqtt";
       this.useSSL = false;
+   }
+
+   public static void enableProtocolLogging() {
+      LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+      org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
+      LoggerConfig loggerConfig = new LoggerConfig(MQTTUtil.class.getName(), Level.TRACE, true);
+      config.addLogger(MQTTUtil.class.getName(), loggerConfig);
+      ctx.updateLoggers();
    }
 
    public File basedir() throws IOException {

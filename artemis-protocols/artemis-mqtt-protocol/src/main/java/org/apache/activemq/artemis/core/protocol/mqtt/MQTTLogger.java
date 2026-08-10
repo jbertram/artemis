@@ -42,7 +42,7 @@ public interface MQTTLogger {
    void errorDisconnectingClient(Exception e);
 
    @LogMessage(id = 834002, value = "Error processing MQTT packet; client ID: {}; packet: {}; {}", level = LogMessage.Level.ERROR)
-   void errorProcessingPacket(String clientId, String packet, String exceptionMessage);
+   void errorProcessingPacket(String clientId, String packet, String exceptionMessage, Exception e);
 
    @LogMessage(id = 834003, value = "Error sending will message.", level = LogMessage.Level.ERROR)
    void errorSendingWillMessage(Exception e);

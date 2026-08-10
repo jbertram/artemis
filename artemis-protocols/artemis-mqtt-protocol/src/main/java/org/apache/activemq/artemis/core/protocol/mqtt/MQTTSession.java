@@ -92,7 +92,7 @@ public class MQTTSession {
       mqttConnectionManager = new MQTTConnectionManager(this);
       mqttPublishManager = new MQTTPublishManager(this, protocolManager.isCloseMqttConnectionOnPublishAuthorizationFailure());
       sessionCallback = new MQTTSessionCallback(this, connection, protocolManager.getDefaultMaximumInFlightPublishMessages());
-      subscriptionManager = new MQTTSubscriptionManager(this, stateManager);
+      subscriptionManager = new MQTTSubscriptionManager(this);
       retainMessageManager = new MQTTRetainMessageManager(this);
 
       state = MQTTSessionState.DEFAULT;
@@ -105,7 +105,6 @@ public class MQTTSession {
     * which is synchronized with MQTTConnectionManager.disconnect
     */
    void start() throws Exception {
-      mqttPublishManager.start();
       subscriptionManager.start();
       stopped = false;
    }
@@ -131,6 +130,7 @@ public class MQTTSession {
          state.setDisconnectedTime(System.currentTimeMillis());
          state.clearTopicAliases();
          state.resetSendQuota();
+         state.clearCoreDeliveryInfo();
 
          if (getVersion() == MQTTVersion.MQTT_5) {
             if (state.getClientSessionExpiryInterval() == 0) {

@@ -96,15 +96,12 @@ public class MQTTPublishManager {
 
    public MQTTPublishManager(MQTTSession session, boolean closeMqttConnectionOnPublishAuthorizationFailure) {
       this.session = session;
+      this.state = session.getState();
+      this.packetIdGenerator = state.getPacketIdGenerator();
       this.closeMqttConnectionOnPublishAuthorizationFailure = closeMqttConnectionOnPublishAuthorizationFailure;
    }
 
-   synchronized void start() {
-      this.state = session.getState();
-      this.packetIdGenerator = state.getPacketIdGenerator();
-   }
-
-   synchronized void stop() throws Exception {
+   void stop() throws Exception {
       ServerSessionImpl serversession = session.getServerSession();
       if (serversession != null) {
          serversession.removeProducer(serversession.getName());

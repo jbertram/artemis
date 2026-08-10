@@ -203,7 +203,7 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
                disconnect(true);
          }
       } catch (Exception e) {
-         MQTTLogger.LOGGER.errorProcessingPacket(session.getState().getClientId(), MQTTUtil.getMessageForLogging(message, session.getVersion()), e.getMessage());
+         MQTTLogger.LOGGER.errorProcessingPacket(session.getState().getClientId(), MQTTUtil.getMessageForLogging(message, session.getVersion()), e.getMessage(), e);
          if (session.getVersion() == MQTTVersion.MQTT_5) {
             sendDisconnect(MQTTReasonCodes.IMPLEMENTATION_SPECIFIC_ERROR);
          }
@@ -430,6 +430,7 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
    void runAfterStorageOperations(Runnable runnable) {
       StorageManager storageManager = server.getStorageManager();
       if (storageManager == null) {
+         // TODO make this official
          throw new RuntimeException("StorageManager is null");
       }
       server.getStorageManager().afterCompleteOperations(new IOCallback() {
@@ -440,6 +441,7 @@ public class MQTTProtocolHandler extends ChannelInboundHandlerAdapter {
 
          @Override
          public void onError(int errorCode, String errorMessage) {
+            // TODO log something here?
          }
       });
    }

@@ -435,6 +435,12 @@ public class MQTTSessionState {
       return coreMessageIds == null ? false : coreMessageIds.containsKey(packetId);
    }
 
+   public void clearCoreDeliveryInfo() {
+      if (coreMessageIds != null) {
+         coreMessageIds.clear();
+      }
+   }
+
    @Override
    public String toString() {
       return "MQTTSessionState[session=" + session +
