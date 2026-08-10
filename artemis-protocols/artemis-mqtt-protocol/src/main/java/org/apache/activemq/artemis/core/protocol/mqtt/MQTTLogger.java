@@ -53,8 +53,8 @@ public interface MQTTLogger {
    @LogMessage(id = 834005, value = "Failed to cast property {}.", level = LogMessage.Level.ERROR)
    void failedToCastProperty(String property);
 
-   @LogMessage(id = 834006, value = "Failed to publish MQTT message. Client ID: {}. Packet ID: . {}", level = LogMessage.Level.ERROR)
-   void failedToPublishMqttMessage(int packetId, String clientId, String exceptionMessage, Throwable t);
+   @LogMessage(id = 834006, value = "Failed to publish MQTT message. Client ID: {}. Packet ID: {}. Exception message: {}", level = LogMessage.Level.ERROR)
+   void failedToPublishMqttMessage(String clientId, int packetId, String exceptionMessage, Throwable t);
 
    @LogMessage(id = 834007, value = "Authorization failure sending will message: {}", level = LogMessage.Level.ERROR)
    void authorizationFailureSendingWillMessage(String message);

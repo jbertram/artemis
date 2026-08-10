@@ -129,18 +129,22 @@ public class MQTTPublishManager {
       } else if (qos == 1 || qos == 2) {
          Integer existingPacketId;
          final int packetIdToUse;
+         boolean redelivery = false;
          synchronized (this) {
-            existingPacketId = session.getStateManager().getPacketIdCorrelation(state.getClientId(), message.getMessageID());
-            if (existingPacketId != null) {
+            existingPacketId = session.getStateManager().getPacketIdCorrelation(state.getClientId(), message.getMessageID() + "." + qos);
+            if (existingPacketId != null && !state.coreDeliveryInfoExists(existingPacketId)) {
+               // re-delivery after restart; reuse persisted packet ID
                packetIdToUse = existingPacketId;
+               redelivery = true;
             } else {
+               // first delivery, or same message via a different subscription
                packetIdToUse = packetIdGenerator.generateMqttId();
-               session.getStateManager().putPacketIdCorrelation(state.getClientId(), message.getMessageID(), packetIdToUse);
+               session.getStateManager().putPacketIdCorrelation(state.getClientId(), message.getMessageID() + "." + qos, packetIdToUse);
             }
             state.putCoreDeliveryInfo(packetIdToUse, message.getMessageID(), consumer.getID());
             state.incrementSendQuota();
          }
-         publishToClient(packetIdToUse, message, existingPacketId != null, qos, consumer.getID());
+         publishToClient(packetIdToUse, message, redelivery, qos, consumer.getID());
       } else {
          // Client must have disconnected and it's Subscription QoS cleared
          consumer.individualCancel(message.getMessageID(), false);
@@ -270,7 +274,7 @@ public class MQTTPublishManager {
                logger.debug("MQTT 3.1 client not authorized to publish message.");
             }
          } catch (Throwable t) {
-            MQTTLogger.LOGGER.failedToPublishMqttMessage(message.variableHeader().packetId(), state.getClientId(), t.getMessage(), t);
+            MQTTLogger.LOGGER.failedToPublishMqttMessage(state.getClientId(), message.variableHeader().packetId(), t.getMessage(), t);
             tx.rollback();
             throw t;
          }
@@ -307,7 +311,7 @@ public class MQTTPublishManager {
             }
             tx = session.getServerSession().newTransaction();
             state.getPubRecCache().add(packetId, tx);
-            session.getStateManager().removePacketIdCorrelation(state.getClientId(), delivery.getA(), tx.getID());
+            session.getStateManager().removePacketIdCorrelation(state.getClientId(), delivery.getA() + ".2", tx.getID());
             consumer.individualAcknowledge(tx, delivery.getA());
             tx.commit();
             state.removeCoreDeliveryInfo(packetId);
@@ -379,7 +383,7 @@ public class MQTTPublishManager {
                return;
             }
             tx = session.getServerSession().newTransaction();
-            session.getStateManager().removePacketIdCorrelation(state.getClientId(), delivery.getA(), tx.getID());
+            session.getStateManager().removePacketIdCorrelation(state.getClientId(), delivery.getA() + ".1", tx.getID());
             consumer.individualAcknowledge(tx, delivery.getA());
             tx.commit();
             state.removeCoreDeliveryInfo(packetId);

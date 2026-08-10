@@ -518,6 +518,7 @@ public class MQTTSessionState {
        * Checks to see if the packet ID is in use already for either QoS 1 or QoS 2
        */
       private boolean packetIdInUse(int packetId) {
+         // TODO do I still need to check coreDeliveryInfo since I change QoS1 to use packetIdCorrelation?
          return coreDeliveryInfoExists(packetId) || session.getStateManager().packetIdCorrelationExists(clientId, packetId) || (pubRecCache != null && pubRecCache.contains(packetId));
       }
 

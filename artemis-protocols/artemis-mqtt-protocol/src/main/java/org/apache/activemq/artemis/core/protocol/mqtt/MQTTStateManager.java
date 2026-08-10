@@ -52,13 +52,13 @@ public class MQTTStateManager {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
    private static final Map<Integer, MQTTStateManager> INSTANCES = new HashMap<>();
-   private static final Qos2PacketIdCorrelationPersister QOS_2_PACKET_ID_CORRELATION_PERSISTER = new Qos2PacketIdCorrelationPersister();
+   private static final PacketIdCorrelationPersister PACKET_ID_CORRELATION_PERSISTER = new PacketIdCorrelationPersister();
    private final ActiveMQServer server;
    private final Map<String, MQTTSessionState> sessionStates = new ConcurrentHashMap<>();
    private Queue sessionStore;
    private final Map<String, MQTTConnection> connectedClients = new ConcurrentHashMap<>();
    private final boolean subscriptionPersistenceEnabled;
-   private final JournalHashMapProvider<String, Long, Integer, Object> journalHashMapProvider;
+   private final JournalHashMapProvider<String, String, Integer, Object> journalHashMapProvider;
 
    /*
     * Even though there may be multiple instances of MQTTProtocolManager (e.g. for MQTT on different ports) we only want
@@ -82,8 +82,7 @@ public class MQTTStateManager {
    private MQTTStateManager(ActiveMQServer server) throws Exception {
       this.server = server;
       this.subscriptionPersistenceEnabled = server.getConfiguration().isMqttSubscriptionPersistenceEnabled();
-//      this.journalHashMapProvider = new JournalHashMapProvider<>(server.getStorageManager()::generateID, server.getStorageManager(), getPersister(), JournalRecordIds.MQTT_QOS2_PACKET_ID_CORRELATION, server.getStorageManager()::getContext, null, server.getIoCriticalErrorListener());
-      this.journalHashMapProvider = new JournalHashMapProvider<>(server.getStorageManager()::generateID, server.getStorageManager(), getPersister(), JournalRecordIds.MQTT_QOS2_PACKET_ID_CORRELATION, OperationContextImpl::getContext, null, server.getIoCriticalErrorListener());
+      this.journalHashMapProvider = new JournalHashMapProvider<>(server.getStorageManager()::generateID, server.getStorageManager(), getPersister(), JournalRecordIds.MQTT_PACKET_ID_CORRELATION, OperationContextImpl::getContext, null, server.getIoCriticalErrorListener());
    }
 
    public void scanSessions() {
@@ -228,24 +227,24 @@ public class MQTTStateManager {
    }
 
    public void reload(RecordInfo recordInfo) {
-      if (recordInfo.userRecordType == JournalRecordIds.MQTT_QOS2_PACKET_ID_CORRELATION) {
+      if (recordInfo.userRecordType == JournalRecordIds.MQTT_PACKET_ID_CORRELATION) {
 //         logger.info("reloading: {}", recordInfo);
          journalHashMapProvider.reload(recordInfo);
       }
    }
 
-   public void putPacketIdCorrelation(String clientId, Long coreMessageId, Integer packetId) {
+   public void putPacketIdCorrelation(String clientId, String coreMessageId, Integer packetId) {
 //      logger.info("putPacketIdCorrelation({}, {}, {})", clientId, coreMessageId, packetId);
       journalHashMapProvider.getMap(clientId).put(coreMessageId, packetId);
    }
 
-   public Integer getPacketIdCorrelation(String clientId, Long coreMessageId) {
+   public Integer getPacketIdCorrelation(String clientId, String coreMessageId) {
       Integer result = journalHashMapProvider.getMap(clientId).get(coreMessageId);
 //      logger.info("getPacketIdCorrelation({}, {}): {}", clientId, coreMessageId, result);
       return result;
    }
 
-   public Integer removePacketIdCorrelation(String clientId, Long coreMessageId, long transactionId) {
+   public Integer removePacketIdCorrelation(String clientId, String coreMessageId, long transactionId) {
 //      logger.info("removePacketIdCorrelation({}, {}, {})", clientId, coreMessageId, transactionId);
       return journalHashMapProvider.getMap(clientId).remove(coreMessageId, transactionId);
    }
@@ -294,11 +293,11 @@ public class MQTTStateManager {
       }
    }
 
-   private static Qos2PacketIdCorrelationPersister getPersister() {
-      return QOS_2_PACKET_ID_CORRELATION_PERSISTER;
+   private static PacketIdCorrelationPersister getPersister() {
+      return PACKET_ID_CORRELATION_PERSISTER;
    }
 
-   private static class Qos2PacketIdCorrelationPersister extends AbstractHashMapPersister<String, Long, Integer> {
+   private static class PacketIdCorrelationPersister extends AbstractHashMapPersister<String, String, Integer> {
       @Override
       protected int getCollectionIdSize(String collectionID) {
          return BufferHelper.sizeOfString(collectionID);
@@ -315,18 +314,18 @@ public class MQTTStateManager {
       }
 
       @Override
-      protected int getKeySize(Long coreMessageId) {
-         return DataConstants.SIZE_LONG;
+      protected int getKeySize(String coreMessageId) {
+         return BufferHelper.sizeOfString(coreMessageId);
       }
 
       @Override
-      protected void encodeKey(ActiveMQBuffer buffer, Long coreMessageId) {
-         buffer.writeLong(coreMessageId);
+      protected void encodeKey(ActiveMQBuffer buffer, String coreMessageId) {
+         buffer.writeString(coreMessageId);
       }
 
       @Override
-      protected Long decodeKey(ActiveMQBuffer buffer) {
-         return buffer.readLong();
+      protected String decodeKey(ActiveMQBuffer buffer) {
+         return buffer.readString();
       }
 
       @Override
@@ -340,7 +339,7 @@ public class MQTTStateManager {
       }
 
       @Override
-      protected Integer decodeValue(ActiveMQBuffer buffer, Long coreMessageId) {
+      protected Integer decodeValue(ActiveMQBuffer buffer, String coreMessageId) {
          return buffer.readInt();
       }
    }

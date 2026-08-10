@@ -38,6 +38,7 @@ import org.apache.activemq.artemis.core.protocol.mqtt.MQTTReasonCodes;
 import org.apache.activemq.artemis.core.protocol.mqtt.MQTTUtil;
 import org.apache.activemq.artemis.core.server.Queue;
 import org.apache.activemq.artemis.tests.integration.mqtt5.MQTT5TestSupport;
+import org.apache.activemq.artemis.utils.ByteUtil;
 import org.apache.activemq.artemis.utils.RandomUtil;
 import org.apache.activemq.artemis.tests.util.Wait;
 import org.eclipse.paho.mqttv5.client.MqttClient;
@@ -368,16 +369,13 @@ public class QoSTests extends MQTT5TestSupport {
 
       MQTTInterceptor incomingInterceptor = (packet, connection) -> {
          if (packet.fixedHeader().messageType() == MqttMessageType.PUBCOMP) {
-            try {
-               // ensure the message is still in the management queue before we get the PUBCOMP from the client
-               Wait.assertEquals(1L, () -> server.locateQueue(MQTTUtil.QOS2_MANAGEMENT_QUEUE_PREFIX + CONSUMER_ID).getMessageCount(), 2000, 100);
-               Wait.assertEquals(1L, () -> server.locateQueue(MQTTUtil.QOS2_MANAGEMENT_QUEUE_PREFIX + CONSUMER_ID).getDeliveringCount(), 2000, 100);
-            } catch (Exception e) {
-               return false;
-            }
+//            // ensure the message is still in the management queue before we get the PUBCOMP from the client
+//            Wait.assertEquals(1L, () -> server.locateQueue(MQTTUtil.QOS2_MANAGEMENT_QUEUE_PREFIX + CONSUMER_ID).getMessageCount(), 2000, 100);
+//            Wait.assertEquals(1L, () -> server.locateQueue(MQTTUtil.QOS2_MANAGEMENT_QUEUE_PREFIX + CONSUMER_ID).getDeliveringCount(), 2000, 100);
 
             // ensure the ids match so we know this is the "corresponding" PUBCOMP for the previous PUBLISH
             assertEquals(packetId.get(), ((MqttPubReplyMessageVariableHeader)packet.variableHeader()).messageId());
+            assertTrue(getSubCache(CONSUMER_ID).contains(ByteUtil.intToBytes(packetId.get())));
 
             ackLatch.countDown();
          }
