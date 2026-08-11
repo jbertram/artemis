@@ -35,12 +35,12 @@ import io.netty.handler.codec.mqtt.MqttSubscriptionOption;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import org.apache.activemq.artemis.api.core.ActiveMQBuffer;
 import org.apache.activemq.artemis.api.core.Message;
-import org.apache.activemq.artemis.api.core.Pair;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.config.WildcardConfiguration;
 import org.apache.activemq.artemis.core.message.impl.CoreMessage;
 import org.apache.activemq.artemis.core.postoffice.Address;
 import org.apache.activemq.artemis.core.postoffice.impl.AddressImpl;
+import org.apache.activemq.artemis.core.server.ServerConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +94,7 @@ public class MQTTSessionState {
 
    private Map<String, Integer> serverTopicAliases;
 
-   private Map<Integer, Pair<Long, Long>> coreMessageIds;
+   private Map<Integer, CoreDeliveryInfo> coreDeliveryInfos;
 
    private AtomicInteger sendQuota = new AtomicInteger(0);
 
@@ -181,11 +181,13 @@ public class MQTTSessionState {
       clientTopicAliasMaximum = 0;
    }
 
-   public PacketIdGenerator getPacketIdGenerator() {
+   public int generatePacketId() {
       if (packetIdGenerator == null) {
          packetIdGenerator = new PacketIdGenerator();
       }
-      return packetIdGenerator;
+      int result = packetIdGenerator.generatePacketId();
+//      logger.info("generatePacketId(): {}", result);
+      return result;
    }
 
    public boolean isAttached() {
@@ -206,6 +208,10 @@ public class MQTTSessionState {
 
    public Map<String, SubscriptionItem> getSubscriptionsPlusID() {
       return new HashMap<>(subscriptions);
+   }
+
+   public Collection<SubscriptionItem> getSubscriptionItems() {
+      return subscriptions.values();
    }
 
    public boolean addSubscription(MqttTopicSubscription subscription, WildcardConfiguration wildcardConfiguration, Integer subscriptionIdentifier) throws Exception {
@@ -412,32 +418,32 @@ public class MQTTSessionState {
       }
    }
 
-   public Pair<Long, Long> getCoreDeliveryInfo(Integer packetId) {
-      return coreMessageIds == null ? null : coreMessageIds.get(packetId);
+   public CoreDeliveryInfo getCoreDeliveryInfo(Integer packetId) {
+      return coreDeliveryInfos == null ? null : coreDeliveryInfos.get(packetId);
    }
 
-   public void putCoreDeliveryInfo(Integer packetId, Long coreMessageId, Long consumerId) {
-      if (coreMessageIds == null) {
-         coreMessageIds = new ConcurrentHashMap<>();
+   public void putCoreDeliveryInfo(Integer packetId, CoreDeliveryInfo coreDeliveryInfo) {
+      if (coreDeliveryInfos == null) {
+         coreDeliveryInfos = new ConcurrentHashMap<>();
       }
-      coreMessageIds.put(packetId, Pair.of(coreMessageId, consumerId));
+      coreDeliveryInfos.put(packetId, coreDeliveryInfo);
    }
 
-   public Pair<Long, Long> removeCoreDeliveryInfo(Integer packetId) {
-      if (coreMessageIds != null) {
-         return coreMessageIds.remove(packetId);
+   public CoreDeliveryInfo removeCoreDeliveryInfo(Integer packetId) {
+      if (coreDeliveryInfos != null) {
+         return coreDeliveryInfos.remove(packetId);
       } else {
          return null;
       }
    }
 
    public boolean coreDeliveryInfoExists(Integer packetId) {
-      return coreMessageIds == null ? false : coreMessageIds.containsKey(packetId);
+      return coreDeliveryInfos == null ? false : coreDeliveryInfos.containsKey(packetId);
    }
 
    public void clearCoreDeliveryInfo() {
-      if (coreMessageIds != null) {
-         coreMessageIds.clear();
+      if (coreDeliveryInfos != null) {
+         coreDeliveryInfos.clear();
       }
    }
 
@@ -495,12 +501,12 @@ public class MQTTSessionState {
       sendQuota.set(0);
    }
 
-   public class PacketIdGenerator {
+   private class PacketIdGenerator {
       private static final int INITIAL_ID = 0;
 
       private int currentId = INITIAL_ID;
 
-      public int generateMqttId() {
+      private int generatePacketId() {
          final int start = currentId;
          do {
             // wrap around to the start if we reach the max
@@ -528,7 +534,7 @@ public class MQTTSessionState {
          return coreDeliveryInfoExists(packetId) || session.getStateManager().packetIdCorrelationExists(clientId, packetId) || (pubRecCache != null && pubRecCache.contains(packetId));
       }
 
-      public void clear() {
+      private void clear() {
          currentId = INITIAL_ID;
       }
    }
@@ -559,6 +565,7 @@ public class MQTTSessionState {
       private MqttTopicSubscription subscription;
       private Integer id;
       private Address address;
+      private volatile ServerConsumer consumer;
 
       public SubscriptionItem(MqttTopicSubscription subscription, Integer id) {
          update(subscription, id);
@@ -570,6 +577,16 @@ public class MQTTSessionState {
 
       public Integer getId() {
          return id;
+      }
+
+      public ServerConsumer getConsumer() {
+         return consumer;
+      }
+
+      public ServerConsumer setConsumer(ServerConsumer consumer) {
+         ServerConsumer old = this.consumer;
+         this.consumer = consumer;
+         return old;
       }
 
       public Integer getMatchingId(String topic) {

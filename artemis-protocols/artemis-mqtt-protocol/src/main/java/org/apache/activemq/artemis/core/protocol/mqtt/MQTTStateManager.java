@@ -33,7 +33,6 @@ import org.apache.activemq.artemis.api.core.QueueConfiguration;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.core.filter.impl.FilterImpl;
 import org.apache.activemq.artemis.core.journal.RecordInfo;
-import org.apache.activemq.artemis.core.journal.collections.AbstractHashMapPersister;
 import org.apache.activemq.artemis.core.journal.collections.JournalHashMapProvider;
 import org.apache.activemq.artemis.core.message.impl.CoreMessage;
 import org.apache.activemq.artemis.core.persistence.StorageManager;
@@ -42,8 +41,6 @@ import org.apache.activemq.artemis.core.persistence.impl.journal.OperationContex
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.MessageReference;
 import org.apache.activemq.artemis.core.server.Queue;
-import org.apache.activemq.artemis.utils.BufferHelper;
-import org.apache.activemq.artemis.utils.DataConstants;
 import org.apache.activemq.artemis.utils.collections.LinkedListIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,13 +49,12 @@ public class MQTTStateManager {
 
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
    private static final Map<Integer, MQTTStateManager> INSTANCES = new HashMap<>();
-   private static final PacketIdCorrelationPersister PACKET_ID_CORRELATION_PERSISTER = new PacketIdCorrelationPersister();
    private final ActiveMQServer server;
    private final Map<String, MQTTSessionState> sessionStates = new ConcurrentHashMap<>();
    private Queue sessionStore;
    private final Map<String, MQTTConnection> connectedClients = new ConcurrentHashMap<>();
    private final boolean subscriptionPersistenceEnabled;
-   private final JournalHashMapProvider<String, String, Integer, Object> journalHashMapProvider;
+   private final JournalHashMapProvider<String, PacketIdCorrelationKey, Integer, Object> journalHashMapProvider;
 
    /*
     * Even though there may be multiple instances of MQTTProtocolManager (e.g. for MQTT on different ports) we only want
@@ -82,7 +78,7 @@ public class MQTTStateManager {
    private MQTTStateManager(ActiveMQServer server) throws Exception {
       this.server = server;
       this.subscriptionPersistenceEnabled = server.getConfiguration().isMqttSubscriptionPersistenceEnabled();
-      this.journalHashMapProvider = new JournalHashMapProvider<>(server.getStorageManager()::generateID, server.getStorageManager(), getPersister(), JournalRecordIds.MQTT_PACKET_ID_CORRELATION, OperationContextImpl::getContext, null, server.getIoCriticalErrorListener());
+      this.journalHashMapProvider = new JournalHashMapProvider<>(server.getStorageManager()::generateID, server.getStorageManager(), PacketIdCorrelationKey.getPersister(), JournalRecordIds.MQTT_PACKET_ID_CORRELATION, OperationContextImpl::getContext, null, server.getIoCriticalErrorListener());
    }
 
    public void scanSessions() {
@@ -228,25 +224,24 @@ public class MQTTStateManager {
 
    public void reload(RecordInfo recordInfo) {
       if (recordInfo.userRecordType == JournalRecordIds.MQTT_PACKET_ID_CORRELATION) {
-//         logger.info("reloading: {}", recordInfo);
          journalHashMapProvider.reload(recordInfo);
       }
    }
 
-   public void putPacketIdCorrelation(String clientId, String coreMessageId, Integer packetId) {
-//      logger.info("putPacketIdCorrelation({}, {}, {})", clientId, coreMessageId, packetId);
-      journalHashMapProvider.getMap(clientId).put(coreMessageId, packetId);
+   public void putPacketIdCorrelation(String clientId, PacketIdCorrelationKey key, Integer packetId) {
+//      logger.info("putPacketIdCorrelation({}, {}, {})", clientId, key, packetId);
+      journalHashMapProvider.getMap(clientId).put(key, packetId);
    }
 
-   public Integer getPacketIdCorrelation(String clientId, String coreMessageId) {
-      Integer result = journalHashMapProvider.getMap(clientId).get(coreMessageId);
-//      logger.info("getPacketIdCorrelation({}, {}): {}", clientId, coreMessageId, result);
+   public Integer getPacketIdCorrelation(String clientId, PacketIdCorrelationKey key) {
+      Integer result = journalHashMapProvider.getMap(clientId).get(key);
+//      logger.info("getPacketIdCorrelation({}, {}): {}", clientId, key, result);
       return result;
    }
 
-   public Integer removePacketIdCorrelation(String clientId, String coreMessageId, long transactionId) {
-//      logger.info("removePacketIdCorrelation({}, {}, {})", clientId, coreMessageId, transactionId);
-      return journalHashMapProvider.getMap(clientId).remove(coreMessageId, transactionId);
+   public Integer removePacketIdCorrelation(String clientId, PacketIdCorrelationKey key, long transactionId) {
+//      logger.info("removePacketIdCorrelation({}, {}, {})", clientId, key, transactionId);
+      return journalHashMapProvider.getMap(clientId).remove(key, transactionId);
    }
 
    public boolean packetIdCorrelationExists(String clientId, int packetId) {
@@ -290,57 +285,6 @@ public class MQTTStateManager {
          } catch (NoSuchElementException ignored) {
             // this could happen through paging browsing
          }
-      }
-   }
-
-   private static PacketIdCorrelationPersister getPersister() {
-      return PACKET_ID_CORRELATION_PERSISTER;
-   }
-
-   private static class PacketIdCorrelationPersister extends AbstractHashMapPersister<String, String, Integer> {
-      @Override
-      protected int getCollectionIdSize(String collectionID) {
-         return BufferHelper.sizeOfString(collectionID);
-      }
-
-      @Override
-      protected void encodeCollectionId(ActiveMQBuffer buffer, String collectionID) {
-         buffer.writeString(collectionID);
-      }
-
-      @Override
-      protected String decodeCollectionId(ActiveMQBuffer buffer) {
-         return buffer.readString();
-      }
-
-      @Override
-      protected int getKeySize(String coreMessageId) {
-         return BufferHelper.sizeOfString(coreMessageId);
-      }
-
-      @Override
-      protected void encodeKey(ActiveMQBuffer buffer, String coreMessageId) {
-         buffer.writeString(coreMessageId);
-      }
-
-      @Override
-      protected String decodeKey(ActiveMQBuffer buffer) {
-         return buffer.readString();
-      }
-
-      @Override
-      protected int getValueSize(Integer mqttPacketId) {
-         return DataConstants.SIZE_INT;
-      }
-
-      @Override
-      protected void encodeValue(ActiveMQBuffer buffer, Integer mqttPacketId) {
-         buffer.writeInt(mqttPacketId);
-      }
-
-      @Override
-      protected Integer decodeValue(ActiveMQBuffer buffer, String coreMessageId) {
-         return buffer.readInt();
       }
    }
 }

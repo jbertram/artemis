@@ -251,6 +251,9 @@ public class JournalHashMap<I, K, V, C> implements Map<K, V> {
    @Override
    public synchronized V remove(Object key) {
       MapRecord<I, K, V> record = map.remove(key);
+      if (record == null) {
+         return null;
+      }
       this.removed(record);
       return record.value;
    }
@@ -263,6 +266,9 @@ public class JournalHashMap<I, K, V, C> implements Map<K, V> {
     */
    public synchronized V remove(Object key, long transactionID) {
       MapRecord<I, K, V> record = map.remove(key);
+      if (record == null) {
+         return null;
+      }
       this.removed(record, transactionID);
       return record.value;
    }

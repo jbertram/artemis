@@ -174,11 +174,7 @@ public class MQTT5TestSupport extends ActiveMQTestBase {
       startBroker();
       createJMSConnection();
       if (isProtocolLoggingEnabled()) {
-         LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-         org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
-         LoggerConfig loggerConfig = new LoggerConfig(MQTTUtil.class.getName(), Level.TRACE, true);
-         config.addLogger(MQTTUtil.class.getName(), loggerConfig);
-         ctx.updateLoggers();
+         enableProtocolLogging();
       }
    }
 
@@ -187,12 +183,24 @@ public class MQTT5TestSupport extends ActiveMQTestBase {
    public void tearDown() throws Exception {
       stopBroker();
       if (isProtocolLoggingEnabled()) {
-         LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-         org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
-         config.removeLogger(MQTTUtil.class.getName());
-         ctx.updateLoggers();
+         disableProtocolLogging();
       }
       super.tearDown();
+   }
+
+   public void enableProtocolLogging() {
+      LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+      org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
+      LoggerConfig loggerConfig = new LoggerConfig(MQTTUtil.class.getName(), Level.TRACE, true);
+      config.addLogger(MQTTUtil.class.getName(), loggerConfig);
+      ctx.updateLoggers();
+   }
+
+   public void disableProtocolLogging() {
+      LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+      org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
+      config.removeLogger(MQTTUtil.class.getName());
+      ctx.updateLoggers();
    }
 
    public void configureBroker() throws Exception {

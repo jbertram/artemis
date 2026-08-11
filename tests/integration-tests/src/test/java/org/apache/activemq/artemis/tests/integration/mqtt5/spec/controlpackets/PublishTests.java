@@ -1459,10 +1459,11 @@ public class PublishTests extends MQTT5TestSupport {
    @Test
    @Timeout(DEFAULT_TIMEOUT_SEC)
    public void testSubscriptionIdentifierMultiLevel() throws Exception {
+      enableProtocolLogging();
       // even though only 3 messages are sent, 6 messages will be received due to the overlapping subscriptions
       final CountDownLatch consumerLatch = new CountDownLatch(6);
 
-      MqttAsyncClient consumer = createAsyncPahoClient(RandomUtil.randomUUIDString());
+      MqttAsyncClient consumer = createAsyncPahoClient("consumer");
       consumer.connect().waitForCompletion();
       consumer.setCallback(new DefaultMqttCallback() {
          @Override

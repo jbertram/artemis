@@ -138,8 +138,8 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       assertNull(getPubCache(PUBLISHER_CLIENT_ID));
 
       assertTrue(pubRecLatch.await(5, TimeUnit.SECONDS));
-
       stopLatch.countDown();
+
       if (restart) {
          server.stop();
          waitForServerToStop(server);
@@ -147,7 +147,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
          waitForServerToStart(server);
       } else {
          server.getRemotingService().clearInterceptors();
-         server.getActiveMQServerControl().closeConnectionWithID(server.getActiveMQServerControl().listConnectionIDs()[0]);
+         Wait.assertEquals(0, () -> server.getRemotingService().getConnections().size(), 1000, 10);
       }
 
       assertTrue(getProtocolManager().getStateManager().packetIdCorrelationExists(SUBSCRIBER_CLIENT_ID, 2));
@@ -180,7 +180,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
       Wait.assertEquals(0L, () -> getSubscriptionQueue(TOPIC, SUBSCRIBER_CLIENT_ID).getMessageCount(), 500, 25);
 
       assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
-      assertEquals(0, getSubCacheSize(SUBSCRIBER_CLIENT_ID));
+      Wait.assertEquals(0, () -> getSubCacheSize(SUBSCRIBER_CLIENT_ID));
 
       subscriber.disconnect();
 
@@ -381,7 +381,7 @@ public class QoS2SubscriberResiliencyTest extends MQTT5TestSupport {
          waitForServerToStart(server);
       } else {
          server.getRemotingService().clearInterceptors();
-         server.getActiveMQServerControl().closeConnectionWithID(server.getActiveMQServerControl().listConnectionIDs()[0]);
+         Wait.assertEquals(0, () -> server.getRemotingService().getConnections().size(), 1000, 10);
       }
 
       assertEquals(0, getProtocolManager().getStateManager().getPacketIdCorrelationSize(SUBSCRIBER_CLIENT_ID));
