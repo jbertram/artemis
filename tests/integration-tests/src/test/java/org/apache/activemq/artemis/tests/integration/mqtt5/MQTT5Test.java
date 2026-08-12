@@ -728,7 +728,7 @@ public class MQTT5Test extends MQTT5TestSupport {
       Wait.assertEquals(1, () -> getSessionStates().size(), 2000, 100);
       assertNotNull(getSessionStates().get(CLIENT_ID));
 
-      assertFalse(client.isConnected());
+      Wait.assertFalse(() -> client.isConnected(), 2000, 100);
 
       client.close();
       client2.disconnect();
@@ -913,13 +913,13 @@ public class MQTT5Test extends MQTT5TestSupport {
       // ensure subscriber got message and ack was blocked
       assertTrue(subscriberLatch.await(500, TimeUnit.MILLISECONDS));
       assertTrue(interceptorBlockedLatch.await(500, TimeUnit.MILLISECONDS));
-      Wait.assertEquals(1L, () -> mqttSessionState.getOutboundStore().getSendQuota(), 2000, 10);
+      Wait.assertEquals(1L, () -> mqttSessionState.getSendQuota(), 2000, 10);
       pendingCountCheckLatch.countDown();
 
       // disconnect subscriber
       subscriber.disconnect();
       Wait.assertFalse(() -> mqttSessionState.isAttached(), 2000, 50);
-      assertEquals(0, mqttSessionState.getOutboundStore().getSendQuota());
+      assertEquals(0, mqttSessionState.getSendQuota());
       assertEquals(1L, subscriptionQueue.getMessageCount());
       assertEquals(0L, subscriptionQueue.getMessagesAcknowledged());
       assertEquals(0L, subscriptionQueue.getConsumerCount());

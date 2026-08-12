@@ -86,6 +86,7 @@ public class MQTTProtocolManager extends AbstractProtocolManager<MqttMessage, MQ
       server.getManagementService().addNotificationListener(this);
       routingHandler = new MQTTRoutingHandler(server);
       sessionStateManager = MQTTStateManager.getInstance(server);
+      sessionStateManager.init();
       server.registerActivateCallback(new CleaningActivateCallback() {
          @Override
          public void deActivate() {
@@ -216,23 +217,18 @@ public class MQTTProtocolManager extends AbstractProtocolManager<MqttMessage, MQ
 
    @Override
    public ConnectionEntry createConnectionEntry(Acceptor acceptorUsed, Connection connection) {
-      try {
-         MQTTConnection mqttConnection = new MQTTConnection(connection);
-         /*
-          * We must adjust the keep-alive because MQTT communicates keep-alive values in *seconds*, but the broker uses
-          * *milliseconds*. Also, the connection keep-alive is effectively "one and a half times" the configured
-          * keep-alive value. See [MQTT-3.1.2-22].
-          */
-         ConnectionEntry entry = new ConnectionEntry(mqttConnection, null, System.currentTimeMillis(), getServerKeepAlive() == -1 || getServerKeepAlive() == 0 ? -1 : getServerKeepAlive() * MQTTUtil.KEEP_ALIVE_ADJUSTMENT);
+      MQTTConnection mqttConnection = new MQTTConnection(connection);
+      /*
+       * We must adjust the keep-alive because MQTT communicates keep-alive values in *seconds*, but the broker uses
+       * *milliseconds*. Also, the connection keep-alive is effectively "one and a half times" the configured
+       * keep-alive value. See [MQTT-3.1.2-22].
+       */
+      ConnectionEntry entry = new ConnectionEntry(mqttConnection, null, System.currentTimeMillis(), getServerKeepAlive() == -1 || getServerKeepAlive() == 0 ? -1 : getServerKeepAlive() * MQTTUtil.KEEP_ALIVE_ADJUSTMENT);
 
-         NettyServerConnection nettyConnection = ((NettyServerConnection) connection);
-         MQTTProtocolHandler protocolHandler = nettyConnection.getChannel().pipeline().get(MQTTProtocolHandler.class);
-         protocolHandler.setConnection(mqttConnection, entry);
-         return entry;
-      } catch (Exception e) {
-         logger.error("Error creating connection entry", e);
-         return null;
-      }
+      NettyServerConnection nettyConnection = ((NettyServerConnection) connection);
+      MQTTProtocolHandler protocolHandler = nettyConnection.getChannel().pipeline().get(MQTTProtocolHandler.class);
+      protocolHandler.setConnection(mqttConnection, entry);
+      return entry;
    }
 
    @Override
@@ -336,6 +332,9 @@ public class MQTTProtocolManager extends AbstractProtocolManager<MqttMessage, MQ
    }
 
    public MQTTStateManager getStateManager() {
+      if (sessionStateManager == null) {
+         throw new IllegalStateException("Broker has been deactivated");
+      }
       return sessionStateManager;
    }
 }
