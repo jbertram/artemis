@@ -118,7 +118,7 @@ public class ReplayWithReplicationTest extends ReplayTest {
       ccconf.setConnectorName("live");
       conf.addClusterConfiguration(ccconf);
 
-      conf.setSecurityEnabled(false).setJMXManagementEnabled(false).setJournalType(JournalType.MAPPED).setJournalFileSize(1024 * 512).setConnectionTTLOverride(60_000L);
+      conf.setSecurityEnabled(false).setJMXManagementEnabled(false).setJournalType(JournalType.NIO).setJournalFileSize(1024 * 512).setConnectionTTLOverride(60_000L);
 
       return conf;
    }
@@ -145,7 +145,7 @@ public class ReplayWithReplicationTest extends ReplayTest {
       ccconf.setConnectorName("backup");
       conf.addClusterConfiguration(ccconf);
 
-      conf.setSecurityEnabled(false).setJMXManagementEnabled(false).setJournalType(JournalType.MAPPED).setJournalFileSize(1024 * 512).setConnectionTTLOverride(60_000L);
+      conf.setSecurityEnabled(false).setJMXManagementEnabled(false).setJournalType(JournalType.NIO).setJournalFileSize(1024 * 512).setConnectionTTLOverride(60_000L);
 
       return conf;
    }
