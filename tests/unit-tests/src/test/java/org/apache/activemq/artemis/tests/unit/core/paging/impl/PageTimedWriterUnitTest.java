@@ -19,6 +19,8 @@ package org.apache.activemq.artemis.tests.unit.core.paging.impl;
 
 import javax.transaction.xa.Xid;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -41,6 +43,7 @@ import org.apache.activemq.artemis.core.io.IOCallback;
 import org.apache.activemq.artemis.core.io.OperationConsistencyLevel;
 import org.apache.activemq.artemis.core.io.SequentialFileFactory;
 import org.apache.activemq.artemis.core.journal.EncodingSupport;
+import org.apache.activemq.artemis.core.journal.IOCompletion;
 import org.apache.activemq.artemis.core.journal.Journal;
 import org.apache.activemq.artemis.core.message.impl.CoreMessage;
 import org.apache.activemq.artemis.core.paging.PagedMessage;
@@ -1023,5 +1026,140 @@ public class PageTimedWriterUnitTest extends ArtemisTestCase {
 
       assertEquals(interceptorOriginalSize, sentOriginalSize);
       assertEquals(sentNumber.get(), interceptorOriginalSize);
+   }
+
+   /**
+    * An {@link OperationContext} counts completions, it does not identify them. A callback registered through
+    * {@code afterCompleteOperations} only waits for {@code storeLineUp} completions to arrive; it cannot require that
+    * the operations outstanding when it was registered are the ones that completed. That is equivalent only while
+    * completions are FIFO with respect to line ups.
+    * <p>
+    * Page writes used to break that property on the store counter. {@link PageTimedWriter#addTask} lined up on it and
+    * completed early, right after the page sync, while the delayed commit it parks via {@link Transaction#delay()}
+    * lines up after it and completes late, only once the commit record's IO is done. Two transactions sharing one
+    * context - which is what every MQTT session does, since {@code MQTTProtocolHandler::act} installs a single
+    * per-session context for every packet - was enough: the second transaction's page write satisfied the counter the
+    * first transaction's delayed commit was lined up on, and the first callback ran while its commit record was still
+    * outstanding. For MQTT QoS 2 that released PUBREC before the duplicate-ID add was committed, so the PUBREL that
+    * came back deleted a record the journal did not have yet and the delete was silently dropped.
+    * <p>
+    * {@code addTask} now lines the page write up on the page counter instead, which no journal completion can satisfy
+    * and which cannot satisfy a journal line up.
+    */
+   @Test
+   public void testDelayedCommitCompletionNotSatisfiedByUnrelatedPageWrites() throws Exception {
+      OperationContextImpl.clearContext();
+
+      // a single context shared by both transactions, the way an MQTT session context is shared by every packet
+      OperationContext sessionContext = OperationContextImpl.getContext(executorFactory);
+      OperationContextImpl.setContext(sessionContext);
+
+      /*
+       * Hold the commit records rather than completing them inline so the test decides when the IO finishes.
+       * JournalImpl::appendCommitRecord lines the context up when lineUpContext is set, so do the same here.
+       */
+      List<IOCompletion> pendingCommits = Collections.synchronizedList(new ArrayList<>());
+      Mockito.doAnswer(a -> {
+         IOCompletion completion = a.getArgument(2);
+         if (completion != null && (Boolean) a.getArgument(3)) {
+            completion.storeLineUp();
+            pendingCommits.add(completion);
+         }
+         return commitCall();
+      }).when(mockMessageJournal).appendCommitRecord(Mockito.anyLong(), Mockito.anyBoolean(), Mockito.any(), Mockito.anyBoolean());
+
+      AtomicBoolean firstCompleted = new AtomicBoolean(false);
+      AtomicBoolean secondCompleted = new AtomicBoolean(false);
+
+      TransactionImpl firstTx = new TransactionImpl(realJournalStorageManager, Integer.MAX_VALUE);
+      firstTx.setContainsPersistent();
+      assertTrue(realJournalStorageManager.addToPage(pageStore, createMessage(), firstTx, Mockito.mock(RouteContextList.class)));
+      firstTx.commit();
+      realJournalStorageManager.afterCompleteOperations(completionFlag(firstCompleted));
+
+      TransactionImpl secondTx = new TransactionImpl(realJournalStorageManager, Integer.MAX_VALUE);
+      secondTx.setContainsPersistent();
+      assertTrue(realJournalStorageManager.addToPage(pageStore, createMessage(), secondTx, Mockito.mock(RouteContextList.class)));
+      secondTx.commit();
+      realJournalStorageManager.afterCompleteOperations(completionFlag(secondCompleted));
+
+      assertFalse(firstCompleted.get());
+      assertFalse(secondCompleted.get());
+
+      allowRunning.countDown();
+
+      // both delayed commits have reached the journal, neither has completed its IO
+      Wait.assertTrue(() -> pendingCommits.size() == 2, 5000, 10);
+
+      assertFalse(Wait.waitFor(firstCompleted::get, 2000, 10),
+                  "the completion for the first transaction ran while its commit record was still outstanding: the " +
+                     "two page writes' done() calls satisfied the counter its delayed commit had lined up on");
+      assertFalse(secondCompleted.get());
+
+      // completing the commit IO is what should release the callbacks, so the assertion above is not vacuous
+      final List<IOCompletion> toComplete;
+      synchronized (pendingCommits) {
+         toComplete = new ArrayList<>(pendingCommits);
+      }
+      toComplete.forEach(IOCompletion::done);
+
+      Wait.assertTrue(firstCompleted::get, 5000, 10);
+      Wait.assertTrue(secondCompleted::get, 5000, 10);
+   }
+
+   /**
+    * Control for {@link #testDelayedCommitCompletionNotSatisfiedByUnrelatedPageWrites()}. With a single transaction on
+    * the context there is no other completion to borrow, so the callback correctly waits for the commit record. This
+    * passes today, which is what makes the failure of the two-transaction case a real ordering defect rather than an
+    * artifact of the mocked journal.
+    */
+   @Test
+   public void testDelayedCommitCompletionWaitsForCommitRecord() throws Exception {
+      OperationContextImpl.clearContext();
+
+      OperationContext sessionContext = OperationContextImpl.getContext(executorFactory);
+      OperationContextImpl.setContext(sessionContext);
+
+      List<IOCompletion> pendingCommits = Collections.synchronizedList(new ArrayList<>());
+      Mockito.doAnswer(a -> {
+         IOCompletion completion = a.getArgument(2);
+         if (completion != null && (Boolean) a.getArgument(3)) {
+            completion.storeLineUp();
+            pendingCommits.add(completion);
+         }
+         return commitCall();
+      }).when(mockMessageJournal).appendCommitRecord(Mockito.anyLong(), Mockito.anyBoolean(), Mockito.any(), Mockito.anyBoolean());
+
+      AtomicBoolean completed = new AtomicBoolean(false);
+
+      TransactionImpl tx = new TransactionImpl(realJournalStorageManager, Integer.MAX_VALUE);
+      tx.setContainsPersistent();
+      assertTrue(realJournalStorageManager.addToPage(pageStore, createMessage(), tx, Mockito.mock(RouteContextList.class)));
+      tx.commit();
+      realJournalStorageManager.afterCompleteOperations(completionFlag(completed));
+
+      allowRunning.countDown();
+
+      Wait.assertTrue(() -> pendingCommits.size() == 1, 5000, 10);
+
+      assertFalse(Wait.waitFor(completed::get, 2000, 10),
+                  "the completion ran before the commit record completed");
+
+      pendingCommits.get(0).done();
+
+      Wait.assertTrue(completed::get, 5000, 10);
+   }
+
+   private IOCallback completionFlag(AtomicBoolean flag) {
+      return new IOCallback() {
+         @Override
+         public void done() {
+            flag.set(true);
+         }
+
+         @Override
+         public void onError(int errorCode, String errorMessage) {
+         }
+      };
    }
 }
