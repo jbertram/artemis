@@ -40,6 +40,17 @@ final class MappedFile implements AutoCloseable {
    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
    private static final int OS_PAGE_SIZE = Env.osPageSize();
+
+   /*
+    * Raw pointer arithmetic (PlatformDependent.directBufferAddress/copyMemory/setMemory) requires sun.misc.Unsafe.
+    * Unlike DirectByteBufferReleaser.freeDirectBuffer, Netty's PlatformDependent does not fall back internally when
+    * Unsafe is unavailable: it calls straight into Unsafe and would throw/NPE. So every raw-address operation below
+    * is gated on HAS_UNSAFE, with a bounds-checked java.nio.ByteBuffer fallback (slower, but correct) for JDK 24+
+    * without --sun-misc-unsafe-memory-access=allow, or any future JDK where Unsafe memory access is removed.
+    */
+   private static final boolean HAS_UNSAFE = PlatformDependent.hasUnsafe();
+   private static final byte[] ZEROS = new byte[OS_PAGE_SIZE];
+
    private final MappedByteBuffer buffer;
    private final FileChannel channel;
    private final long address;
@@ -55,7 +66,7 @@ final class MappedFile implements AutoCloseable {
       this.length = length;
       this.byteBufWrapper = Unpooled.wrappedBuffer(buffer);
       this.channelBufferWrapper = new ChannelBufferWrapper(this.byteBufWrapper, false);
-      this.address = PlatformDependent.directBufferAddress(buffer);
+      this.address = HAS_UNSAFE ? PlatformDependent.directBufferAddress(buffer) : 0;
    }
 
    public static MappedFile of(File file, int position, int capacity) throws IOException {
@@ -114,13 +125,18 @@ final class MappedFile implements AutoCloseable {
    public int read(ByteBuffer dst, int dstStart, int dstLength) throws IOException {
       final int remaining = this.length - this.position;
       final int read = Math.min(remaining, dstLength);
-      final long srcAddress = this.address + this.position;
-      if (dst.isDirect()) {
-         final long dstAddress = PlatformDependent.directBufferAddress(dst) + dstStart;
-         PlatformDependent.copyMemory(srcAddress, dstAddress, read);
+      if (HAS_UNSAFE) {
+         final long srcAddress = this.address + this.position;
+         if (dst.isDirect()) {
+            final long dstAddress = PlatformDependent.directBufferAddress(dst) + dstStart;
+            PlatformDependent.copyMemory(srcAddress, dstAddress, read);
+         } else {
+            final byte[] dstArray = dst.array();
+            PlatformDependent.copyMemory(srcAddress, dstArray, dstStart, read);
+         }
       } else {
-         final byte[] dstArray = dst.array();
-         PlatformDependent.copyMemory(srcAddress, dstArray, dstStart, read);
+         //bounds-checked bulk absolute transfer: works for both direct and heap dst, no raw address needed
+         dst.put(dstStart, buffer, this.position, read);
       }
       this.position += read;
       return read;
@@ -149,15 +165,23 @@ final class MappedFile implements AutoCloseable {
    public void write(ByteBuf src, int srcStart, int srcLength) throws IOException {
       final int nextPosition = this.position + srcLength;
       checkCapacity(nextPosition);
-      final long destAddress = this.address + this.position;
-      if (src.hasMemoryAddress()) {
-         final long srcAddress = src.memoryAddress() + srcStart;
-         PlatformDependent.copyMemory(srcAddress, destAddress, srcLength);
-      } else if (src.hasArray()) {
-         final byte[] srcArray = src.array();
-         PlatformDependent.copyMemory(srcArray, srcStart, destAddress, srcLength);
+      if (HAS_UNSAFE) {
+         final long destAddress = this.address + this.position;
+         if (src.hasMemoryAddress()) {
+            final long srcAddress = src.memoryAddress() + srcStart;
+            PlatformDependent.copyMemory(srcAddress, destAddress, srcLength);
+         } else if (src.hasArray()) {
+            final byte[] srcArray = src.array();
+            PlatformDependent.copyMemory(srcArray, srcStart, destAddress, srcLength);
+         } else {
+            throw new IllegalArgumentException("unsupported byte buffer");
+         }
       } else {
-         throw new IllegalArgumentException("unsupported byte buffer");
+         //ByteBuf.getBytes handles the direct/heap/composite split internally, no raw address needed
+         //(transfers dst.remaining() bytes, hence sizing dup's remaining to exactly srcLength)
+         final ByteBuffer dup = buffer.duplicate();
+         dup.limit(nextPosition).position(this.position);
+         src.getBytes(srcStart, dup);
       }
       rawMovePositionAndLength(nextPosition);
    }
@@ -170,13 +194,18 @@ final class MappedFile implements AutoCloseable {
    public void write(ByteBuffer src, int srcStart, int srcLength) throws IOException {
       final int nextPosition = this.position + srcLength;
       checkCapacity(nextPosition);
-      final long destAddress = this.address + this.position;
-      if (src.isDirect()) {
-         final long srcAddress = PlatformDependent.directBufferAddress(src) + srcStart;
-         PlatformDependent.copyMemory(srcAddress, destAddress, srcLength);
+      if (HAS_UNSAFE) {
+         final long destAddress = this.address + this.position;
+         if (src.isDirect()) {
+            final long srcAddress = PlatformDependent.directBufferAddress(src) + srcStart;
+            PlatformDependent.copyMemory(srcAddress, destAddress, srcLength);
+         } else {
+            final byte[] srcArray = src.array();
+            PlatformDependent.copyMemory(srcArray, srcStart, destAddress, srcLength);
+         }
       } else {
-         final byte[] srcArray = src.array();
-         PlatformDependent.copyMemory(srcArray, srcStart, destAddress, srcLength);
+         //bounds-checked bulk absolute transfer: works for both direct and heap src, no raw address needed
+         buffer.put(this.position, src, srcStart, srcLength);
       }
       rawMovePositionAndLength(nextPosition);
    }
@@ -188,32 +217,44 @@ final class MappedFile implements AutoCloseable {
     */
    public void zeros(int position, final int count) throws IOException {
       checkCapacity(position + count);
-      //zeroes memory in reverse direction in OS_PAGE_SIZE batches
-      //to gain sympathy by the page cache LRU policy
-      final long start = this.address + position;
-      final long end = start + count;
-      int toZeros = count;
-      final long lastGap = (int) (end & (OS_PAGE_SIZE - 1));
-      final long lastStartPage = end - lastGap;
-      long lastZeroed = end;
-      if (start <= lastStartPage) {
-         if (lastGap > 0) {
-            PlatformDependent.setMemory(lastStartPage, lastGap, (byte) 0);
-            lastZeroed = lastStartPage;
-            toZeros -= lastGap;
+      if (HAS_UNSAFE) {
+         //zeroes memory in reverse direction in OS_PAGE_SIZE batches
+         //to gain sympathy by the page cache LRU policy
+         final long start = this.address + position;
+         final long end = start + count;
+         int toZeros = count;
+         final long lastGap = (int) (end & (OS_PAGE_SIZE - 1));
+         final long lastStartPage = end - lastGap;
+         long lastZeroed = end;
+         if (start <= lastStartPage) {
+            if (lastGap > 0) {
+               PlatformDependent.setMemory(lastStartPage, lastGap, (byte) 0);
+               lastZeroed = lastStartPage;
+               toZeros -= lastGap;
+            }
          }
-      }
-      //any that will enter has lastZeroed OS page aligned
-      while (toZeros >= OS_PAGE_SIZE) {
-         assert PowerOf2Util.isAligned(lastZeroed, OS_PAGE_SIZE);/**/
-         final long startPage = lastZeroed - OS_PAGE_SIZE;
-         PlatformDependent.setMemory(startPage, OS_PAGE_SIZE, (byte) 0);
-         lastZeroed = startPage;
-         toZeros -= OS_PAGE_SIZE;
-      }
-      //there is anything left in the first OS page?
-      if (toZeros > 0) {
-         PlatformDependent.setMemory(start, toZeros, (byte) 0);
+         //any that will enter has lastZeroed OS page aligned
+         while (toZeros >= OS_PAGE_SIZE) {
+            assert PowerOf2Util.isAligned(lastZeroed, OS_PAGE_SIZE);/**/
+            final long startPage = lastZeroed - OS_PAGE_SIZE;
+            PlatformDependent.setMemory(startPage, OS_PAGE_SIZE, (byte) 0);
+            lastZeroed = startPage;
+            toZeros -= OS_PAGE_SIZE;
+         }
+         //there is anything left in the first OS page?
+         if (toZeros > 0) {
+            PlatformDependent.setMemory(start, toZeros, (byte) 0);
+         }
+      } else {
+         //bounds-checked bulk absolute put from a shared zero-filled array, no raw address needed
+         int pos = position;
+         int remaining = count;
+         while (remaining > 0) {
+            final int chunk = Math.min(remaining, ZEROS.length);
+            buffer.put(pos, ZEROS, 0, chunk);
+            pos += chunk;
+            remaining -= chunk;
+         }
       }
       //do not move this.position: only this.length can be changed
       position += count;
