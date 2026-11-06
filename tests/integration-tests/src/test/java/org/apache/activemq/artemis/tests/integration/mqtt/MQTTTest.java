@@ -2478,4 +2478,22 @@ public class MQTTTest extends MQTTTestSupport {
       client.disconnect();
       client.close();
    }
+
+   @Test
+   @Timeout(60)
+   public void testNoSubscriptionPersistenceWithCleanSession() throws Exception {
+      final String TOPIC = RandomUtil.randomUUIDString();
+
+      MqttClient client = createPaho3_1_1Client(RandomUtil.randomUUIDString());
+      MqttConnectOptions options = new MqttConnectOptions();
+      options.setCleanSession(true);
+      client.connect(options);
+      client.subscribe(TOPIC, 1);
+
+      // With cleanSession=true, subscription state should not be persisted
+      Wait.assertEquals(0L, () -> server.locateQueue(MQTTUtil.MQTT_SESSION_STORE).getMessageCount(), 2000, 100);
+
+      client.disconnect();
+      client.close();
+   }
 }

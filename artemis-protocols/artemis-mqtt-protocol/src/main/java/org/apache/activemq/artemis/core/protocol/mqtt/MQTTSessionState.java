@@ -501,6 +501,19 @@ public class MQTTSessionState {
       return pubRecCache;
    }
 
+   public boolean isDurable() {
+      if (session == null) {
+         return false;
+      }
+      if ((session.getVersion() == MQTTVersion.MQTT_3_1 || session.getVersion() == MQTTVersion.MQTT_3_1_1) && session.isClean()) {
+         return false;
+      }
+      if (session.getVersion() == MQTTVersion.MQTT_5 && clientSessionExpiryInterval == 0) {
+         return false;
+      }
+      return true;
+   }
+
    public int getSendQuota() {
       return sendQuota;
    }

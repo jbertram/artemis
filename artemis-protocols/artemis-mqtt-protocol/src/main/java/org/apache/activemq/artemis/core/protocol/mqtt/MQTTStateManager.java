@@ -191,7 +191,7 @@ public class MQTTStateManager {
    }
 
    public void storeDurableState(MQTTSessionState state) throws Exception {
-      if (subscriptionPersistenceEnabled) {
+      if (subscriptionPersistenceEnabled && state.isDurable()) {
          logger.debug("Adding durable MQTT record for: {}", state.getClientId());
          StorageManager storageManager = server.getStorageManager();
          MQTTUtil.sendMessageDirectlyToQueue(storageManager, server.getPostOffice(), serializeState(state, storageManager.generateID()), sessionStore, null);

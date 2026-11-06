@@ -1225,4 +1225,23 @@ public class MQTT5Test extends MQTT5TestSupport {
       }
       publisher.close();
    }
+
+   @Test
+   @Timeout(DEFAULT_TIMEOUT_SEC)
+   public void testNoSubscriptionPersistenceWithSessionExpiryIntervalZero() throws Exception {
+      final String TOPIC = RandomUtil.randomUUIDString();
+
+      MqttClient client = createPahoClient(RandomUtil.randomUUIDString());
+      MqttConnectionOptions options = new MqttConnectionOptionsBuilder()
+         .sessionExpiryInterval(0L)
+         .build();
+      client.connect(options);
+      client.subscribe(TOPIC, 1);
+
+      // With sessionExpiryInterval=0, subscription state should not be persisted
+      Wait.assertEquals(0L, () -> server.locateQueue(MQTTUtil.MQTT_SESSION_STORE).getMessageCount(), 2000, 100);
+
+      client.disconnect();
+      client.close();
+   }
 }
