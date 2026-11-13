@@ -135,22 +135,26 @@ public class LegacyLDAPSecuritySettingPlugin implements SecuritySettingPlugin {
          wildcardConfiguration.setDelimiter(getCharOption(options, DELIMITER_WILDCARD_CONVERSION, String.valueOf(DEFAULT_WILDCARD_CONFIGURATION.getDelimiter())));
       }
 
-      if (refreshInterval > 0) {
-         scheduler = Executors.newScheduledThreadPool(1);
-         logger.debug("Scheduling refresh every {} seconds.", refreshInterval);
-         scheduledFuture = scheduler.scheduleAtFixedRate(() -> {
-            logger.debug("Refreshing after {} seconds...", refreshInterval);
-            try {
-               securityRoles = null;
-               securityRepository.swap(getSecurityRoles().entrySet());
-            } catch (Exception e) {
-               ActiveMQServerLogger.LOGGER.unableToRefreshSecuritySettings(e.getMessage());
-               logger.debug("security refresh failure", e);
-            }
-         }, refreshInterval, refreshInterval, TimeUnit.SECONDS);
+      return this;
+   }
+
+   private synchronized void scheduleRefresh() {
+      if (refreshInterval <= 0 || securityRepository == null || scheduledFuture != null) {
+         return;
       }
 
-      return this;
+      scheduler = Executors.newScheduledThreadPool(1);
+      logger.debug("Scheduling refresh every {} seconds.", refreshInterval);
+      scheduledFuture = scheduler.scheduleAtFixedRate(() -> {
+         logger.debug("Refreshing after {} seconds...", refreshInterval);
+         try {
+            securityRoles = null;
+            securityRepository.swap(getSecurityRoles().entrySet());
+         } catch (Exception e) {
+            ActiveMQServerLogger.LOGGER.unableToRefreshSecuritySettings(e.getMessage());
+            logger.debug("security refresh failure", e);
+         }
+      }, refreshInterval, refreshInterval, TimeUnit.SECONDS);
    }
 
    private char getCharOption(Map<String, String> options, String key, String defaultValue) {
@@ -431,6 +435,7 @@ public class LegacyLDAPSecuritySettingPlugin implements SecuritySettingPlugin {
    @Override
    public void setSecurityRepository(HierarchicalRepository<Set<Role>> securityRepository) {
       this.securityRepository = securityRepository;
+      scheduleRefresh();
    }
 
    private void processSearchResult(Map<String, Set<Role>> securityRoles,
@@ -550,19 +555,24 @@ public class LegacyLDAPSecuritySettingPlugin implements SecuritySettingPlugin {
    }
 
    @Override
-   public SecuritySettingPlugin stop() {
+   public synchronized SecuritySettingPlugin stop() {
       if (scheduledFuture != null) {
          scheduledFuture.cancel(true);
+         scheduledFuture = null;
       }
       if (scheduler != null) {
          scheduler.shutdown();
+         scheduler = null;
       }
 
       try {
-         eventContext.close();
+         if (eventContext != null) {
+            eventContext.close();
+         }
       } catch (NamingException e) {
          // ignore
       }
+      eventContext = null;
 
       try {
          if (context != null) {
@@ -571,6 +581,7 @@ public class LegacyLDAPSecuritySettingPlugin implements SecuritySettingPlugin {
       } catch (NamingException e) {
          // ignore
       }
+      context = null;
 
       return this;
    }

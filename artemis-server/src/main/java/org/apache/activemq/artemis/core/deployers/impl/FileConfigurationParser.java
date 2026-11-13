@@ -401,6 +401,8 @@ public final class FileConfigurationParser extends XMLConfigurationUtil {
 
    private boolean validateAIO = false;
 
+   private boolean ignoreSecuritySettingPlugins = false;
+
    private boolean printPageMaxSizeUsed = false;
 
    public boolean isValidateAIO() {
@@ -409,6 +411,14 @@ public final class FileConfigurationParser extends XMLConfigurationUtil {
 
    public void setValidateAIO(final boolean validateAIO) {
       this.validateAIO = validateAIO;
+   }
+
+   public boolean isIgnoreSecuritySettingPlugins() {
+      return ignoreSecuritySettingPlugins;
+   }
+
+   public void setIgnoreSecuritySettingPlugins(final boolean ignoreSecuritySettingPlugins) {
+      this.ignoreSecuritySettingPlugins = ignoreSecuritySettingPlugins;
    }
 
    public Configuration parseMainConfig(final InputStream input) throws Exception {
@@ -1036,10 +1046,12 @@ public final class FileConfigurationParser extends XMLConfigurationUtil {
             Pair<String, Set<Role>> securityItem = parseSecurityRoles(list.item(i), config.getSecurityRoleNameMappings());
             config.putSecurityRoles(securityItem.getA(), securityItem.getB());
          }
-         list = node.getElementsByTagName(SECURITY_PLUGIN_ELEMENT_NAME);
-         for (int i = 0; i < list.getLength(); i++) {
-            Pair<SecuritySettingPlugin, Map<String, String>> securityItem = parseSecuritySettingPlugins(list.item(i), config.isMaskPassword(), config.getPasswordCodec());
-            config.addSecuritySettingPlugin(securityItem.getA().init(securityItem.getB()));
+         if (!ignoreSecuritySettingPlugins) {
+            list = node.getElementsByTagName(SECURITY_PLUGIN_ELEMENT_NAME);
+            for (int i = 0; i < list.getLength(); i++) {
+               Pair<SecuritySettingPlugin, Map<String, String>> securityItem = parseSecuritySettingPlugins(list.item(i), config.isMaskPassword(), config.getPasswordCodec());
+               config.addSecuritySettingPlugin(securityItem.getA().init(securityItem.getB()));
+            }
          }
       }
    }

@@ -3789,12 +3789,14 @@ public class ActiveMQServerImpl implements ActiveMQServer {
    }
 
    private void deploySecurityFromConfiguration() {
-      for (Map.Entry<String, Set<Role>> entry : configuration.getSecurityRoles().entrySet()) {
-         securityRepository.addMatch(entry.getKey(), entry.getValue(), true);
-      }
-
+      // hand the repository to the plugins before fetching the roles below since fetching may itself trigger
+      // asynchronous updates (e.g. an LDAP plugin registering a naming listener) which need somewhere to go
       for (SecuritySettingPlugin securitySettingPlugin : configuration.getSecuritySettingPlugins()) {
          securitySettingPlugin.setSecurityRepository(securityRepository);
+      }
+
+      for (Map.Entry<String, Set<Role>> entry : configuration.getSecurityRoles().entrySet()) {
+         securityRepository.addMatch(entry.getKey(), entry.getValue(), true);
       }
    }
 
@@ -4779,11 +4781,15 @@ public class ActiveMQServerImpl implements ActiveMQServer {
    private void reloadConfigurationFile(URL xmlConfigUri) throws Exception {
       Configuration config = new ConfigurationImpl();
       if (xmlConfigUri != null) {
-         config = new FileConfigurationParser().parseMainConfig(xmlConfigUri.openStream());
+         FileConfigurationParser parser = new FileConfigurationParser();
+         // security-setting-plugins are not reloadable
+         parser.setIgnoreSecuritySettingPlugins(true);
+         config = parser.parseMainConfig(xmlConfigUri.openStream());
          LegacyJMSConfiguration legacyJMSConfiguration = new LegacyJMSConfiguration(config);
          legacyJMSConfiguration.parseConfiguration(xmlConfigUri.openStream());
       }
       config.parseProperties(propertiesFileUrl);
+      config.setSecuritySettingPlugins(new ArrayList<>());
       updateReloadableConfigurationFrom(config);
       updateStatus(ServerStatus.CONFIGURATION_COMPONENT, configuration.getStatus());
       configurationReloadDeployed.set(false);

@@ -129,6 +129,14 @@ Below lists the effects of adding, deleting and updating of an element/attribute
 * `X` means this operation is not allowed.
 ====
 
+* The `<security-setting-plugin>` sub-elements
+
+[IMPORTANT]
+====
+Changes to `<security-setting-plugin>` elements are *not* reloaded.
+The plugin instances created when the broker started remain in use for the lifetime of the broker, so adding, removing or reconfiguring a `<security-setting-plugin>` requires a broker restart to take effect.
+====
+
 ==== `<address-settings>`
 
 * `<address-settings>` element

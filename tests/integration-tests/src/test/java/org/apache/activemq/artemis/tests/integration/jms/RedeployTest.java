@@ -37,11 +37,13 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -68,6 +70,7 @@ import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 import org.apache.activemq.artemis.core.security.CheckType;
 import org.apache.activemq.artemis.core.security.Role;
 import org.apache.activemq.artemis.core.server.BrokerConnection;
+import org.apache.activemq.artemis.core.server.SecuritySettingPlugin;
 import org.apache.activemq.artemis.core.server.cluster.impl.MessageLoadBalancingType;
 import org.apache.activemq.artemis.core.server.cluster.impl.RemoteQueueBindingImpl;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
@@ -75,6 +78,7 @@ import org.apache.activemq.artemis.core.server.impl.AddressInfo;
 import org.apache.activemq.artemis.core.server.management.ManagementService;
 import org.apache.activemq.artemis.core.server.reload.ReloadManager;
 import org.apache.activemq.artemis.core.server.routing.ConnectionRouter;
+import org.apache.activemq.artemis.core.settings.HierarchicalRepository;
 import org.apache.activemq.artemis.core.settings.impl.AddressFullMessagePolicy;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
@@ -305,6 +309,176 @@ public class RedeployTest extends ActiveMQTestBase {
 
       } finally {
          embeddedActiveMQ.stop();
+      }
+   }
+
+   @Test
+   public void testRedeployDoesNotRecreateSecuritySettingPlugins() throws Exception {
+      ReloadCountingSecuritySettingPlugin.reset();
+
+      Path brokerXML = getTestDirfile().toPath().resolve("broker.xml");
+      URL url1 = RedeployTest.class.getClassLoader().getResource("reload-test-security-setting-plugin.xml");
+      Files.copy(url1.openStream(), brokerXML);
+
+      EmbeddedActiveMQ embeddedActiveMQ = new EmbeddedActiveMQ();
+      embeddedActiveMQ.setConfigResourcePath(brokerXML.toUri().toString());
+      embeddedActiveMQ.start();
+
+      final ReusableLatch latch = new ReusableLatch(1);
+
+      Runnable tick = latch::countDown;
+
+      embeddedActiveMQ.getActiveMQServer().getReloadManager().setTick(tick);
+
+      try {
+         latch.await(10, TimeUnit.SECONDS);
+
+         assertEquals(1, ReloadCountingSecuritySettingPlugin.INITIALIZED.size());
+         assertEquals(1, ReloadCountingSecuritySettingPlugin.WIRED.size());
+         assertEquals(1, ReloadCountingSecuritySettingPlugin.ROLES_FETCHED.size());
+         assertTrue(ReloadCountingSecuritySettingPlugin.STOPPED.isEmpty());
+         assertTrue(hasRole(embeddedActiveMQ, "pluginMatch", "pluginRole"));
+
+         SecuritySettingPlugin wired = ReloadCountingSecuritySettingPlugin.WIRED.iterator().next();
+
+         brokerXML.toFile().setLastModified(System.currentTimeMillis() + 1000);
+         latch.setCount(1);
+         embeddedActiveMQ.getActiveMQServer().getReloadManager().setTick(tick);
+         latch.await(10, TimeUnit.SECONDS);
+
+         // the roles must survive the reload, which proves the reload really did happen and really did rebuild the
+         // security repository
+         Wait.assertTrue(() -> hasRole(embeddedActiveMQ, "pluginMatch", "pluginRole"), 5000);
+
+         // ...but no second plugin instance may have been created to make that happen, so there is nothing to stop
+         assertEquals(1, ReloadCountingSecuritySettingPlugin.INITIALIZED.size());
+         assertTrue(ReloadCountingSecuritySettingPlugin.STOPPED.isEmpty());
+
+         // the instance the broker started with must still be the one in use
+         assertEquals(1, ReloadCountingSecuritySettingPlugin.WIRED.size());
+         assertSame(wired, ReloadCountingSecuritySettingPlugin.WIRED.iterator().next());
+         assertEquals(1, ReloadCountingSecuritySettingPlugin.ROLES_FETCHED.size());
+         assertSame(wired, ReloadCountingSecuritySettingPlugin.ROLES_FETCHED.iterator().next());
+      } finally {
+         embeddedActiveMQ.stop();
+      }
+   }
+
+   /**
+    * Same as {@link #testRedeployDoesNotRecreateSecuritySettingPlugins()} but with the plugin declared via broker
+    * properties rather than via a {@code security-setting-plugin} element, since reloading re-reads both.
+    */
+   @Test
+   public void testRedeployDoesNotRecreateSecuritySettingPluginsFromBrokerProperties() throws Exception {
+      ReloadCountingSecuritySettingPlugin.reset();
+
+      Path brokerXML = getTestDirfile().toPath().resolve("broker.xml");
+      Path brokerProperties = getTestDirfile().toPath().resolve("broker.properties");
+      URL url1 = RedeployTest.class.getClassLoader().getResource("reload-test-no-security-setting-plugin.xml");
+      Files.copy(url1.openStream(), brokerXML);
+
+      final Properties properties = new ConfigurationImpl.InsertionOrderedProperties();
+      properties.put("securitySettingPlugins.\"" + ReloadCountingSecuritySettingPlugin.class.getName() + ".class\".init", "ignored=ignored");
+
+      try (Writer propertiesWriter = Files.newBufferedWriter(brokerProperties, StandardOpenOption.WRITE,
+                                                             StandardOpenOption.CREATE,
+                                                             StandardOpenOption.TRUNCATE_EXISTING)) {
+         properties.store(propertiesWriter, null);
+      }
+
+      EmbeddedActiveMQ embeddedActiveMQ = new EmbeddedActiveMQ();
+      embeddedActiveMQ.setPropertiesResourcePath(brokerProperties.toString());
+      embeddedActiveMQ.setConfigResourcePath(brokerXML.toUri().toString());
+      embeddedActiveMQ.start();
+
+      final ReusableLatch latch = new ReusableLatch(1);
+
+      Runnable tick = latch::countDown;
+
+      embeddedActiveMQ.getActiveMQServer().getReloadManager().setTick(tick);
+
+      try {
+         latch.await(10, TimeUnit.SECONDS);
+
+         assertEquals(1, ReloadCountingSecuritySettingPlugin.INITIALIZED.size(),
+                      "the plugin should have been declared by broker.properties");
+         assertEquals(1, ReloadCountingSecuritySettingPlugin.WIRED.size());
+         assertTrue(hasRole(embeddedActiveMQ, "pluginMatch", "pluginRole"));
+
+         SecuritySettingPlugin wired = ReloadCountingSecuritySettingPlugin.WIRED.iterator().next();
+
+         brokerXML.toFile().setLastModified(System.currentTimeMillis() + 1000);
+         latch.setCount(1);
+         embeddedActiveMQ.getActiveMQServer().getReloadManager().setTick(tick);
+         latch.await(10, TimeUnit.SECONDS);
+
+         Wait.assertTrue(() -> hasRole(embeddedActiveMQ, "pluginMatch", "pluginRole"), 5000);
+
+         // the reload re-read broker.properties, but no plugin instance beyond the original may have been asked to
+         // do any work, and nothing may have needed stopping
+         assertEquals(1, ReloadCountingSecuritySettingPlugin.ROLES_FETCHED.size());
+         assertSame(wired, ReloadCountingSecuritySettingPlugin.ROLES_FETCHED.iterator().next());
+         assertTrue(ReloadCountingSecuritySettingPlugin.STOPPED.isEmpty());
+         assertEquals(1, ReloadCountingSecuritySettingPlugin.WIRED.size());
+         assertSame(wired, ReloadCountingSecuritySettingPlugin.WIRED.iterator().next());
+      } finally {
+         embeddedActiveMQ.stop();
+      }
+   }
+
+   private static boolean hasRole(EmbeddedActiveMQ embeddedActiveMQ, String match, String roleName) {
+      for (Role role : embeddedActiveMQ.getActiveMQServer().getSecurityRepository().getMatch(match)) {
+         if (role.getName().equals(roleName)) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   // Referenced by reload-test-security-setting-plugin.xml
+   public static class ReloadCountingSecuritySettingPlugin implements SecuritySettingPlugin {
+
+      private static final long serialVersionUID = 1L;
+
+      static final Set<ReloadCountingSecuritySettingPlugin> INITIALIZED = ConcurrentHashMap.newKeySet();
+      static final Set<ReloadCountingSecuritySettingPlugin> WIRED = ConcurrentHashMap.newKeySet();
+      static final Set<ReloadCountingSecuritySettingPlugin> STOPPED = ConcurrentHashMap.newKeySet();
+      // stands in for whatever a real plugin does when asked for its roles, e.g. the LDAP plugin opens a
+      // connection and registers a naming listener here
+      static final Set<ReloadCountingSecuritySettingPlugin> ROLES_FETCHED = ConcurrentHashMap.newKeySet();
+
+      static void reset() {
+         INITIALIZED.clear();
+         WIRED.clear();
+         STOPPED.clear();
+         ROLES_FETCHED.clear();
+      }
+
+      @Override
+      public SecuritySettingPlugin init(Map<String, String> options) {
+         INITIALIZED.add(this);
+         return this;
+      }
+
+      @Override
+      public SecuritySettingPlugin stop() {
+         STOPPED.add(this);
+         return this;
+      }
+
+      @Override
+      public Map<String, Set<Role>> getSecurityRoles() {
+         ROLES_FETCHED.add(this);
+         Set<Role> roles = new HashSet<>();
+         roles.add(new Role("pluginRole", true, true, false, false, false, false, false, true, false, false, false, false));
+         Map<String, Set<Role>> securityRoles = new HashMap<>();
+         securityRoles.put("pluginMatch", roles);
+         return securityRoles;
+      }
+
+      @Override
+      public void setSecurityRepository(HierarchicalRepository<Set<Role>> securityRepository) {
+         WIRED.add(this);
       }
    }
 
