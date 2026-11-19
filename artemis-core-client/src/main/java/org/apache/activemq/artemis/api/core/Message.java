@@ -757,8 +757,38 @@ public interface Message {
       return getObjectProperty(key);
    }
 
+   /**
+    * Removes a property previously set with {@link #setBrokerProperty(SimpleString, Object)}.
+    */
+   default Object removeBrokerProperty(SimpleString key) {
+      return removeProperty(key);
+   }
+
    default Message setIngressTimestamp() {
       setBrokerProperty(HDR_INGRESS_TIMESTAMP, System.currentTimeMillis());
+      return this;
+   }
+
+   /**
+    * Carry the delivery count of the originating broker over to the broker receiving a redistributed copy of this
+    * message. See {@link #HDR_REDISTRIBUTION_DELIVERY_COUNT}.
+    */
+   default Message setRedistributionDeliveryCount(int deliveryCount) {
+      setBrokerProperty(HDR_REDISTRIBUTION_DELIVERY_COUNT, deliveryCount);
+      return this;
+   }
+
+   /**
+    * {@return the delivery count carried over by a redistribution, or {@code 0} when this message was not redistributed
+    * with a preserved delivery count}
+    */
+   default int getRedistributionDeliveryCount() {
+      final Object deliveryCount = getBrokerProperty(HDR_REDISTRIBUTION_DELIVERY_COUNT);
+      return deliveryCount instanceof Number number ? Math.max(number.intValue(), 0) : 0;
+   }
+
+   default Message removeRedistributionDeliveryCount() {
+      removeBrokerProperty(HDR_REDISTRIBUTION_DELIVERY_COUNT);
       return this;
    }
 

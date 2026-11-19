@@ -233,6 +233,7 @@ Read more about xref:clusters.adoc#message-redistribution[clusters].
 preserve-delivery-count-on-redistribution::
 Whether to preserve the delivery count of a message when it is redistributed to another broker of the cluster.
 Default is `false` which means the delivery count is reset, so `max-delivery-attempts` is effectively enforced per broker rather than cluster-wide.
+Both the sending and the receiving broker must enable this for the count to survive a redistribution hop.
 Read more about xref:clusters.adoc#message-redistribution[clusters].
 
 send-to-dla-on-no-route::

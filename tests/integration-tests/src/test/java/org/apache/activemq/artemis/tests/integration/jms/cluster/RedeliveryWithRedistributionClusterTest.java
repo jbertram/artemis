@@ -30,6 +30,7 @@ import javax.jms.TextMessage;
 
 import java.lang.invoke.MethodHandles;
 
+import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
@@ -266,6 +267,149 @@ public class RedeliveryWithRedistributionClusterTest extends JMSClusteredTestBas
       }
    }
 
+   /**
+    * A redistributed message which has not been redelivered on the target yet has no {@code UPDATE_DELIVERY_COUNT}
+    * record, so the preserved count on the message is the only thing the journal loader can restore it from.
+    */
+   @Test
+   public void testPreservedDeliveryCountSurvivesRestart() throws Exception {
+      configureRedelivery(server1, true);
+      configureRedelivery(server2, true);
+
+      Queue jmsQueue = createQueue(QUEUE);
+      createQueue(DLQ);
+
+      redistributeAfterPartialDelivery(jmsQueue);
+
+      // restart before anything is delivered on server2, so only the preserved count can restore the delivery count
+      jmsServer2.stop();
+      jmsServer2.start();
+      waitForServerToStart(server2);
+      Wait.assertEquals(1, () -> server2.locateQueue(QUEUE).getMessageCount(), 5000);
+
+      try (Connection conn2 = cf2.createConnection()) {
+         conn2.start();
+         Session session2 = conn2.createSession(Session.SESSION_TRANSACTED);
+         MessageConsumer cons2 = session2.createConsumer(jmsQueue);
+
+         // the count preserved across redistribution is still there after the restart
+         TextMessage received = (TextMessage) cons2.receive(5000);
+         assertNotNull(received, "no message received on server2 after restart");
+         assertEquals("m1", received.getText());
+         assertEquals(MAX_DELIVERY_ATTEMPTS, received.getIntProperty("JMSXDeliveryCount"));
+
+         session2.rollback();
+         Wait.assertEquals(1, () -> server2.locateQueue(DLQ).getMessageCount(), 5000);
+      }
+   }
+
+   /**
+    * The target broker decides whether a preserved count is applied. With the setting disabled there it must be
+    * ignored, e.g. during a rolling upgrade or an asymmetric configuration.
+    */
+   @Test
+   public void testPreservedDeliveryCountIsIgnoredWhenDisabledOnTarget() throws Exception {
+      configureRedelivery(server1, true);
+      configureRedelivery(server2, false);
+
+      Queue jmsQueue = createQueue(QUEUE);
+      createQueue(DLQ);
+
+      redistributeAfterPartialDelivery(jmsQueue);
+
+      try (Connection conn2 = cf2.createConnection()) {
+         conn2.start();
+         Session session2 = conn2.createSession(Session.SESSION_TRANSACTED);
+         MessageConsumer cons2 = session2.createConsumer(jmsQueue);
+
+         TextMessage received = (TextMessage) cons2.receive(5000);
+         assertNotNull(received, "no message received on server2");
+         assertEquals("m1", received.getText());
+         assertEquals(1, received.getIntProperty("JMSXDeliveryCount"));
+         session2.rollback();
+      }
+   }
+
+   /**
+    * The property is an ordinary message property, so a client can set it. It must never seed the delivery count of a
+    * message a client simply sent, in particular not while the feature is disabled.
+    */
+   @Test
+   public void testClientSuppliedDeliveryCountIsIgnored() throws Exception {
+      configureRedelivery(server1, false);
+      configureRedelivery(server2, false);
+
+      Queue jmsQueue = createQueue(QUEUE);
+      createQueue(DLQ);
+
+      try (Connection conn1 = cf1.createConnection()) {
+         conn1.start();
+         Session session1 = conn1.createSession(Session.SESSION_TRANSACTED);
+
+         MessageProducer producer = session1.createProducer(jmsQueue);
+         producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+         TextMessage message = session1.createTextMessage("m1");
+         message.setIntProperty(Message.HDR_REDISTRIBUTION_DELIVERY_COUNT.toString(), MAX_DELIVERY_ATTEMPTS - 1);
+         producer.send(message);
+         session1.commit();
+         producer.close();
+
+         MessageConsumer cons1 = session1.createConsumer(jmsQueue);
+         TextMessage received = (TextMessage) cons1.receive(5000);
+         assertNotNull(received, "no message received on server1");
+         assertEquals(1, received.getIntProperty("JMSXDeliveryCount"));
+         session1.rollback();
+
+         // the message must go back on the queue, not to the DLQ: max-delivery-attempts was not genuinely reached
+         Wait.assertEquals(1, () -> server1.locateQueue(QUEUE).getMessageCount(), 5000);
+         assertEquals(0, server1.locateQueue(DLQ).getMessageCount());
+      }
+   }
+
+   /**
+    * Sends one message and rolls it back one delivery short of {@code max-delivery-attempts} on server1, then closes
+    * the consumer so the message is redistributed to server2.
+    */
+   private void redistributeAfterPartialDelivery(Queue jmsQueue) throws Exception {
+      try (Connection conn1 = cf1.createConnection()) {
+         conn1.start();
+         Session session1 = conn1.createSession(Session.SESSION_TRANSACTED);
+
+         MessageProducer producer = session1.createProducer(jmsQueue);
+         producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+         producer.send(session1.createTextMessage("m1"));
+         session1.commit();
+         producer.close();
+
+         MessageConsumer cons1 = session1.createConsumer(jmsQueue);
+         waitForBindings(server1, QUEUE, true, 1, 1, 4000);
+
+         for (int expected = 1; expected < MAX_DELIVERY_ATTEMPTS; expected++) {
+            logger.debug("expecting delivery count {} on server1", expected);
+            TextMessage received = (TextMessage) cons1.receive(5000);
+            assertNotNull(received, "no message received on server1");
+            assertEquals(expected, received.getIntProperty("JMSXDeliveryCount"));
+            session1.rollback();
+         }
+
+         cons1.close();
+         waitForBindings(server1, QUEUE, true, 1, 0, 4000);
+      }
+
+      // a consumer on server2 pulls the message over
+      Wait.assertTrue(() -> server2.locateQueue(QUEUE) != null, 5000);
+      Connection conn2 = cf2.createConnection();
+      try {
+         Session session2 = conn2.createSession(Session.SESSION_TRANSACTED);
+         session2.createConsumer(jmsQueue);
+         waitForBindings(server1, QUEUE, false, 1, 1, 4000);
+         Wait.assertEquals(1, () -> server2.locateQueue(QUEUE).getMessageCount(), 5000);
+      } finally {
+         // close the consumer again, the tests above open their own
+         conn2.close();
+      }
+   }
+
    private void configureRedelivery(ActiveMQServer server, boolean preserveDeliveryCount) {
       AddressSettings settings = new AddressSettings()
          .setRedeliveryDelay(0)
@@ -274,6 +418,8 @@ public class RedeliveryWithRedistributionClusterTest extends JMSClusteredTestBas
          .setRedistributionDelay(0)
          .setPreserveDeliveryCountOnRedistribution(preserveDeliveryCount);
 
+      // the configuration is redeployed on start, so the settings also apply after a restart
+      server.getConfiguration().addAddressSetting("#", settings);
       server.getAddressSettingsRepository().addMatch("#", settings);
    }
 }

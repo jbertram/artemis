@@ -87,6 +87,7 @@ import org.apache.activemq.artemis.core.server.cluster.RemoteQueueBinding;
 import org.apache.activemq.artemis.core.server.group.GroupingHandler;
 import org.apache.activemq.artemis.core.server.impl.AckReason;
 import org.apache.activemq.artemis.core.server.impl.AddressInfo;
+import org.apache.activemq.artemis.core.server.impl.QueueImpl;
 import org.apache.activemq.artemis.core.server.impl.QueueManagerImpl;
 import org.apache.activemq.artemis.core.server.impl.RoutingContextImpl;
 import org.apache.activemq.artemis.core.server.management.ManagementService;
@@ -124,6 +125,9 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
    public static final SimpleString HDR_RESET_QUEUE_DATA_COMPLETE = SimpleString.of("_AMQ_RESET_QUEUE_DATA_COMPLETE");
 
    public static final SimpleString BRIDGE_CACHE_STR = SimpleString.of("BRIDGE.");
+
+   // sentinel for a redistribution delivery count which has not been read off the message yet.
+   private static final int UNRESOLVED_REDISTRIBUTION_DELIVERY_COUNT = -1;
 
    private final AddressManager addressManager;
 
@@ -1427,11 +1431,6 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
          }
       }
 
-      Integer redistributionDeliveryCount = getRedistributionDeliveryCount(message);
-      if (redistributionDeliveryCount != null) {
-         reference.setDeliveryCount(redistributionDeliveryCount);
-      }
-
       queue.refUp(reference);
       queue.durableUp(message);
 
@@ -1673,14 +1672,6 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
 
    }
 
-   private static Integer getRedistributionDeliveryCount(final Message message) {
-      final Object deliveryCount = message.getBrokerProperty(Message.HDR_REDISTRIBUTION_DELIVERY_COUNT);
-      if (deliveryCount instanceof Number number && number.intValue() > 0) {
-         return number.intValue();
-      }
-      return null;
-   }
-
    @Override
    public void processRoute(final Message message,
                             final RoutingContext context,
@@ -1706,7 +1697,6 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
       } else {
          deliveryTime = null;
       }
-      final Integer redistributionDeliveryCount = getRedistributionDeliveryCount(message);
       final SimpleString messageAddress = message.getAddressSimpleString();
       final PagingStore owningStore = pagingManager.getPageStore(messageAddress);
       message.setOwner(owningStore);
@@ -1732,20 +1722,19 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
             throw new IllegalStateException("Paging returned false (NOT_PAGED) for a dropped message");
          }
 
+         int redistributionDeliveryCount = UNRESOLVED_REDISTRIBUTION_DELIVERY_COUNT;
          final List<Queue> nonDurableQueues = entry.getValue().getNonDurableQueues();
          if (!nonDurableQueues.isEmpty()) {
             refs.ensureCapacity(nonDurableQueues.size());
-            nonDurableQueues.forEach(queue -> {
+            for (Queue queue : nonDurableQueues) {
                final MessageReference reference = MessageReference.Factory.createReference(message, queue);
                if (deliveryTime != null) {
                   reference.setScheduledDeliveryTime(deliveryTime);
                }
-               if (redistributionDeliveryCount != null) {
-                  reference.setDeliveryCount(redistributionDeliveryCount);
-               }
+               redistributionDeliveryCount = applyRedistributionDeliveryCount(message, queue, reference, redistributionDeliveryCount);
                refs.add(reference);
                queue.refUp(reference);
-            });
+            }
          }
 
          final List<Queue> durableQueues = entry.getValue().getDurableQueues();
@@ -1807,13 +1796,56 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
       ref.getQueue().addTail(ref, direct);
    }
 
+   /**
+    * A delivery count carried over by a redistribution is only honored when the receiving queue is configured to
+    * preserve it.
+    * <p>
+    * Internal queues (e.g. store-and-forward) are skipped because they never apply {@code max-delivery-attempts}, the
+    * same reason {@link QueueImpl#checkRedelivery} exempts them.
+    */
+   public static boolean preservesRedistributionDeliveryCount(final Queue queue) {
+      return !queue.isInternalQueue() && queue.isPreserveDeliveryCountOnRedistribution();
+   }
+
+   /**
+    * Applies a delivery count preserved by a redistribution to {@code reference}, when {@code queue} is configured to
+    * preserve it. The property is read off the message only once, the first time a queue actually wants it.
+    *
+    * {@return the resolved count, to be passed back in on the next call for the same message, or
+    * {@link #UNRESOLVED_REDISTRIBUTION_DELIVERY_COUNT} while no queue has wanted it yet}
+    */
+   private static int applyRedistributionDeliveryCount(final Message message,
+                                                       final Queue queue,
+                                                       final MessageReference reference,
+                                                       final int redistributionDeliveryCount) {
+      if (!preservesRedistributionDeliveryCount(queue)) {
+         return redistributionDeliveryCount;
+      }
+
+      int resolved = redistributionDeliveryCount;
+      if (resolved == UNRESOLVED_REDISTRIBUTION_DELIVERY_COUNT) {
+         resolved = message.getRedistributionDeliveryCount();
+      }
+
+      if (resolved > 0) {
+         reference.setDeliveryCount(resolved);
+      }
+
+      return resolved;
+   }
+
+   /**
+    * {@code inRedistributionDeliveryCount} carries whatever the caller already resolved, so routing to both durable
+    * and non-durable queues reads the property at most once.
+    */
    private void processRouteToDurableQueues(final Message message,
                                             final RoutingContext context,
                                             final Long deliveryTime,
-                                            final Integer redistributionDeliveryCount,
+                                            final int inRedistributionDeliveryCount,
                                             final Transaction tx,
                                             final List<Queue> durableQueues,
                                             final ArrayList<MessageReference> refs) throws Exception {
+      int redistributionDeliveryCount = inRedistributionDeliveryCount;
       final int durableQueuesCount = durableQueues.size();
       refs.ensureCapacity(durableQueuesCount);
       final Iterator<Queue> iter = durableQueues.iterator();
@@ -1829,9 +1861,7 @@ public class PostOfficeImpl implements PostOffice, NotificationListener, Binding
          if (deliveryTime != null) {
             reference.setScheduledDeliveryTime(deliveryTime);
          }
-         if (redistributionDeliveryCount != null) {
-            reference.setDeliveryCount(redistributionDeliveryCount);
-         }
+         redistributionDeliveryCount = applyRedistributionDeliveryCount(message, queue, reference, redistributionDeliveryCount);
          refs.add(reference);
          queue.refUp(reference);
          if (message.isDurable()) {

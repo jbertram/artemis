@@ -118,13 +118,13 @@ public class Redistributor implements Consumer {
       Message message = routingInfo.getB();
 
       // the delivery count is tracked on the MessageReference, so the target broker would start over at 0 when it
-      // creates a new reference for the redistributed copy: carry it over through the message itself
+      // creates a new reference for the redistributed copy: carry it over through the message itself. The target only
+      // applies it when it is configured to preserve it too, so a stale count from an earlier hop is simply ignored.
       final int deliveryCount = reference.getDeliveryCount();
       if (queue.isPreserveDeliveryCountOnRedistribution() && deliveryCount > 0) {
-         message.setBrokerProperty(Message.HDR_REDISTRIBUTION_DELIVERY_COUNT, deliveryCount);
-      } else if (message.getBrokerProperty(Message.HDR_REDISTRIBUTION_DELIVERY_COUNT) != null) {
-         // a count carried over by an earlier redistribution must not be applied again once the setting is disabled
-         message.setBrokerProperty(Message.HDR_REDISTRIBUTION_DELIVERY_COUNT, 0);
+         message.setRedistributionDeliveryCount(deliveryCount);
+      } else {
+         message.removeRedistributionDeliveryCount();
       }
 
       try {

@@ -794,6 +794,16 @@ Set it to `true` to carry the delivery count over, so a message which bounces be
 </address-settings>
 ----
 
+The count is carried on the redistributed message in the `_AMQ_REDISTRIBUTION_DELIVERY_COUNT` property, which stays visible to consumers on the target broker.
+It is only applied by a broker which has `preserve-delivery-count-on-redistribution` enabled for the address itself, so both ends must be configured for the count to survive a hop.
+
+[NOTE]
+====
+The delivery count is not preserved if the address on the target broker is xref:paging.adoc#paging[paging] when the redistributed message arrives.
+Such a message starts again at `1` on the target, as if the setting were disabled.
+This is uncommon, since redistribution is normally driven by a queue which has no messages left to deliver, but it can still happen (e.g. when the consumer creating the demand is not keeping up, or when another queue on the same address is keeping the address in paging mode).
+====
+
 [WARNING]
 ====
 The broker uses internal store-and-forward queues to handle message which need to be sent to other nodes in the cluster.
