@@ -324,8 +324,10 @@ public final class PageSubscriptionImpl implements PageSubscription {
             }
          }
 
-         for (PageCursorInfo deletedPage : nonExistingPages) {
-            consumedPages.remove(deletedPage.pageId);
+         synchronized (consumedPages) {
+            for (PageCursorInfo deletedPage : nonExistingPages) {
+               consumedPages.remove(deletedPage.pageId);
+            }
          }
 
          for (PageCursorInfo infoPG : completedPages) {
@@ -728,16 +730,23 @@ public final class PageSubscriptionImpl implements PageSubscription {
 
    public void printDebug(final String msg) {
       System.out.println("Debug information on PageCurorImpl- " + msg);
-      for (PageCursorInfo info : consumedPages.values()) {
-         System.out.println(info);
+      synchronized (consumedPages) {
+         for (PageCursorInfo info : consumedPages.values()) {
+            System.out.println(info);
+         }
       }
    }
 
    @Override
    public void deleteCursorInfo() {
-      logger.debug("Delete consumed Paged on {} with consumedPages size = {}", pageStore.getAddress(), consumedPages.size());
-      consumedPages.forEach(this::deleteCursorInfo);
-      consumedPages.clear();
+      final Map<Long, PageCursorInfo> toDelete;
+      synchronized (consumedPages) {
+         logger.debug("Delete consumed Paged on {} with consumedPages size = {}", pageStore.getAddress(), consumedPages.size());
+         toDelete = new HashMap<>(consumedPages);
+         consumedPages.clear();
+      }
+      // the journal removals are performed outside of the lock to avoid holding it during IO
+      toDelete.forEach(this::deleteCursorInfo);
    }
 
    private void deleteCursorInfo(Long page, PageCursorInfo info) {
